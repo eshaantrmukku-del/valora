@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Valora — Settings</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="valora-core.css" rel="stylesheet">
+<link href="valora-shared.css" rel="stylesheet">
+<style>
+.page{flex:1;overflow-y:auto;padding:28px;max-width:900px}
+.settings-layout{display:grid;grid-template-columns:200px 1fr;gap:24px;align-items:start}
+.settings-nav{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:8px;position:sticky;top:0}
+.settings-nav-item{display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:7px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;transition:all 0.15s;border:none;background:none;width:100%;text-align:left;font-family:inherit}
+.settings-nav-item:hover{background:var(--bg);color:var(--text)}
+.settings-nav-item.active{background:var(--blue-lt);color:var(--blue);font-weight:600}
+.settings-section{display:none}
+.settings-section.active{display:block}
+.settings-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);margin-bottom:16px;overflow:hidden}
+.settings-card-head{padding:18px 22px;border-bottom:1px solid var(--border)}
+.settings-card-head h2{font-size:15px;font-weight:700;letter-spacing:-0.2px}
+.settings-card-head p{font-size:12px;color:var(--muted);margin-top:3px}
+.settings-card-body{padding:22px}
+.form-row{margin-bottom:18px}
+.form-row:last-child{margin-bottom:0}
+.form-row label{display:block;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:7px}
+.form-row input,.form-row select{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none;transition:border-color 0.15s;background:var(--surface)}
+.form-row input:focus,.form-row select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(27,79,216,0.1)}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.plan-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.plan-card{border:2px solid var(--border);border-radius:12px;padding:20px;cursor:pointer;transition:all 0.15s;position:relative}
+.plan-card:hover{border-color:#93C5FD}
+.plan-card.current{border-color:var(--blue);background:var(--blue-lt)}
+.plan-card.featured{border-color:var(--blue)}
+.plan-badge{position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:var(--blue);color:#fff;font-size:9px;font-weight:700;padding:3px 10px;border-radius:100px;letter-spacing:0.05em}
+.plan-name{font-size:13px;font-weight:700;margin-bottom:4px}
+.plan-price{font-size:24px;font-weight:800;letter-spacing:-1px;margin-bottom:4px}
+.plan-price span{font-size:12px;font-weight:500;color:var(--muted)}
+.plan-features{list-style:none;margin-top:14px}
+.plan-features li{font-size:11px;color:var(--muted);padding:4px 0;display:flex;align-items:center;gap:6px}
+.plan-features li::before{content:'✓';color:var(--green);font-weight:700;font-size:10px}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border)}
+.toggle-row:last-child{border-bottom:none}
+.toggle-info .toggle-label{font-size:13px;font-weight:600;color:var(--text)}
+.toggle-info .toggle-desc{font-size:11px;color:var(--muted);margin-top:2px}
+.toggle{width:44px;height:24px;border-radius:100px;background:var(--border);position:relative;cursor:pointer;transition:background 0.2s;border:none;flex-shrink:0}
+.toggle.on{background:var(--blue)}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.15)}
+.toggle.on::after{transform:translateX(20px)}
+.danger-zone{border-color:rgba(220,38,38,0.25)}
+.danger-zone .settings-card-head h2{color:var(--red)}
+@media(max-width:768px){.settings-layout{grid-template-columns:1fr}.plan-grid{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body data-page="settings">
+<aside class="sidebar">
+  <a href="valora-dashboard.html" class="sb-brand">
+    <div class="sb-brand-inner">
+      <div class="sb-logo">V</div>
+      <div><div class="sb-brand-name">Valora</div><div class="sb-brand-sub">Property Intelligence</div></div>
+    </div>
+  </a>
+  <div class="sb-section">
+    <div class="sb-section-label">Main</div>
+    <a href="valora-dashboard.html" class="sb-item"><span class="icon">⊞</span> Dashboard</a>
+    <a href="valora-discover.html" class="sb-item"><span class="icon">◎</span> Discover <span class="badge">5</span></a>
+    <a href="valora-portfolio.html" class="sb-item"><span class="icon">▤</span> Portfolio</a>
+    <a href="valora-area-intel.html" class="sb-item"><span class="icon">∿</span> Area Intel</a>
+    <a href="valora-analyse.html" class="sb-item"><span class="icon">⬡</span> Analyse</a>
+  </div>
+  <div class="sb-section">
+    <div class="sb-section-label">Account</div>
+    <a href="valora-settings.html" class="sb-item active"><span class="icon">⚙</span> Settings</a>
+    <a href="valora-settings.html#support" class="sb-item"><span class="icon">?</span> Support</a>
+  </div>
+  <div class="sb-bottom">
+    <button class="sb-new">+ New Analysis</button>
+    <a href="valora-settings.html#billing" class="sb-upgrade">
+      <div class="sb-upgrade-label">Current plan</div>
+      <div class="sb-upgrade-plan">Pro · £49/mo</div>
+      <div class="sb-upgrade-cta">Upgrade to Investor →</div>
+    </a>
+    <div class="sb-user" style="margin-top:12px">
+      <div class="sb-avatar">AS</div>
+      <div><div class="sb-user-name">Alex Sterling</div><div class="sb-user-plan">Pro Plan</div></div>
+    </div>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-title">Settings</div>
+      <div class="topbar-sub">Manage your account, alerts, and subscription</div>
+    </div>
+  </div>
+
+  <div class="page">
+    <div class="settings-layout">
+      <nav class="settings-nav">
+        <button class="settings-nav-item active" data-section="profile">👤 Profile</button>
+        <button class="settings-nav-item" data-section="alerts">🔔 Alerts</button>
+        <button class="settings-nav-item" data-section="billing" id="billing">💳 Billing</button>
+        <button class="settings-nav-item" data-section="notifications">📬 Notifications</button>
+        <button class="settings-nav-item" data-section="support" id="support">❓ Support</button>
+      </nav>
+
+      <div class="settings-content">
+        <section class="settings-section active" id="section-profile">
+          <div class="settings-card">
+            <div class="settings-card-head"><h2>Profile</h2><p>Your personal information and preferences</p></div>
+            <div class="settings-card-body">
+              <div class="form-grid">
+                <div class="form-row"><label>First name</label><input type="text" value="Alex"></div>
+                <div class="form-row"><label>Last name</label><input type="text" value="Sterling"></div>
+              </div>
+              <div class="form-row" style="margin-top:14px"><label>Email</label><input type="email" value="alex@sterlingcapital.co.uk"></div>
+              <div class="form-row"><label>Investment focus</label>
+                <select><option>Buy-to-Let</option><option>Development</option><option>Mixed Strategy</option><option>HMO</option></select>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="settings-section" id="section-alerts">
+          <div class="settings-card">
+            <div class="settings-card-head"><h2>Deal Alert Briefs</h2><p>Get notified when properties match your criteria</p></div>
+            <div class="settings-card-body">
+              <div class="toggle-row">
+                <div class="toggle-info"><div class="toggle-label">Sheffield Demo &amp; Rebuild</div><div class="toggle-desc">Plots under £200k, 20%+ GDV profit</div></div>
+                <button class="toggle on" aria-label="Toggle alert"></button>
+              </div>
+              <div class="toggle-row">
+                <div class="toggle-info"><div class="toggle-label">Manchester BTL High Yield</div><div class="toggle-desc">8%+ yield, M1–M4, under £300k</div></div>
+                <button class="toggle on" aria-label="Toggle alert"></button>
+              </div>
+              <div class="toggle-row">
+                <div class="toggle-info"><div class="toggle-label">Leeds HMO Opportunities</div><div class="toggle-desc">Licensed HMO, 10%+ yield, LS6</div></div>
+                <button class="toggle" aria-label="Toggle alert"></button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="settings-section" id="section-billing">
+          <div class="settings-card">
+            <div class="settings-card-head"><h2>Choose Your Plan</h2><p>Upgrade to unlock more analyses, alerts, and portfolio tools</p></div>
+            <div class="settings-card-body">
+              <div class="plan-grid">
+                <div class="plan-card">
+                  <div class="plan-name">Starter</div>
+                  <div class="plan-price">£19<span>/mo</span></div>
+                  <ul class="plan-features">
+                    <li>Basic analyses</li>
+                    <li>Limited reports</li>
+                    <li>Property saving</li>
+                  </ul>
+                </div>
+                <div class="plan-card current featured">
+                  <div class="plan-badge">CURRENT</div>
+                  <div class="plan-name">Pro</div>
+                  <div class="plan-price">£49<span>/mo</span></div>
+                  <ul class="plan-features">
+                    <li>Unlimited analyses</li>
+                    <li>Deal alerts</li>
+                    <li>Area intelligence</li>
+                    <li>Advanced calculations</li>
+                  </ul>
+                </div>
+                <div class="plan-card">
+                  <div class="plan-name">Investor</div>
+                  <div class="plan-price">£99<span>/mo</span></div>
+                  <ul class="plan-features">
+                    <li>Portfolio tracking</li>
+                    <li>Market forecasting</li>
+                    <li>Priority alerts</li>
+                    <li>API access</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="settings-section" id="section-notifications">
+          <div class="settings-card">
+            <div class="settings-card-head"><h2>Notification Preferences</h2><p>How and when Valora contacts you</p></div>
+            <div class="settings-card-body">
+              <div class="toggle-row">
+                <div class="toggle-info"><div class="toggle-label">Email deal alerts</div><div class="toggle-desc">Instant alerts for matching properties</div></div>
+                <button class="toggle on"></button>
+              </div>
+              <div class="toggle-row">
+                <div class="toggle-info"><div class="toggle-label">Weekly market digest</div><div class="toggle-desc">Summary of your tracked areas</div></div>
+                <button class="toggle on"></button>
+              </div>
+              <div class="toggle-row">
+                <div class="toggle-info"><div class="toggle-label">Portfolio performance</div><div class="toggle-desc">Monthly cash flow and yield reports</div></div>
+                <button class="toggle"></button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="settings-section" id="section-support">
+          <div class="settings-card">
+            <div class="settings-card-head"><h2>Help &amp; Support</h2><p>Get help using Valora</p></div>
+            <div class="settings-card-body">
+              <div class="form-row"><label>Subject</label><input type="text" placeholder="How can we help?"></div>
+              <div class="form-row"><label>Message</label><textarea style="width:100%;min-height:100px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;resize:vertical" placeholder="Describe your question…"></textarea></div>
+              <button class="btn-sm btn-primary" style="margin-top:8px;border:none">Send Message</button>
+            </div>
+          </div>
+          <div class="settings-card danger-zone">
+            <div class="settings-card-head"><h2>Danger Zone</h2><p>Irreversible account actions</p></div>
+            <div class="settings-card-body">
+              <button class="btn-sm" style="color:var(--red);border-color:rgba(220,38,38,0.3)">Delete Account</button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="valora-data.js"></script>
+<script src="valora-app.js"></script>
+</body>
+</html>

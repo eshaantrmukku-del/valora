@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Valora — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="valora-core.css" rel="stylesheet">
+<link href="valora-shared.css" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0D1B2A;--navy2:#162336;--blue:#1B4FD8;--blue-lt:#EEF2FF;
+  --green:#16A34A;--green-lt:#DCFCE7;--amber:#D97706;--amber-lt:#FEF3C7;
+  --red:#DC2626;--red-lt:#FEE2E2;--purple:#7C3AED;--purple-lt:#EDE9FE;
+  --cyan:#0891B2;--cyan-lt:#CFFAFE;
+  --bg:#F1F4F8;--surface:#FFFFFF;--border:#E2E8F0;
+  --text:#0F172A;--muted:#64748B;--light:#94A3B8;
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;display:flex;height:100vh;overflow:hidden}
+
+/* SIDEBAR */
+.sidebar{width:220px;min-width:220px;background:var(--navy);display:flex;flex-direction:column;height:100vh;position:fixed;left:0;top:0;z-index:100}
+.sb-brand{padding:20px 18px 18px;border-bottom:1px solid rgba(255,255,255,0.07)}
+.sb-brand-name{font-size:15px;font-weight:700;color:#fff}
+.sb-brand-sub{font-size:9px;color:rgba(255,255,255,0.3);letter-spacing:0.12em;text-transform:uppercase;margin-top:2px}
+.sb-section{padding:16px 10px 8px}
+.sb-section-label{font-size:9px;font-weight:700;color:rgba(255,255,255,0.25);text-transform:uppercase;letter-spacing:0.1em;padding:0 10px;margin-bottom:6px}
+.sb-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:7px;margin-bottom:2px;font-size:13px;font-weight:500;color:rgba(255,255,255,0.5);text-decoration:none;cursor:pointer;transition:all 0.15s}
+.sb-item:hover{color:rgba(255,255,255,0.85);background:rgba(255,255,255,0.06)}
+.sb-item.active{background:rgba(255,255,255,0.1);color:#fff}
+.sb-item .icon{width:16px;text-align:center;font-size:14px;flex-shrink:0}
+.sb-item .badge{margin-left:auto;background:var(--blue);color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:100px}
+.sb-bottom{margin-top:auto;padding:12px 10px}
+.sb-new{background:var(--blue);color:#fff;font-size:12px;font-weight:600;padding:10px 14px;border-radius:8px;text-align:center;cursor:pointer;transition:background 0.15s;border:none;width:100%}
+.sb-new:hover{background:#1a45c4}
+.sb-user{display:flex;align-items:center;gap:10px;padding:12px 12px 0}
+.sb-avatar{width:30px;height:30px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0}
+.sb-user-name{font-size:12px;font-weight:600;color:rgba(255,255,255,0.8)}
+.sb-user-plan{font-size:10px;color:rgba(255,255,255,0.35)}
+
+/* MAIN */
+.main{margin-left:220px;flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden}
+.topbar{height:56px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 28px;gap:16px;flex-shrink:0}
+.topbar-search{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:8px 14px;flex:1;max-width:480px;cursor:text}
+.topbar-search input{background:none;border:none;outline:none;font-size:13px;color:var(--text);width:100%;font-family:'Inter',sans-serif}
+.topbar-search input::placeholder{color:var(--light)}
+.topbar-search .search-icon{color:var(--light);font-size:14px;flex-shrink:0}
+.topbar-right{display:flex;align-items:center;gap:12px;margin-left:auto}
+.topbar-btn{width:34px;height:34px;border-radius:7px;border:1px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;color:var(--muted);transition:all 0.15s;position:relative}
+.topbar-btn:hover{border-color:var(--blue);color:var(--blue)}
+.notif-dot{position:absolute;top:6px;right:6px;width:7px;height:7px;border-radius:50%;background:var(--red);border:2px solid var(--surface)}
+.topbar-divider{width:1px;height:24px;background:var(--border)}
+.topbar-user{display:flex;align-items:center;gap:9px;cursor:pointer}
+.topbar-avatar{width:32px;height:32px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff}
+.topbar-user-info .name{font-size:13px;font-weight:600;color:var(--text)}
+.topbar-user-info .plan{font-size:10px;color:var(--muted)}
+
+/* PAGE */
+.page{flex:1;overflow-y:auto;padding:28px}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px}
+.page-title-group .page-title{font-size:22px;font-weight:800;color:var(--text);letter-spacing:-0.5px}
+.page-title-group .page-sub{font-size:13px;color:var(--muted);margin-top:3px}
+.page-actions{display:flex;gap:8px}
+.btn-sm{font-size:12px;font-weight:600;padding:8px 14px;border-radius:6px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px;transition:all 0.15s;border:none}
+.btn-outline{background:var(--surface);border:1px solid var(--border);color:var(--muted)}
+.btn-outline:hover{border-color:var(--blue);color:var(--blue)}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-primary:hover{background:#1a45c4}
+
+/* METRIC CARDS */
+.metrics-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.metric-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px 20px;position:relative;overflow:hidden}
+.metric-card::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:10px 10px 0 0}
+.metric-card.blue::after{background:var(--blue)}
+.metric-card.green::after{background:var(--green)}
+.metric-card.amber::after{background:var(--amber)}
+.metric-card.purple::after{background:var(--purple)}
+.mc-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+.mc-label .mc-icon{font-size:15px}
+.mc-value{font-size:26px;font-weight:800;color:var(--text);letter-spacing:-1px;line-height:1}
+.mc-change{font-size:11px;margin-top:6px;display:flex;align-items:center;gap:4px}
+.mc-change.up{color:var(--green)}
+.mc-change.down{color:var(--red)}
+.mc-change.neutral{color:var(--muted)}
+.mc-sub{font-size:11px;color:var(--light);margin-top:4px}
+
+/* TWO COL */
+.two-col{display:grid;grid-template-columns:1fr 1.4fr;gap:14px;margin-bottom:14px}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px}
+
+/* PANEL */
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.panel-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.panel-head-left{display:flex;align-items:center;gap:10px}
+.panel-title{font-size:13px;font-weight:700;color:var(--text)}
+.panel-sub{font-size:11px;color:var(--muted);margin-top:1px}
+.panel-badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:100px;background:var(--blue);color:#fff}
+.panel-badge.green{background:var(--green-lt);color:var(--green)}
+.panel-action{font-size:11px;font-weight:600;color:var(--blue);text-decoration:none;cursor:pointer}
+.panel-body{padding:16px 20px}
+
+/* ALERTS */
+.alert-item{border:1px solid var(--border);border-radius:8px;padding:13px 15px;margin-bottom:10px;transition:border-color 0.15s,box-shadow 0.15s;cursor:pointer}
+.alert-item:hover{border-color:#93C5FD;box-shadow:0 2px 12px rgba(27,79,216,0.07)}
+.alert-item:last-child{margin-bottom:0}
+.alert-meta{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px}
+.alert-tags{display:flex;gap:5px;flex-wrap:wrap}
+.atag{font-size:9px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;padding:2px 7px;border-radius:3px;display:inline-block}
+.atag.demo{background:var(--purple-lt);color:var(--purple)}
+.atag.undervalued{background:var(--green-lt);color:var(--green)}
+.atag.offmarket{background:var(--navy);color:#fff}
+.atag.distressed{background:var(--red-lt);color:var(--red)}
+.atag.hmo{background:var(--cyan-lt);color:var(--cyan)}
+.alert-time{font-size:10px;color:var(--light)}
+.alert-name{font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px}
+.alert-desc{font-size:11px;color:var(--muted);line-height:1.5}
+.alert-foot{display:flex;align-items:center;justify-content:space-between;margin-top:9px}
+.alert-price{font-size:13px;font-weight:700;color:var(--blue)}
+.alert-score-pill{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600}
+.score-dot{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;border:2px solid;flex-shrink:0}
+.score-dot.high{color:var(--green);border-color:var(--green);background:var(--green-lt)}
+.score-dot.mid{color:var(--amber);border-color:var(--amber);background:var(--amber-lt)}
+.score-dot.low{color:var(--red);border-color:var(--red);background:var(--red-lt)}
+
+/* TABLE */
+.data-table{width:100%;border-collapse:collapse}
+.data-table th{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--light);padding:10px 12px;text-align:left;border-bottom:1px solid var(--border);background:var(--bg)}
+.data-table td{padding:12px 12px;border-bottom:1px solid var(--border);font-size:12px;color:var(--text);vertical-align:middle}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tr:hover td{background:rgba(241,244,248,0.6)}
+.td-name{font-weight:600;color:var(--text);margin-bottom:1px}
+.td-sub{font-size:10px;color:var(--muted)}
+.status-badge{font-size:9px;font-weight:700;padding:3px 8px;border-radius:3px;text-transform:uppercase;letter-spacing:0.04em;display:inline-block}
+.sb-vetted{background:var(--green-lt);color:var(--green)}
+.sb-review{background:var(--amber-lt);color:var(--amber)}
+.sb-passed{background:var(--red-lt);color:var(--red)}
+.sb-live{background:var(--blue-lt);color:var(--blue)}
+.score-ring{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;border:2px solid;flex-shrink:0}
+.sr-high{color:var(--green);border-color:var(--green)}
+.sr-mid{color:var(--amber);border-color:var(--amber)}
+.sr-low{color:var(--red);border-color:var(--red)}
+
+/* SPARKLINE */
+.spark{display:inline-block;vertical-align:middle}
+
+/* STRATEGY MIX CHART */
+.strat-mix{display:flex;flex-direction:column;gap:10px;padding:4px 0}
+.strat-row{display:flex;align-items:center;gap:10px}
+.strat-label{font-size:11px;font-weight:500;color:var(--muted);width:110px;flex-shrink:0}
+.strat-bar-wrap{flex:1;background:var(--bg);border-radius:100px;height:7px;overflow:hidden}
+.strat-bar{height:100%;border-radius:100px;transition:width 0.6s ease}
+.strat-pct{font-size:11px;font-weight:600;color:var(--text);width:32px;text-align:right;flex-shrink:0}
+
+/* PORTFOLIO CHART — simple bar */
+.chart-bars{display:flex;align-items:flex-end;gap:6px;height:90px;padding-bottom:4px}
+.chart-bar-col{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1}
+.chart-bar{width:100%;border-radius:4px 4px 0 0;transition:opacity 0.15s;cursor:default;min-width:0}
+.chart-bar:hover{opacity:0.8}
+.chart-month{font-size:9px;color:var(--light);text-align:center}
+.chart-legend{display:flex;gap:14px;margin-top:12px;flex-wrap:wrap}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted)}
+.legend-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+
+/* CASHFLOW INDICATOR */
+.cashflow-ring-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;height:120px}
+.cashflow-num{font-size:28px;font-weight:800;color:var(--text);letter-spacing:-1px}
+.cashflow-label{font-size:11px;color:var(--muted);margin-top:3px}
+.cashflow-change{font-size:11px;color:var(--green);margin-top:4px;font-weight:600}
+
+/* PROPERTY SCORE CARD */
+.score-card{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center}
+.score-big{font-size:52px;font-weight:800;letter-spacing:-2px;line-height:1}
+.score-big.high{color:var(--green)}
+.score-grade{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin-top:4px}
+.score-grade.high{color:var(--green)}
+.score-desc{font-size:11px;color:var(--muted);margin-top:6px;max-width:140px;line-height:1.5}
+
+/* EMPTY STATE */
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;text-align:center;color:var(--muted)}
+.empty-icon{font-size:32px;margin-bottom:10px;opacity:0.4}
+.empty-text{font-size:13px}
+
+/* QUICK ACTIONS */
+.quick-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.qa-item{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;gap:10px}
+.qa-item:hover{border-color:#93C5FD;background:var(--blue-lt)}
+.qa-icon{font-size:18px;flex-shrink:0}
+.qa-label{font-size:12px;font-weight:600;color:var(--text)}
+.qa-sub{font-size:10px;color:var(--muted);margin-top:1px}
+
+/* MARKET PULSE */
+.pulse-item{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
+.pulse-item:last-child{border-bottom:none}
+.pulse-area{font-size:12px;font-weight:600;color:var(--text)}
+.pulse-detail{font-size:10px;color:var(--muted);margin-top:1px}
+.pulse-right{text-align:right}
+.pulse-score{font-size:13px;font-weight:700}
+.pulse-change{font-size:10px;margin-top:1px}
+.pos{color:var(--green)}
+.neg{color:var(--red)}
+.neu{color:var(--muted)}
+
+/* NAV PAGE LINKS */
+a.sb-item{display:flex}
+</style>
+</head>
+<body data-page="dashboard">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <a href="valora-dashboard.html" class="sb-brand">
+    <div class="sb-brand-inner">
+      <div class="sb-logo">V</div>
+      <div><div class="sb-brand-name">Valora</div><div class="sb-brand-sub">Property Intelligence</div></div>
+    </div>
+  </a>
+  <div class="sb-section">
+    <div class="sb-section-label">Main</div>
+    <a href="valora-dashboard.html" class="sb-item active"><span class="icon">⊞</span> Dashboard</a>
+    <a href="valora-discover.html" class="sb-item"><span class="icon">◎</span> Discover <span class="badge">5</span></a>
+    <a href="valora-portfolio.html" class="sb-item"><span class="icon">▤</span> Portfolio</a>
+    <a href="valora-area-intel.html" class="sb-item"><span class="icon">∿</span> Area Intel</a>
+    <a href="valora-analyse.html" class="sb-item"><span class="icon">⬡</span> Analyse</a>
+  </div>
+  <div class="sb-section">
+    <div class="sb-section-label">Account</div>
+    <a href="valora-settings.html" class="sb-item"><span class="icon">⚙</span> Settings</a>
+    <a href="valora-settings.html#support" class="sb-item"><span class="icon">?</span> Support</a>
+  </div>
+  <div class="sb-bottom">
+    <button class="sb-new">+ New Analysis</button>
+    <a href="valora-settings.html#billing" class="sb-upgrade">
+      <div class="sb-upgrade-label">Current plan</div>
+      <div class="sb-upgrade-plan">Pro · £49/mo</div>
+      <div class="sb-upgrade-cta">Upgrade to Investor →</div>
+    </a>
+    <div class="sb-user" style="margin-top:12px">
+      <div class="sb-avatar">AS</div>
+      <div><div class="sb-user-name">Alex Sterling</div><div class="sb-user-plan">Pro Plan</div></div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-search">
+      <span class="search-icon">✦</span>
+      <input type="text" placeholder='Try "Find demolish &amp; rebuild sites in Sheffield under £200k"'>
+      <kbd>⌘K</kbd>
+    </div>
+    <div class="topbar-right">
+      <div class="topbar-btn-wrap">
+        <div class="topbar-btn active" id="notif-btn">🔔<div class="notif-dot"></div></div>
+        <div class="notif-dropdown" id="notif-dropdown">
+          <div class="notif-dropdown-head"><h3>Notifications</h3><span>Mark all read</span></div>
+          <div class="notif-dropdown-body">
+            <div class="notif-item unread">
+              <div class="notif-item-title">New deal: Sheffield S6 plot</div>
+              <div class="notif-item-desc">Demo &amp; rebuild · Score 91 · £155k</div>
+              <div class="notif-item-time">8 min ago</div>
+            </div>
+            <div class="notif-item unread">
+              <div class="notif-item-title">Undervalued: Victoria Lofts M1</div>
+              <div class="notif-item-desc">18% BMV · 9.2% yield · Score 88</div>
+              <div class="notif-item-time">1 hour ago</div>
+            </div>
+            <div class="notif-item">
+              <div class="notif-item-title">HMO alert: Leeds LS6</div>
+              <div class="notif-item-desc">6-bed terrace · 10.8% yield</div>
+              <div class="notif-item-time">4 hours ago</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="topbar-btn">🕐</div>
+      <div class="topbar-divider"></div>
+      <div class="topbar-user">
+        <div class="topbar-avatar">AS</div>
+        <div class="topbar-user-info"><div class="name">Alex Sterling</div><div class="plan">Pro Plan</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page">
+    <div class="page-header">
+      <div class="page-title-group">
+        <div class="page-title">Portfolio Dashboard</div>
+        <div class="page-sub" id="dashboard-greeting">Good morning, Alex</div>
+        <div class="page-sub" style="margin-top:2px">7 properties tracked · 3 active alerts</div>
+      </div>
+      <div class="page-actions">
+        <a href="valora-analyse.html" class="btn-sm btn-outline">⬡ Analyse a property</a>
+        <a href="valora-discover.html" class="btn-sm btn-primary">◎ Discover deals</a>
+      </div>
+    </div>
+
+    <!-- METRICS -->
+    <div class="metrics-grid">
+      <div class="metric-card blue">
+        <div class="mc-label">Total Portfolio Value <span class="mc-icon">🏘</span></div>
+        <div class="mc-value">£2.41M</div>
+        <div class="mc-change up">↑ +4.2% this quarter</div>
+        <div class="mc-sub">7 properties tracked</div>
+      </div>
+      <div class="metric-card green">
+        <div class="mc-label">Monthly Cash Flow <span class="mc-icon">💷</span></div>
+        <div class="mc-value">£3,840</div>
+        <div class="mc-change up">↑ +£320 vs last month</div>
+        <div class="mc-sub">After mortgage & costs</div>
+      </div>
+      <div class="metric-card amber">
+        <div class="mc-label">Avg Portfolio Yield <span class="mc-icon">%</span></div>
+        <div class="mc-value">6.82%</div>
+        <div class="mc-change neutral">→ Stable vs last quarter</div>
+        <div class="mc-sub">Net yield across all assets</div>
+      </div>
+      <div class="metric-card purple">
+        <div class="mc-label">Active Deal Alerts <span class="mc-icon">🔔</span></div>
+        <div class="mc-value">3</div>
+        <div class="mc-change up">↑ 2 new since yesterday</div>
+        <div class="mc-sub">Matching your saved briefs</div>
+      </div>
+    </div>
+
+    <!-- ROW 2 -->
+    <div class="two-col">
+      <!-- ALERTS -->
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-head-left">
+            <div>
+              <div class="panel-title">Active Alerts</div>
+              <div class="panel-sub">Properties matching your saved search briefs</div>
+            </div>
+          </div>
+          <span class="panel-badge">3 New</span>
+        </div>
+        <div class="panel-body">
+          <div class="alert-item" onclick="window.location='valora-analyse.html'">
+            <div class="alert-meta">
+              <div class="alert-tags"><span class="atag demo">Demolish &amp; Rebuild</span></div>
+              <span class="alert-time">8 min ago</span>
+            </div>
+            <div class="alert-name">Derelict detached, Sheffield S6</div>
+            <div class="alert-desc">Large corner plot, 0.12 acres. Demo + 4-bed rebuild est. GDV £420k. Land asking £155k = 24% profit margin on total cost.</div>
+            <div class="alert-foot">
+              <span class="alert-price">£155,000</span>
+              <div class="alert-score-pill"><div class="score-dot high">91</div><span style="color:var(--green);font-size:11px">Excellent</span></div>
+            </div>
+          </div>
+          <div class="alert-item" onclick="window.location='valora-analyse.html'">
+            <div class="alert-meta">
+              <div class="alert-tags"><span class="atag undervalued">Undervalued</span><span class="atag offmarket">Off-Market</span></div>
+              <span class="alert-time">1h ago</span>
+            </div>
+            <div class="alert-name">Victoria Lofts, Manchester M1</div>
+            <div class="alert-desc">Trading 12% below submarket average. 100% occupancy in comparable block. Strong value-add potential.</div>
+            <div class="alert-foot">
+              <span class="alert-price">£425,000</span>
+              <div class="alert-score-pill"><div class="score-dot high">88</div><span style="color:var(--green);font-size:11px">Excellent</span></div>
+            </div>
+          </div>
+          <div class="alert-item" onclick="window.location='valora-analyse.html'">
+            <div class="alert-meta">
+              <div class="alert-tags"><span class="atag hmo">HMO Potential</span><span class="atag distressed">Distressed</span></div>
+              <span class="alert-time">4h ago</span>
+            </div>
+            <div class="alert-name">6-bed terrace, Leeds LS6</div>
+            <div class="alert-desc">Probate sale. Already configured for 5 rooms. Article 4 area — existing licence transferable on acquisition.</div>
+            <div class="alert-foot">
+              <span class="alert-price">£268,000</span>
+              <div class="alert-score-pill"><div class="score-dot mid">74</div><span style="color:var(--amber);font-size:11px">Good</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RECENT ANALYSES -->
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <div class="panel-title">Recent Analyses</div>
+            <div class="panel-sub">Properties you've analysed in the last 30 days</div>
+          </div>
+          <a href="valora-analyse.html" class="panel-action">View all →</a>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Property</th>
+              <th>Strategy</th>
+              <th>Status</th>
+              <th style="text-align:center">Score</th>
+              <th>Return</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="cursor:pointer" onclick="window.location='valora-analyse.html'">
+              <td><div class="td-name">Sheffield S6 — Plot</div><div class="td-sub">Demo & rebuild · Corner plot</div></td>
+              <td><span class="atag demo" style="font-size:9px">D&amp;R</span></td>
+              <td><span class="status-badge sb-vetted">Vetted</span></td>
+              <td style="text-align:center"><div class="score-ring sr-high" style="margin:0 auto">91</div></td>
+              <td style="color:var(--green);font-weight:700">24% GDV</td>
+            </tr>
+            <tr style="cursor:pointer" onclick="window.location='valora-analyse.html'">
+              <td><div class="td-name">Oak Ridge, Birmingham B12</div><div class="td-sub">Buy-to-let · 3 bed semi</div></td>
+              <td><span class="atag undervalued" style="font-size:9px">BTL</span></td>
+              <td><span class="status-badge sb-vetted">Vetted</span></td>
+              <td style="text-align:center"><div class="score-ring sr-high" style="margin:0 auto">85</div></td>
+              <td style="color:var(--green);font-weight:700">7.4% yield</td>
+            </tr>
+            <tr style="cursor:pointer" onclick="window.location='valora-analyse.html'">
+              <td><div class="td-name">Garratt Lane, SW18</div><div class="td-sub">Multi-unit · 4 flats</div></td>
+              <td><span class="atag undervalued" style="font-size:9px">BTL</span></td>
+              <td><span class="status-badge sb-review">Review</span></td>
+              <td style="text-align:center"><div class="score-ring sr-mid" style="margin:0 auto">74</div></td>
+              <td style="color:var(--amber);font-weight:700">5.8% yield</td>
+            </tr>
+            <tr style="cursor:pointer" onclick="window.location='valora-analyse.html'">
+              <td><div class="td-name">Quayside Flat, Leeds LS1</div><div class="td-sub">Refurb &amp; flip · 2 bed</div></td>
+              <td><span class="atag hmo" style="font-size:9px">Flip</span></td>
+              <td><span class="status-badge sb-review">Review</span></td>
+              <td style="text-align:center"><div class="score-ring sr-mid" style="margin:0 auto">71</div></td>
+              <td style="color:var(--amber);font-weight:700">£32k margin</td>
+            </tr>
+            <tr style="cursor:pointer" onclick="window.location='valora-analyse.html'">
+              <td><div class="td-name">Midtown Terrace, Nottingham</div><div class="td-sub">Buy-to-let · 3 bed</div></td>
+              <td><span class="atag undervalued" style="font-size:9px">BTL</span></td>
+              <td><span class="status-badge sb-passed">Passed</span></td>
+              <td style="text-align:center"><div class="score-ring sr-low" style="margin:0 auto">38</div></td>
+              <td style="color:var(--red);font-weight:700">3.1% yield</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ROW 3 -->
+    <div class="three-col">
+      <!-- PORTFOLIO MIX -->
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">Strategy Mix</div>
+        </div>
+        <div class="panel-body">
+          <div class="strat-mix">
+            <div class="strat-row">
+              <span class="strat-label">Buy-to-Let</span>
+              <div class="strat-bar-wrap"><div class="strat-bar" style="width:57%;background:var(--green)"></div></div>
+              <span class="strat-pct">57%</span>
+            </div>
+            <div class="strat-row">
+              <span class="strat-label">Refurb &amp; Flip</span>
+              <div class="strat-bar-wrap"><div class="strat-bar" style="width:21%;background:var(--amber)"></div></div>
+              <span class="strat-pct">21%</span>
+            </div>
+            <div class="strat-row">
+              <span class="strat-label">Demo &amp; Rebuild</span>
+              <div class="strat-bar-wrap"><div class="strat-bar" style="width:14%;background:var(--purple)"></div></div>
+              <span class="strat-pct">14%</span>
+            </div>
+            <div class="strat-row">
+              <span class="strat-label">HMO</span>
+              <div class="strat-bar-wrap"><div class="strat-bar" style="width:8%;background:var(--cyan)"></div></div>
+              <span class="strat-pct">8%</span>
+            </div>
+          </div>
+          <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--border)">
+            <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px">Cash Flow by Month</div>
+            <div class="chart-bars">
+              <div class="chart-bar-col"><div class="chart-bar" style="height:45px;background:var(--blue-lt)"></div><div class="chart-month">Jan</div></div>
+              <div class="chart-bar-col"><div class="chart-bar" style="height:52px;background:var(--blue-lt)"></div><div class="chart-month">Feb</div></div>
+              <div class="chart-bar-col"><div class="chart-bar" style="height:48px;background:var(--blue-lt)"></div><div class="chart-month">Mar</div></div>
+              <div class="chart-bar-col"><div class="chart-bar" style="height:60px;background:var(--blue-lt)"></div><div class="chart-month">Apr</div></div>
+              <div class="chart-bar-col"><div class="chart-bar" style="height:55px;background:var(--blue-lt)"></div><div class="chart-month">May</div></div>
+              <div class="chart-bar-col"><div class="chart-bar" style="height:72px;background:var(--blue)"></div><div class="chart-month">Jun</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- QUICK ACTIONS -->
+      <div class="panel">
+        <div class="panel-head"><div class="panel-title">Quick Actions</div></div>
+        <div class="panel-body">
+          <div class="quick-actions">
+            <div class="qa-item" onclick="window.location='valora-analyse.html'">
+              <div class="qa-icon">⬡</div>
+              <div><div class="qa-label">Analyse URL</div><div class="qa-sub">Paste any listing</div></div>
+            </div>
+            <div class="qa-item" onclick="window.location='valora-discover.html'">
+              <div class="qa-icon">✦</div>
+              <div><div class="qa-label">AI Search</div><div class="qa-sub">Describe your brief</div></div>
+            </div>
+            <div class="qa-item" onclick="window.location='valora-area-intel.html'">
+              <div class="qa-icon">🗺</div>
+              <div><div class="qa-label">Area Intel</div><div class="qa-sub">Search a postcode</div></div>
+            </div>
+            <div class="qa-item">
+              <div class="qa-icon">🔔</div>
+              <div><div class="qa-label">Set Alert</div><div class="qa-sub">Save a brief</div></div>
+            </div>
+            <div class="qa-item" onclick="window.location='valora-portfolio.html'">
+              <div class="qa-icon">▤</div>
+              <div><div class="qa-label">Portfolio</div><div class="qa-sub">Track properties</div></div>
+            </div>
+            <div class="qa-item">
+              <div class="qa-icon">📄</div>
+              <div><div class="qa-label">Export PDF</div><div class="qa-sub">Download report</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MARKET PULSE -->
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">Market Pulse</div>
+          <a href="valora-area-intel.html" class="panel-action">Full report →</a>
+        </div>
+        <div class="panel-body">
+          <div class="pulse-item">
+            <div><div class="pulse-area">Manchester M1–M4</div><div class="pulse-detail">City centre · High demand</div></div>
+            <div class="pulse-right"><div class="pulse-score" style="color:var(--green)">82</div><div class="pulse-change pos">↑ +3pts</div></div>
+          </div>
+          <div class="pulse-item">
+            <div><div class="pulse-area">Sheffield S6–S10</div><div class="pulse-detail">Dev potential · Regen zone</div></div>
+            <div class="pulse-right"><div class="pulse-score" style="color:var(--green)">78</div><div class="pulse-change pos">↑ +5pts</div></div>
+          </div>
+          <div class="pulse-item">
+            <div><div class="pulse-area">Birmingham B12</div><div class="pulse-detail">Buy-to-let · Rising rents</div></div>
+            <div class="pulse-right"><div class="pulse-score" style="color:var(--amber)">71</div><div class="pulse-change pos">↑ +2pts</div></div>
+          </div>
+          <div class="pulse-item">
+            <div><div class="pulse-area">Leeds LS6</div><div class="pulse-detail">HMO · Student demand</div></div>
+            <div class="pulse-right"><div class="pulse-score" style="color:var(--amber)">68</div><div class="pulse-change neu">→ Stable</div></div>
+          </div>
+          <div class="pulse-item">
+            <div><div class="pulse-area">Nottingham NG1</div><div class="pulse-detail">Mixed · Supply rising</div></div>
+            <div class="pulse-right"><div class="pulse-score" style="color:var(--red)">52</div><div class="pulse-change neg">↓ -4pts</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="valora-data.js"></script>
+<script src="valora-app.js"></script>
+</body>
+</html>

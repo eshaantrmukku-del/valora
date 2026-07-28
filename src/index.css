@@ -1,0 +1,36 @@
+@import './styles/core.css';
+@import './styles/shared.css';
+@import './styles/pages/dashboard.css';
+@import './styles/pages/discover.css';
+@import './styles/pages/analyse.css';
+@import './styles/pages/portfolio.css';
+@import './styles/pages/area-intel.css';
+@import './styles/pages/settings.css';
+@import './styles/marketing.css';
+@import './styles/apple.css';
+@import './styles/workspace.css';
+@import './styles/landing-modern.css';
+
+#root {
+  min-height: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+@media print {
+  .valora-nav,
+  .report-toolbar,
+  .no-print,
+  .prototype-banner {
+    display: none !important;
+  }
+
+  .report-content {
+    border-radius: 0;
+  }
+
+  body.marketing-route {
+    background: #fff;
+    color: #000;
+  }
+}

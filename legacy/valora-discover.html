@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Valora — Discover</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="valora-core.css" rel="stylesheet">
+<link href="valora-shared.css" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0D1B2A;--blue:#1B4FD8;--blue-lt:#EEF2FF;--blue-mid:#3B72F6;
+  --green:#16A34A;--green-lt:#DCFCE7;--amber:#D97706;--amber-lt:#FEF3C7;
+  --red:#DC2626;--red-lt:#FEE2E2;--purple:#7C3AED;--purple-lt:#EDE9FE;
+  --cyan:#0891B2;--cyan-lt:#CFFAFE;
+  --bg:#F1F4F8;--surface:#FFFFFF;--border:#E2E8F0;
+  --text:#0F172A;--muted:#64748B;--light:#94A3B8;
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;display:flex;height:100vh;overflow:hidden}
+.sidebar{width:220px;min-width:220px;background:var(--navy);display:flex;flex-direction:column;height:100vh;position:fixed;left:0;top:0;z-index:100}
+.sb-brand{padding:20px 18px 18px;border-bottom:1px solid rgba(255,255,255,0.07)}
+.sb-brand-name{font-size:15px;font-weight:700;color:#fff}
+.sb-brand-sub{font-size:9px;color:rgba(255,255,255,0.3);letter-spacing:0.12em;text-transform:uppercase;margin-top:2px}
+.sb-section{padding:16px 10px 8px}
+.sb-section-label{font-size:9px;font-weight:700;color:rgba(255,255,255,0.25);text-transform:uppercase;letter-spacing:0.1em;padding:0 10px;margin-bottom:6px}
+.sb-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:7px;margin-bottom:2px;font-size:13px;font-weight:500;color:rgba(255,255,255,0.5);text-decoration:none;cursor:pointer;transition:all 0.15s}
+.sb-item:hover{color:rgba(255,255,255,0.85);background:rgba(255,255,255,0.06)}
+.sb-item.active{background:rgba(255,255,255,0.1);color:#fff}
+.sb-item .icon{width:16px;text-align:center;font-size:14px;flex-shrink:0}
+.sb-item .badge{margin-left:auto;background:var(--blue);color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:100px}
+.sb-bottom{margin-top:auto;padding:12px 10px}
+.sb-new{background:var(--blue);color:#fff;font-size:12px;font-weight:600;padding:10px 14px;border-radius:8px;text-align:center;cursor:pointer;border:none;width:100%;transition:background 0.15s}
+.sb-new:hover{background:#1a45c4}
+.sb-user{display:flex;align-items:center;gap:10px;padding:12px 12px 0}
+.sb-avatar{width:30px;height:30px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0}
+.sb-user-name{font-size:12px;font-weight:600;color:rgba(255,255,255,0.8)}
+.sb-user-plan{font-size:10px;color:rgba(255,255,255,0.35)}
+.main{margin-left:220px;flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden}
+.topbar{height:56px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 28px;gap:16px;flex-shrink:0}
+.topbar-left{display:flex;flex-direction:column}
+.topbar-title{font-size:16px;font-weight:700;color:var(--text)}
+.topbar-sub{font-size:11px;color:var(--muted)}
+.topbar-right{display:flex;align-items:center;gap:10px;margin-left:auto}
+.btn-sm{font-size:12px;font-weight:600;padding:8px 14px;border-radius:6px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px;transition:all 0.15s;border:none}
+.btn-outline{background:var(--surface);border:1px solid var(--border);color:var(--muted)}
+.btn-outline:hover{border-color:var(--blue);color:var(--blue)}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-primary:hover{background:#1a45c4}
+.view-toggle{display:flex;border:1px solid var(--border);border-radius:7px;overflow:hidden;background:var(--surface)}
+.vt-btn{padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;border:none;transition:all 0.15s;display:flex;align-items:center;gap:5px}
+.vt-btn.active{background:var(--navy);color:#fff}
+.vt-btn.inactive{background:var(--surface);color:var(--muted)}
+
+/* AI SEARCH BAR */
+.ai-bar{background:var(--navy);padding:16px 28px;flex-shrink:0}
+.ai-bar-inner{max-width:100%;display:flex;gap:10px;align-items:flex-start}
+.ai-input-wrap{flex:1;position:relative}
+.ai-textarea{width:100%;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.14);border-radius:8px;padding:12px 14px;font-family:'Inter',sans-serif;font-size:13px;color:#fff;resize:none;min-height:50px;max-height:120px;outline:none;transition:border-color 0.15s;line-height:1.5}
+.ai-textarea::placeholder{color:rgba(255,255,255,0.28)}
+.ai-textarea:focus{border-color:rgba(27,79,216,0.7)}
+.ai-send{background:var(--blue);color:#fff;border:none;border-radius:8px;padding:12px 18px;font-size:13px;font-weight:700;cursor:pointer;transition:background 0.15s;flex-shrink:0;align-self:flex-end}
+.ai-send:hover{background:#1a45c4}
+.ai-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.ai-chip{font-size:11px;color:rgba(255,255,255,0.45);border:1px solid rgba(255,255,255,0.1);border-radius:100px;padding:4px 11px;cursor:pointer;transition:all 0.15s;background:rgba(255,255,255,0.03)}
+.ai-chip:hover{color:rgba(255,255,255,0.8);border-color:rgba(255,255,255,0.3);background:rgba(255,255,255,0.07)}
+
+/* FILTERS */
+.filters-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 28px;display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap}
+.filter-chip{display:flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-weight:500;color:var(--text);background:var(--surface);cursor:pointer;transition:all 0.15s}
+.filter-chip:hover{border-color:var(--blue);color:var(--blue)}
+.filter-chip.active{border-color:var(--blue);background:var(--blue-lt);color:var(--blue)}
+.filter-chip .caret{color:var(--light);font-size:10px}
+.filters-divider{width:1px;height:20px;background:var(--border);margin:0 4px}
+.filter-clear{font-size:12px;color:var(--muted);cursor:pointer;padding:4px 8px}
+.filter-clear:hover{color:var(--red)}
+.results-count{font-size:12px;color:var(--muted);margin-left:auto}
+.results-count strong{color:var(--text);font-weight:700}
+
+/* CONTENT */
+.page{flex:1;overflow-y:auto;padding:24px 28px}
+
+/* DEAL CARDS GRID */
+.deals-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.deal-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:border-color 0.2s,box-shadow 0.2s;cursor:pointer}
+.deal-card:hover{border-color:#93C5FD;box-shadow:0 4px 24px rgba(27,79,216,0.1);transform:translateY(-1px)}
+.deal-img{height:160px;position:relative;overflow:hidden;background:linear-gradient(135deg,#1e3a5f 0%,#2d5a8e 100%)}
+.deal-img-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:40px;opacity:0.3}
+.deal-bmv-badge{position:absolute;top:10px;left:10px;background:rgba(10,20,35,0.85);color:#fff;font-size:10px;font-weight:700;padding:4px 10px;border-radius:4px;backdrop-filter:blur(4px);letter-spacing:0.04em}
+.deal-save{position:absolute;top:10px;right:10px;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,0.9);display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;transition:all 0.15s}
+.deal-save:hover{background:#fff;transform:scale(1.1)}
+.deal-strat-badge{position:absolute;bottom:10px;left:10px;font-size:9px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;padding:3px 8px;border-radius:3px}
+.deal-body{padding:14px 16px}
+.deal-location{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px}
+.deal-price{font-size:18px;font-weight:800;color:var(--blue);letter-spacing:-0.5px}
+.deal-mv{font-size:11px;color:var(--muted);text-decoration:line-through;margin-left:6px}
+.deal-name{font-size:14px;font-weight:700;color:var(--text);margin:4px 0 10px}
+.deal-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;padding:10px;background:var(--bg);border-radius:7px}
+.dm-item{text-align:center}
+.dm-val{font-size:13px;font-weight:700;color:var(--text)}
+.dm-val.highlight{color:var(--red)}
+.dm-label{font-size:9px;color:var(--light);text-transform:uppercase;letter-spacing:0.05em;margin-top:1px}
+.deal-score-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.deal-score-left{display:flex;align-items:center;gap:8px}
+.score-circle{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;border:2.5px solid;flex-shrink:0}
+.sc-high{color:var(--green);border-color:var(--green)}
+.sc-mid{color:var(--amber);border-color:var(--amber)}
+.sc-low{color:var(--red);border-color:var(--red)}
+.score-label-group .score-label{font-size:12px;font-weight:700;color:var(--text)}
+.score-label-group .score-sub{font-size:10px;color:var(--muted)}
+.deal-btn{display:block;width:100%;text-align:center;padding:10px;border-radius:7px;background:var(--navy);color:#fff;font-size:12px;font-weight:700;border:none;cursor:pointer;transition:background 0.15s}
+.deal-btn:hover{background:var(--blue)}
+
+/* notification toast */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--navy);color:#fff;padding:14px 18px;border-radius:10px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(0,0,0,0.3);z-index:999;font-size:13px;animation:slideup 0.4s ease}
+.toast-icon{font-size:18px}
+.toast-title{font-weight:700;font-size:13px}
+.toast-sub{font-size:11px;color:rgba(255,255,255,0.55)}
+.toast-close{margin-left:16px;color:rgba(255,255,255,0.4);cursor:pointer;font-size:16px}
+@keyframes slideup{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+.load-more{display:flex;justify-content:center;padding:24px 0}
+.load-more-btn{padding:12px 28px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-weight:600;color:var(--muted);background:var(--surface);cursor:pointer;transition:all 0.15s}
+.load-more-btn:hover{border-color:var(--blue);color:var(--blue)}
+</style>
+</head>
+<body data-page="discover">
+<aside class="sidebar">
+  <a href="valora-dashboard.html" class="sb-brand">
+    <div class="sb-brand-inner">
+      <div class="sb-logo">V</div>
+      <div><div class="sb-brand-name">Valora</div><div class="sb-brand-sub">Property Intelligence</div></div>
+    </div>
+  </a>
+  <div class="sb-section">
+    <div class="sb-section-label">Main</div>
+    <a href="valora-dashboard.html" class="sb-item"><span class="icon">⊞</span> Dashboard</a>
+    <a href="valora-discover.html" class="sb-item active"><span class="icon">◎</span> Discover <span class="badge">5</span></a>
+    <a href="valora-portfolio.html" class="sb-item"><span class="icon">▤</span> Portfolio</a>
+    <a href="valora-area-intel.html" class="sb-item"><span class="icon">∿</span> Area Intel</a>
+    <a href="valora-analyse.html" class="sb-item"><span class="icon">⬡</span> Analyse</a>
+  </div>
+  <div class="sb-section">
+    <div class="sb-section-label">Account</div>
+    <a href="valora-settings.html" class="sb-item"><span class="icon">⚙</span> Settings</a>
+    <a href="valora-settings.html#support" class="sb-item"><span class="icon">?</span> Support</a>
+  </div>
+  <div class="sb-bottom">
+    <button class="sb-new">+ New Analysis</button>
+    <a href="valora-settings.html#billing" class="sb-upgrade">
+      <div class="sb-upgrade-label">Current plan</div>
+      <div class="sb-upgrade-plan">Pro · £49/mo</div>
+      <div class="sb-upgrade-cta">Upgrade to Investor →</div>
+    </a>
+    <div class="sb-user" style="margin-top:12px">
+      <div class="sb-avatar">AS</div>
+      <div><div class="sb-user-name">Alex Sterling</div><div class="sb-user-plan">Pro Plan</div></div>
+    </div>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-title">Market Discovery</div>
+      <div class="topbar-sub">Analysing 1,402 active deals for your criteria</div>
+    </div>
+    <div class="topbar-right">
+      <div class="view-toggle">
+        <button class="vt-btn active">⊞ List</button>
+        <button class="vt-btn inactive">⬡ Map</button>
+      </div>
+      <a href="#" class="btn-sm btn-outline">🔔 Save Search</a>
+    </div>
+  </div>
+
+  <!-- AI SEARCH -->
+  <div class="ai-bar">
+    <div class="ai-bar-inner">
+      <div class="ai-input-wrap">
+        <textarea class="ai-textarea" rows="1" placeholder='Describe what you want — e.g. "Find demolish &amp; rebuild plots in Sheffield S6–S10 under £200k, minimum 20% profit on GDV"'>Find me buy-to-let flats in Manchester M1–M4 yielding at least 8% under £300k with strong rental demand</textarea>
+        <div class="ai-chips">
+          <div class="ai-chip">Demo &amp; rebuild Sheffield 20%+ GDV</div>
+          <div class="ai-chip">HMO terraces Leeds LS6 10%+ yield</div>
+          <div class="ai-chip">BRRR Birmingham under £160k</div>
+          <div class="ai-chip">Refurb &amp; flip Manchester £40k+ margin</div>
+        </div>
+      </div>
+      <button class="ai-send">✦ Search</button>
+    </div>
+  </div>
+
+  <!-- FILTERS -->
+  <div class="filters-bar">
+    <div class="filter-chip active">Yield: 8%–14% <span class="caret">▾</span></div>
+    <div class="filter-chip active">Budget: £100k–£300k <span class="caret">▾</span></div>
+    <div class="filter-chip">Strategy: All <span class="caret">▾</span></div>
+    <div class="filter-chip">Location: Manchester <span class="caret">▾</span></div>
+    <div class="filters-divider"></div>
+    <div class="filter-chip">Advanced filters</div>
+    <span class="filter-clear">Clear all</span>
+    <div class="results-count">Showing <strong>6</strong> of <strong>1,402</strong> deals</div>
+  </div>
+
+  <div class="page discover-list-view">
+    <div class="deals-grid">
+
+      <!-- CARD 1 -->
+      <div class="deal-card">
+        <div class="deal-img" style="background:linear-gradient(135deg,#1B3A5C,#2E6DA4)">
+          <div class="deal-img-placeholder">🏗️</div>
+          <div class="deal-bmv-badge">UNDERVALUED −18%</div>
+          <div class="deal-save">♡</div>
+          <span class="deal-strat-badge" style="background:var(--purple-lt);color:var(--purple)">Demo &amp; Rebuild</span>
+        </div>
+        <div class="deal-body">
+          <div class="deal-location">Manchester · M1</div>
+          <div><span class="deal-price">£425,000</span><span class="deal-mv">£518,000 MV</span></div>
+          <div class="deal-name">The Victoria Lofts</div>
+          <div class="deal-metrics">
+            <div class="dm-item"><div class="dm-val">9.2%</div><div class="dm-label">Yield</div></div>
+            <div class="dm-item"><div class="dm-val highlight">18%</div><div class="dm-label">BMV</div></div>
+            <div class="dm-item"><div class="dm-val">£1.1k</div><div class="dm-label">Cash Flow</div></div>
+          </div>
+          <div class="deal-score-row">
+            <div class="deal-score-left">
+              <div class="score-circle sc-high">88</div>
+              <div class="score-label-group"><div class="score-label">High Precision Deal</div><div class="score-sub">Top 3% in postcode search</div></div>
+            </div>
+          </div>
+          <button class="deal-btn">View Deal Details</button>
+        </div>
+      </div>
+
+      <!-- CARD 2 -->
+      <div class="deal-card">
+        <div class="deal-img" style="background:linear-gradient(135deg,#1a3a2a,#2d6b46)">
+          <div class="deal-img-placeholder">🏘️</div>
+          <div class="deal-bmv-badge">UNDERVALUED −12%</div>
+          <div class="deal-save">♡</div>
+          <span class="deal-strat-badge" style="background:var(--green-lt);color:var(--green)">Buy-to-Let</span>
+        </div>
+        <div class="deal-body">
+          <div class="deal-location">London · SW18</div>
+          <div><span class="deal-price">£895,000</span><span class="deal-mv">£1.02M MV</span></div>
+          <div class="deal-name">Garratt Lane Multi-Unit</div>
+          <div class="deal-metrics">
+            <div class="dm-item"><div class="dm-val">6.4%</div><div class="dm-label">Yield</div></div>
+            <div class="dm-item"><div class="dm-val highlight">12%</div><div class="dm-label">BMV</div></div>
+            <div class="dm-item"><div class="dm-val">£2.4k</div><div class="dm-label">Cash Flow</div></div>
+          </div>
+          <div class="deal-score-row">
+            <div class="deal-score-left">
+              <div class="score-circle sc-mid">72</div>
+              <div class="score-label-group"><div class="score-label">Stable Core Strategy</div><div class="score-sub">Strong demand, established area</div></div>
+            </div>
+          </div>
+          <button class="deal-btn">View Deal Details</button>
+        </div>
+      </div>
+
+      <!-- CARD 3 -->
+      <div class="deal-card">
+        <div class="deal-img" style="background:linear-gradient(135deg,#1c2a4a,#2d4a8a)">
+          <div class="deal-img-placeholder">🏗️</div>
+          <div class="deal-bmv-badge">UNDERVALUED −22%</div>
+          <div class="deal-save">♡</div>
+          <span class="deal-strat-badge" style="background:var(--purple-lt);color:var(--purple)">Demo &amp; Rebuild</span>
+        </div>
+        <div class="deal-body">
+          <div class="deal-location">Birmingham · B1</div>
+          <div><span class="deal-price">£610,000</span><span class="deal-mv">£782,000 MV</span></div>
+          <div class="deal-name">Quayside Portfolio (3 Units)</div>
+          <div class="deal-metrics">
+            <div class="dm-item"><div class="dm-val">11.1%</div><div class="dm-label">Yield</div></div>
+            <div class="dm-item"><div class="dm-val highlight">22%</div><div class="dm-label">BMV</div></div>
+            <div class="dm-item"><div class="dm-val">£3.8k</div><div class="dm-label">Cash Flow</div></div>
+          </div>
+          <div class="deal-score-row">
+            <div class="deal-score-left">
+              <div class="score-circle sc-high">95</div>
+              <div class="score-label-group"><div class="score-label">Aggressive Alpha Play</div><div class="score-sub">Motivated seller · Massive equity</div></div>
+            </div>
+          </div>
+          <button class="deal-btn">View Deal Details</button>
+        </div>
+      </div>
+
+      <!-- CARD 4 -->
+      <div class="deal-card">
+        <div class="deal-img" style="background:linear-gradient(135deg,#2a1a1a,#6b2d2d)">
+          <div class="deal-img-placeholder">🏠</div>
+          <div class="deal-bmv-badge">DISTRESSED SALE</div>
+          <div class="deal-save">♡</div>
+          <span class="deal-strat-badge" style="background:var(--amber-lt);color:var(--amber)">Refurb &amp; Flip</span>
+        </div>
+        <div class="deal-body">
+          <div class="deal-location">Sheffield · S6</div>
+          <div><span class="deal-price">£155,000</span><span class="deal-mv">£210,000 MV</span></div>
+          <div class="deal-name">Derelict Corner Plot — Demo Potential</div>
+          <div class="deal-metrics">
+            <div class="dm-item"><div class="dm-val">24%</div><div class="dm-label">GDV Profit</div></div>
+            <div class="dm-item"><div class="dm-val highlight">26%</div><div class="dm-label">BMV</div></div>
+            <div class="dm-item"><div class="dm-val">0.12ac</div><div class="dm-label">Plot</div></div>
+          </div>
+          <div class="deal-score-row">
+            <div class="deal-score-left">
+              <div class="score-circle sc-high">91</div>
+              <div class="score-label-group"><div class="score-label">Top Development Site</div><div class="score-sub">GDV £420k after rebuild</div></div>
+            </div>
+          </div>
+          <button class="deal-btn">View Deal Details</button>
+        </div>
+      </div>
+
+      <!-- CARD 5 -->
+      <div class="deal-card">
+        <div class="deal-img" style="background:linear-gradient(135deg,#0a2a1a,#0d5c35)">
+          <div class="deal-img-placeholder">🏢</div>
+          <div class="deal-bmv-badge">OFF-MARKET</div>
+          <div class="deal-save">♡</div>
+          <span class="deal-strat-badge" style="background:var(--cyan-lt);color:var(--cyan)">HMO</span>
+        </div>
+        <div class="deal-body">
+          <div class="deal-location">Leeds · LS6</div>
+          <div><span class="deal-price">£268,000</span><span class="deal-mv">£310,000 MV</span></div>
+          <div class="deal-name">6-Bed Terrace — HMO Licensed</div>
+          <div class="deal-metrics">
+            <div class="dm-item"><div class="dm-val">10.8%</div><div class="dm-label">Yield</div></div>
+            <div class="dm-item"><div class="dm-val highlight">14%</div><div class="dm-label">BMV</div></div>
+            <div class="dm-item"><div class="dm-val">£2.1k</div><div class="dm-label">Cash Flow</div></div>
+          </div>
+          <div class="deal-score-row">
+            <div class="deal-score-left">
+              <div class="score-circle sc-high">83</div>
+              <div class="score-label-group"><div class="score-label">High Yield HMO</div><div class="score-sub">Licence transfers on purchase</div></div>
+            </div>
+          </div>
+          <button class="deal-btn">View Deal Details</button>
+        </div>
+      </div>
+
+      <!-- CARD 6 -->
+      <div class="deal-card">
+        <div class="deal-img" style="background:linear-gradient(135deg,#1a1a2a,#3a2d6b)">
+          <div class="deal-img-placeholder">🔧</div>
+          <div class="deal-bmv-badge">MOTIVATED SELLER</div>
+          <div class="deal-save">♡</div>
+          <span class="deal-strat-badge" style="background:var(--amber-lt);color:var(--amber)">BRRR</span>
+        </div>
+        <div class="deal-body">
+          <div class="deal-location">Nottingham · NG5</div>
+          <div><span class="deal-price">£142,000</span><span class="deal-mv">£180,000 MV</span></div>
+          <div class="deal-name">Victorian Terrace — Refurb Ready</div>
+          <div class="deal-metrics">
+            <div class="dm-item"><div class="dm-val">8.9%</div><div class="dm-label">Post-Refurb</div></div>
+            <div class="dm-item"><div class="dm-val highlight">21%</div><div class="dm-label">BMV</div></div>
+            <div class="dm-item"><div class="dm-val">£28k</div><div class="dm-label">Refurb Est.</div></div>
+          </div>
+          <div class="deal-score-row">
+            <div class="deal-score-left">
+              <div class="score-circle sc-mid">76</div>
+              <div class="score-label-group"><div class="score-label">Strong BRRR Candidate</div><div class="score-sub">75% LTV refinance likely</div></div>
+            </div>
+          </div>
+          <button class="deal-btn">View Deal Details</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="load-more">
+      <button class="load-more-btn">Load more deals — showing 6 of 1,402</button>
+    </div>
+  </div>
+
+  <div class="discover-map-view" id="discover-map-view">
+    <div class="map-placeholder-grid"></div>
+    <div class="map-deal-pin" style="top:32%;left:42%" data-id="victoria-lofts"><div class="map-pin-label">Victoria Lofts · 88</div><div class="map-pin-dot" style="background:var(--green)"></div></div>
+    <div class="map-deal-pin" style="top:55%;left:28%" data-id="garratt-lane"><div class="map-pin-label">Garratt Lane · 72</div><div class="map-pin-dot" style="background:var(--amber)"></div></div>
+    <div class="map-deal-pin" style="top:48%;left:58%" data-id="quayside"><div class="map-pin-label">Quayside · 95</div><div class="map-pin-dot" style="background:var(--green)"></div></div>
+    <div class="map-deal-pin" style="top:68%;left:38%" data-id="sheffield-plot"><div class="map-pin-label">Sheffield Plot · 91</div><div class="map-pin-dot" style="background:var(--purple)"></div></div>
+    <div class="map-deal-pin" style="top:40%;left:72%" data-id="leeds-hmo"><div class="map-pin-label">Leeds HMO · 83</div><div class="map-pin-dot" style="background:var(--cyan)"></div></div>
+    <div class="map-deal-pin" style="top:62%;left:65%" data-id="nottingham-brrr"><div class="map-pin-label">Nottingham BRRR · 76</div><div class="map-pin-dot" style="background:var(--amber)"></div></div>
+  </div>
+</div>
+
+<!-- Deal alert toast removed — use in-app notifications -->
+<script src="valora-data.js"></script>
+<script src="valora-app.js"></script>
+</body>
+</html>

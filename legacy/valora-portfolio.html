@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Valora — Portfolio</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="valora-core.css" rel="stylesheet">
+<link href="valora-shared.css" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0D1B2A;--blue:#1B4FD8;--blue-lt:#EEF2FF;
+  --green:#16A34A;--green-lt:#DCFCE7;--amber:#D97706;--amber-lt:#FEF3C7;
+  --red:#DC2626;--red-lt:#FEE2E2;--purple:#7C3AED;--purple-lt:#EDE9FE;
+  --cyan:#0891B2;--cyan-lt:#CFFAFE;
+  --bg:#F1F4F8;--surface:#FFFFFF;--border:#E2E8F0;
+  --text:#0F172A;--muted:#64748B;--light:#94A3B8;
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;display:flex;height:100vh;overflow:hidden}
+.sidebar{width:220px;min-width:220px;background:var(--navy);display:flex;flex-direction:column;height:100vh;position:fixed;left:0;top:0;z-index:100}
+.sb-brand{padding:20px 18px 18px;border-bottom:1px solid rgba(255,255,255,0.07)}
+.sb-brand-name{font-size:15px;font-weight:700;color:#fff}
+.sb-brand-sub{font-size:9px;color:rgba(255,255,255,0.3);letter-spacing:0.12em;text-transform:uppercase;margin-top:2px}
+.sb-section{padding:16px 10px 8px}
+.sb-section-label{font-size:9px;font-weight:700;color:rgba(255,255,255,0.25);text-transform:uppercase;letter-spacing:0.1em;padding:0 10px;margin-bottom:6px}
+.sb-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:7px;margin-bottom:2px;font-size:13px;font-weight:500;color:rgba(255,255,255,0.5);text-decoration:none;transition:all 0.15s}
+.sb-item:hover{color:rgba(255,255,255,0.85);background:rgba(255,255,255,0.06)}
+.sb-item.active{background:rgba(255,255,255,0.1);color:#fff}
+.sb-item .icon{width:16px;text-align:center;font-size:14px;flex-shrink:0}
+.sb-item .badge{margin-left:auto;background:var(--blue);color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:100px}
+.sb-bottom{margin-top:auto;padding:12px 10px}
+.sb-new{background:var(--blue);color:#fff;font-size:12px;font-weight:600;padding:10px 14px;border-radius:8px;text-align:center;cursor:pointer;border:none;width:100%;transition:background 0.15s}
+.sb-new:hover{background:#1a45c4}
+.sb-user{display:flex;align-items:center;gap:10px;padding:12px 12px 0}
+.sb-avatar{width:30px;height:30px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0}
+.sb-user-name{font-size:12px;font-weight:600;color:rgba(255,255,255,0.8)}
+.sb-user-plan{font-size:10px;color:rgba(255,255,255,0.35)}
+.main{margin-left:220px;flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden}
+.topbar{height:56px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 28px;gap:16px;flex-shrink:0}
+.topbar-title{font-size:16px;font-weight:700;color:var(--text)}
+.topbar-sub{font-size:11px;color:var(--muted)}
+.topbar-right{display:flex;align-items:center;gap:8px;margin-left:auto}
+.btn-sm{font-size:12px;font-weight:600;padding:8px 14px;border-radius:6px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px;transition:all 0.15s;border:1px solid var(--border);background:var(--surface);color:var(--muted)}
+.btn-sm:hover{border-color:var(--blue);color:var(--blue)}
+.btn-primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+.btn-primary:hover{background:#1a45c4;border-color:#1a45c4}
+.page{flex:1;overflow-y:auto;padding:24px 28px}
+
+/* SUMMARY CARDS */
+.summary-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:24px}
+.sc{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 18px;position:relative;overflow:hidden}
+.sc::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:10px 10px 0 0}
+.sc.b::after{background:var(--blue)}.sc.g::after{background:var(--green)}.sc.a::after{background:var(--amber)}.sc.p::after{background:var(--purple)}.sc.c::after{background:var(--cyan)}
+.sc-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);margin-bottom:8px}
+.sc-val{font-size:22px;font-weight:800;color:var(--text);letter-spacing:-0.7px;line-height:1}
+.sc-change{font-size:10px;margin-top:5px}
+.up{color:var(--green)}.down{color:var(--red)}.neu{color:var(--muted)}
+
+/* TABS */
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:20px}
+.tab{padding:10px 18px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all 0.15s}
+.tab.active{color:var(--blue);border-color:var(--blue)}
+.tab:hover{color:var(--text)}
+
+/* PROPERTY TABLE */
+.prop-table{width:100%;border-collapse:collapse;background:var(--surface);border-radius:10px;overflow:hidden;border:1px solid var(--border)}
+.prop-table th{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--light);padding:12px 16px;text-align:left;border-bottom:1px solid var(--border);background:var(--bg)}
+.prop-table td{padding:14px 16px;border-bottom:1px solid var(--border);font-size:12px;vertical-align:middle}
+.prop-table tr:last-child td{border-bottom:none}
+.prop-table tr:hover td{background:rgba(241,244,248,0.5);cursor:pointer}
+.prop-thumb{width:42px;height:42px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.prop-name-col{display:flex;align-items:center;gap:12px}
+.pn{font-size:13px;font-weight:700;color:var(--text)}
+.ps{font-size:10px;color:var(--muted);margin-top:1px}
+.stag{font-size:9px;font-weight:700;padding:2px 7px;border-radius:3px;letter-spacing:0.04em;text-transform:uppercase;display:inline-block}
+.stag.btl{background:var(--green-lt);color:var(--green)}
+.stag.dnr{background:var(--purple-lt);color:var(--purple)}
+.stag.hmo{background:var(--cyan-lt);color:var(--cyan)}
+.stag.flip{background:var(--amber-lt);color:var(--amber)}
+.score-ring{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;border:2.5px solid}
+.sr-h{color:var(--green);border-color:var(--green)}
+.sr-m{color:var(--amber);border-color:var(--amber)}
+.sr-l{color:var(--red);border-color:var(--red)}
+.yield-up{color:var(--green);font-weight:700}
+.yield-mid{color:var(--amber);font-weight:700}
+.yield-low{color:var(--red);font-weight:700}
+.cf-pos{color:var(--green);font-weight:700}
+.cf-neg{color:var(--red);font-weight:700}
+.equity-bar-wrap{width:80px;background:var(--bg);border-radius:100px;height:6px;overflow:hidden;display:inline-block;vertical-align:middle;margin-left:6px}
+.equity-bar{height:100%;border-radius:100px;background:var(--blue)}
+.row-actions{display:flex;gap:6px}
+.row-btn{font-size:11px;font-weight:600;padding:5px 10px;border-radius:5px;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--muted);transition:all 0.15s}
+.row-btn:hover{border-color:var(--blue);color:var(--blue)}
+
+/* PERFORMANCE PANEL */
+.two-col{display:grid;grid-template-columns:1.2fr 1fr;gap:16px;margin-top:20px}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.ph{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.pt{font-size:13px;font-weight:700;color:var(--text)}
+.pb{padding:16px 18px}
+
+/* BAR CHART */
+.bar-chart{display:flex;align-items:flex-end;gap:10px;height:110px;padding-bottom:4px}
+.bc-col{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1}
+.bc-bar{width:100%;border-radius:4px 4px 0 0;min-height:4px;transition:opacity 0.15s}
+.bc-label{font-size:9px;color:var(--light);text-align:center}
+.bc-legend{display:flex;gap:14px;margin-top:10px}
+.bl-item{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted)}
+.bl-dot{width:8px;height:8px;border-radius:2px}
+
+/* EQUITY BREAKDOWN */
+.equity-item{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
+.equity-item:last-child{border-bottom:none}
+.eq-left{display:flex;align-items:center;gap:10px}
+.eq-thumb{width:32px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px}
+.eq-name{font-size:12px;font-weight:600;color:var(--text)}
+.eq-loc{font-size:10px;color:var(--muted);margin-top:1px}
+.eq-right{text-align:right}
+.eq-equity{font-size:13px;font-weight:700;color:var(--text)}
+.eq-ltv{font-size:10px;color:var(--muted);margin-top:1px}
+
+/* ADD PROPERTY PROMPT */
+.add-property-row{display:flex;align-items:center;justify-content:center;padding:28px;border:2px dashed var(--border);border-radius:10px;margin-top:16px;cursor:pointer;transition:all 0.15s}
+.add-property-row:hover{border-color:var(--blue);background:var(--blue-lt)}
+.add-property-row:hover .ap-icon{color:var(--blue)}
+.ap-icon{font-size:20px;color:var(--light);margin-right:12px}
+.ap-text{font-size:13px;font-weight:600;color:var(--muted)}
+.ap-sub{font-size:11px;color:var(--light);margin-top:2px}
+</style>
+</head>
+<body data-page="portfolio">
+<aside class="sidebar">
+  <a href="valora-dashboard.html" class="sb-brand">
+    <div class="sb-brand-inner">
+      <div class="sb-logo">V</div>
+      <div><div class="sb-brand-name">Valora</div><div class="sb-brand-sub">Property Intelligence</div></div>
+    </div>
+  </a>
+  <div class="sb-section">
+    <div class="sb-section-label">Main</div>
+    <a href="valora-dashboard.html" class="sb-item"><span class="icon">⊞</span> Dashboard</a>
+    <a href="valora-discover.html" class="sb-item"><span class="icon">◎</span> Discover <span class="badge">5</span></a>
+    <a href="valora-portfolio.html" class="sb-item active"><span class="icon">▤</span> Portfolio</a>
+    <a href="valora-area-intel.html" class="sb-item"><span class="icon">∿</span> Area Intel</a>
+    <a href="valora-analyse.html" class="sb-item"><span class="icon">⬡</span> Analyse</a>
+  </div>
+  <div class="sb-section">
+    <div class="sb-section-label">Account</div>
+    <a href="valora-settings.html" class="sb-item"><span class="icon">⚙</span> Settings</a>
+    <a href="valora-settings.html#support" class="sb-item"><span class="icon">?</span> Support</a>
+  </div>
+  <div class="sb-bottom">
+    <button class="sb-new">+ New Analysis</button>
+    <a href="valora-settings.html#billing" class="sb-upgrade">
+      <div class="sb-upgrade-label">Current plan</div>
+      <div class="sb-upgrade-plan">Pro · £49/mo</div>
+      <div class="sb-upgrade-cta">Upgrade to Investor →</div>
+    </a>
+    <div class="sb-user" style="margin-top:12px"><div class="sb-avatar">AS</div><div><div class="sb-user-name">Alex Sterling</div><div class="sb-user-plan">Pro Plan</div></div></div>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div><div class="topbar-title">Portfolio</div><div class="topbar-sub">7 properties · Last refreshed just now</div></div>
+    <div class="topbar-right">
+      <a href="#" class="btn-sm">📄 Export CSV</a>
+      <a href="#" class="btn-sm">📊 Export PDF</a>
+      <a href="#" class="btn-sm btn-primary">+ Add Property</a>
+    </div>
+  </div>
+
+  <div class="page">
+    <!-- SUMMARY -->
+    <div class="summary-grid">
+      <div class="sc b"><div class="sc-label">Total Value</div><div class="sc-val">£2.41M</div><div class="sc-change up">↑ +£98k this quarter</div></div>
+      <div class="sc g"><div class="sc-label">Monthly Cash Flow</div><div class="sc-val">£3,840</div><div class="sc-change up">↑ +£320 vs last month</div></div>
+      <div class="sc a"><div class="sc-label">Avg Net Yield</div><div class="sc-val">6.82%</div><div class="sc-change neu">→ Stable</div></div>
+      <div class="sc p"><div class="sc-label">Total Equity</div><div class="sc-val">£892k</div><div class="sc-change up">↑ +£54k this year</div></div>
+      <div class="sc c"><div class="sc-label">Avg LTV</div><div class="sc-val">63%</div><div class="sc-change neu">Target &lt; 70%</div></div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs">
+      <div class="tab active">All Properties</div>
+      <div class="tab">Buy-to-Let</div>
+      <div class="tab">Development</div>
+      <div class="tab">HMO</div>
+      <div class="tab">Watchlist</div>
+    </div>
+
+    <!-- TABLE -->
+    <table class="prop-table">
+      <thead>
+        <tr>
+          <th>Property</th>
+          <th>Strategy</th>
+          <th style="text-align:center">Score</th>
+          <th>Purchase Price</th>
+          <th>Current Value</th>
+          <th>Net Yield</th>
+          <th>Monthly CF</th>
+          <th>Equity / LTV</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr onclick="window.location='valora-analyse.html'">
+          <td><div class="prop-name-col"><div class="prop-thumb" style="background:var(--purple-lt)">🏗️</div><div><div class="pn">Walkley Road Plot, Sheffield S6</div><div class="ps">Corner plot · Demo &amp; rebuild · Acquired Mar 2024</div></div></div></td>
+          <td><span class="stag dnr">Demo &amp; Rebuild</span></td>
+          <td style="text-align:center"><div class="score-ring sr-h" style="margin:0 auto">91</div></td>
+          <td>£155,000</td>
+          <td style="font-weight:700;color:var(--green)">£210,000</td>
+          <td class="yield-up">—</td>
+          <td class="cf-pos">—</td>
+          <td><span>£55k</span><div class="equity-bar-wrap"><div class="equity-bar" style="width:74%"></div></div><div style="font-size:9px;color:var(--muted)">LTV 74%</div></td>
+          <td><div class="row-actions"><button class="row-btn">View</button><button class="row-btn">Edit</button></div></td>
+        </tr>
+        <tr onclick="window.location='valora-analyse.html'">
+          <td><div class="prop-name-col"><div class="prop-thumb" style="background:var(--green-lt)">🏠</div><div><div class="pn">Oak Ridge Road, Birmingham B12</div><div class="ps">3 bed semi-detached · Buy-to-let · Acquired Jan 2023</div></div></div></td>
+          <td><span class="stag btl">Buy-to-Let</span></td>
+          <td style="text-align:center"><div class="score-ring sr-h" style="margin:0 auto">85</div></td>
+          <td>£195,000</td>
+          <td style="font-weight:700;color:var(--green)">£228,000</td>
+          <td class="yield-up">7.4%</td>
+          <td class="cf-pos">+£580</td>
+          <td><span>£82k</span><div class="equity-bar-wrap"><div class="equity-bar" style="width:64%"></div></div><div style="font-size:9px;color:var(--muted)">LTV 64%</div></td>
+          <td><div class="row-actions"><button class="row-btn">View</button><button class="row-btn">Edit</button></div></td>
+        </tr>
+        <tr onclick="window.location='valora-analyse.html'">
+          <td><div class="prop-name-col"><div class="prop-thumb" style="background:var(--cyan-lt)">🏢</div><div><div class="pn">Cardigan Road, Leeds LS6</div><div class="ps">6 bed HMO · Licensed · Acquired Aug 2022</div></div></div></td>
+          <td><span class="stag hmo">HMO</span></td>
+          <td style="text-align:center"><div class="score-ring sr-h" style="margin:0 auto">83</div></td>
+          <td>£245,000</td>
+          <td style="font-weight:700;color:var(--green)">£295,000</td>
+          <td class="yield-up">10.8%</td>
+          <td class="cf-pos">+£1,240</td>
+          <td><span>£118k</span><div class="equity-bar-wrap"><div class="equity-bar" style="width:60%"></div></div><div style="font-size:9px;color:var(--muted)">LTV 60%</div></td>
+          <td><div class="row-actions"><button class="row-btn">View</button><button class="row-btn">Edit</button></div></td>
+        </tr>
+        <tr onclick="window.location='valora-analyse.html'">
+          <td><div class="prop-name-col"><div class="prop-thumb" style="background:var(--blue-lt)">🏘️</div><div><div class="pn">Victoria Street, Manchester M1</div><div class="ps">2 bed flat · Buy-to-let · Acquired Jun 2022</div></div></div></td>
+          <td><span class="stag btl">Buy-to-Let</span></td>
+          <td style="text-align:center"><div class="score-ring sr-h" style="margin:0 auto">79</div></td>
+          <td>£185,000</td>
+          <td style="font-weight:700;color:var(--green)">£210,000</td>
+          <td class="yield-up">7.1%</td>
+          <td class="cf-pos">+£480</td>
+          <td><span>£74k</span><div class="equity-bar-wrap"><div class="equity-bar" style="width:65%"></div></div><div style="font-size:9px;color:var(--muted)">LTV 65%</div></td>
+          <td><div class="row-actions"><button class="row-btn">View</button><button class="row-btn">Edit</button></div></td>
+        </tr>
+        <tr onclick="window.location='valora-analyse.html'">
+          <td><div class="prop-name-col"><div class="prop-thumb" style="background:var(--amber-lt)">🔧</div><div><div class="pn">Beeston Hill, Leeds LS11</div><div class="ps">3 bed terrace · Refurb &amp; flip · In progress</div></div></div></td>
+          <td><span class="stag flip">Refurb &amp; Flip</span></td>
+          <td style="text-align:center"><div class="score-ring sr-m" style="margin:0 auto">74</div></td>
+          <td>£128,000</td>
+          <td style="font-weight:700;color:var(--amber)">£148,000</td>
+          <td class="yield-mid">—</td>
+          <td class="cf-pos">—</td>
+          <td><span>£38k</span><div class="equity-bar-wrap"><div class="equity-bar" style="width:70%"></div></div><div style="font-size:9px;color:var(--muted)">LTV 70%</div></td>
+          <td><div class="row-actions"><button class="row-btn">View</button><button class="row-btn">Edit</button></div></td>
+        </tr>
+        <tr onclick="window.location='valora-analyse.html'">
+          <td><div class="prop-name-col"><div class="prop-thumb" style="background:var(--green-lt)">🏡</div><div><div class="pn">Alum Rock Road, Birmingham B8</div><div class="ps">4 bed semi · Buy-to-let · Acquired Nov 2021</div></div></div></td>
+          <td><span class="stag btl">Buy-to-Let</span></td>
+          <td style="text-align:center"><div class="score-ring sr-m" style="margin:0 auto">72</div></td>
+          <td>£162,000</td>
+          <td style="font-weight:700;color:var(--green)">£198,000</td>
+          <td class="yield-mid">6.2%</td>
+          <td class="cf-pos">+£380</td>
+          <td><span>£82k</span><div class="equity-bar-wrap"><div class="equity-bar" style="width:59%"></div></div><div style="font-size:9px;color:var(--muted)">LTV 59%</div></td>
+          <td><div class="row-actions"><button class="row-btn">View</button><button class="row-btn">Edit</button></div></td>
+        </tr>
+        <tr onclick="window.location='valora-analyse.html'">
+          <td><div class="prop-name-col"><div class="prop-thumb" style="background:var(--red-lt)">🏠</div><div><div class="pn">Hucknall Road, Nottingham NG5</div><div class="ps">3 bed terrace · Buy-to-let · Acquired Mar 2021</div></div></div></td>
+          <td><span class="stag btl">Buy-to-Let</span></td>
+          <td style="text-align:center"><div class="score-ring sr-l" style="margin:0 auto">51</div></td>
+          <td>£118,000</td>
+          <td style="font-weight:700;color:var(--amber)">£122,000</td>
+          <td class="yield-low">4.8%</td>
+          <td class="cf-pos">+£160</td>
+          <td><span>£43k</span><div class="equity-bar-wrap"><div class="equity-bar" style="width:65%"></div></div><div style="font-size:9px;color:var(--muted)">LTV 65%</div></td>
+          <td><div class="row-actions"><button class="row-btn">View</button><button class="row-btn" style="color:var(--red);border-color:rgba(220,38,38,0.3)">Sell?</button></div></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="add-property-row">
+      <span class="ap-icon">+</span>
+      <div><div class="ap-text">Add a property to your portfolio</div><div class="ap-sub">Paste a Rightmove URL or enter details manually</div></div>
+    </div>
+
+    <!-- PERFORMANCE CHARTS -->
+    <div class="two-col">
+      <div class="panel">
+        <div class="ph"><div class="pt">Portfolio Value Growth</div><div style="font-size:11px;color:var(--muted)">12-month view</div></div>
+        <div class="pb">
+          <div class="bar-chart">
+            <div class="bc-col"><div class="bc-bar" style="height:52px;background:var(--blue-lt)"></div><div class="bc-label">Jul</div></div>
+            <div class="bc-col"><div class="bc-bar" style="height:58px;background:var(--blue-lt)"></div><div class="bc-label">Aug</div></div>
+            <div class="bc-col"><div class="bc-bar" style="height:55px;background:var(--blue-lt)"></div><div class="bc-label">Sep</div></div>
+            <div class="bc-col"><div class="bc-bar" style="height:62px;background:var(--blue-lt)"></div><div class="bc-label">Oct</div></div>
+            <div class="bc-col"><div class="bc-bar" style="height:68px;background:var(--blue-lt)"></div><div class="bc-label">Nov</div></div>
+            <div class="bc-col"><div class="bc-bar" style="height:65px;background:var(--blue-lt)"></div><div class="bc-label">Dec</div></div>
+            <div class="bc-col"><div class="bc-bar" style="height:70px;background:var(--blue-lt)"></div><div class="bc-label">Jan</div></div>
+            <div class="bc-col"><div class="bc-bar" style="height:74px;background:var(--blue-lt)"></div><div class="bc-label">Feb</div></div>
+            <div class="bc-col"><div class="bc-bar" style="height:72px;background:var(--blue-lt)"></div><div class="bc-label">Mar</div></div>
+            <div class="bc-col"><div class="bc-bar" style="height:80px;background:var(--blue-lt)"></div><div class="bc-label">Apr</div></div>
+            <div class="bc-col"><div class="bc-bar" style="height:84px;background:var(--blue-lt)"></div><div class="bc-label">May</div></div>
+            <div class="bc-col"><div class="bc-bar" style="height:100px;background:var(--blue)"></div><div class="bc-label">Jun</div></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">
+            <div><div style="font-size:10px;color:var(--muted)">Jul 2023</div><div style="font-size:14px;font-weight:700">£2.11M</div></div>
+            <div style="text-align:center"><div style="font-size:10px;color:var(--green);font-weight:600">↑ +£302,000</div><div style="font-size:9px;color:var(--muted)">+14.3% over 12 months</div></div>
+            <div style="text-align:right"><div style="font-size:10px;color:var(--muted)">Jun 2024</div><div style="font-size:14px;font-weight:700">£2.41M</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="ph"><div class="pt">Equity by Property</div></div>
+        <div class="pb">
+          <div class="equity-item">
+            <div class="eq-left"><div class="eq-thumb" style="background:var(--cyan-lt)">🏢</div><div><div class="eq-name">Cardigan Road, Leeds</div><div class="eq-loc">HMO · 6 beds</div></div></div>
+            <div class="eq-right"><div class="eq-equity">£118,000</div><div class="eq-ltv">LTV 60% · Best leverage</div></div>
+          </div>
+          <div class="equity-item">
+            <div class="eq-left"><div class="eq-thumb" style="background:var(--green-lt)">🏠</div><div><div class="eq-name">Oak Ridge Rd, Birmingham</div><div class="eq-loc">BTL · 3 bed semi</div></div></div>
+            <div class="eq-right"><div class="eq-equity">£82,000</div><div class="eq-ltv">LTV 64%</div></div>
+          </div>
+          <div class="equity-item">
+            <div class="eq-left"><div class="eq-thumb" style="background:var(--green-lt)">🏡</div><div><div class="eq-name">Alum Rock Rd, Birmingham</div><div class="eq-loc">BTL · 4 bed semi</div></div></div>
+            <div class="eq-right"><div class="eq-equity">£82,000</div><div class="eq-ltv">LTV 59% · Refinance opportunity</div></div>
+          </div>
+          <div class="equity-item">
+            <div class="eq-left"><div class="eq-thumb" style="background:var(--blue-lt)">🏘️</div><div><div class="eq-name">Victoria Street, Manchester</div><div class="eq-loc">BTL · 2 bed flat</div></div></div>
+            <div class="eq-right"><div class="eq-equity">£74,000</div><div class="eq-ltv">LTV 65%</div></div>
+          </div>
+          <div class="equity-item">
+            <div class="eq-left"><div class="eq-thumb" style="background:var(--purple-lt)">🏗️</div><div><div class="eq-name">Walkley Road, Sheffield</div><div class="eq-loc">Demo &amp; Rebuild · In progress</div></div></div>
+            <div class="eq-right"><div class="eq-equity">£55,000</div><div class="eq-ltv">LTV 74% · Land value uplift</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="valora-data.js"></script>
+<script src="valora-app.js"></script>
+</body>
+</html>

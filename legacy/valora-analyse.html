@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Valora — Analyse</title>
+<script>if(new URLSearchParams(location.search).get('id')){document.documentElement.classList.add('valora-has-report');}</script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="valora-core.css" rel="stylesheet">
+<link href="valora-shared.css" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0D1B2A;--blue:#1B4FD8;--blue-lt:#EEF2FF;
+  --green:#16A34A;--green-lt:#DCFCE7;--amber:#D97706;--amber-lt:#FEF3C7;
+  --red:#DC2626;--red-lt:#FEE2E2;--purple:#7C3AED;--purple-lt:#EDE9FE;
+  --cyan:#0891B2;--cyan-lt:#CFFAFE;
+  --bg:#F1F4F8;--surface:#FFFFFF;--border:#E2E8F0;
+  --text:#0F172A;--muted:#64748B;--light:#94A3B8;
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;display:flex;height:100vh;overflow:hidden}
+.sidebar{width:220px;min-width:220px;background:var(--navy);display:flex;flex-direction:column;height:100vh;position:fixed;left:0;top:0;z-index:100}
+.sb-brand{padding:20px 18px 18px;border-bottom:1px solid rgba(255,255,255,0.07)}
+.sb-brand-name{font-size:15px;font-weight:700;color:#fff}
+.sb-brand-sub{font-size:9px;color:rgba(255,255,255,0.3);letter-spacing:0.12em;text-transform:uppercase;margin-top:2px}
+.sb-section{padding:16px 10px 8px}
+.sb-section-label{font-size:9px;font-weight:700;color:rgba(255,255,255,0.25);text-transform:uppercase;letter-spacing:0.1em;padding:0 10px;margin-bottom:6px}
+.sb-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:7px;margin-bottom:2px;font-size:13px;font-weight:500;color:rgba(255,255,255,0.5);text-decoration:none;transition:all 0.15s}
+.sb-item:hover{color:rgba(255,255,255,0.85);background:rgba(255,255,255,0.06)}
+.sb-item.active{background:rgba(255,255,255,0.1);color:#fff}
+.sb-item .icon{width:16px;text-align:center;font-size:14px;flex-shrink:0}
+.sb-item .badge{margin-left:auto;background:var(--blue);color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:100px}
+.sb-bottom{margin-top:auto;padding:12px 10px}
+.sb-new{background:var(--blue);color:#fff;font-size:12px;font-weight:600;padding:10px 14px;border-radius:8px;text-align:center;cursor:pointer;border:none;width:100%;transition:background 0.15s}
+.sb-new:hover{background:#1a45c4}
+.sb-user{display:flex;align-items:center;gap:10px;padding:12px 12px 0}
+.sb-avatar{width:30px;height:30px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0}
+.sb-user-name{font-size:12px;font-weight:600;color:rgba(255,255,255,0.8)}
+.sb-user-plan{font-size:10px;color:rgba(255,255,255,0.35)}
+.main{margin-left:220px;flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden}
+.topbar{height:56px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 28px;gap:12px;flex-shrink:0}
+.breadcrumb{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+.breadcrumb a{color:var(--muted);text-decoration:none}
+.breadcrumb a:hover{color:var(--blue)}
+.breadcrumb .sep{color:var(--light)}
+.breadcrumb .current{color:var(--text);font-weight:600}
+.topbar-actions{display:flex;gap:8px;margin-left:auto}
+.btn-sm{font-size:12px;font-weight:600;padding:8px 14px;border-radius:6px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px;transition:all 0.15s;border:1px solid var(--border);background:var(--surface);color:var(--muted)}
+.btn-sm:hover{border-color:var(--blue);color:var(--blue)}
+.btn-sm.blue{background:var(--blue);color:#fff;border-color:var(--blue)}
+.btn-sm.blue:hover{background:#1a45c4}
+
+/* PAGE LAYOUT */
+.page{flex:1;overflow-y:auto}
+.page-hero{background:var(--navy);padding:24px 32px;display:flex;gap:24px;align-items:flex-start}
+.prop-images{display:grid;grid-template-columns:1.8fr 1fr;grid-template-rows:1fr 1fr;gap:6px;width:440px;height:220px;flex-shrink:0;border-radius:10px;overflow:hidden}
+.prop-img{background:linear-gradient(135deg,#1e3a5f,#2d5a8e);display:flex;align-items:center;justify-content:center;font-size:28px;opacity:0.5}
+.prop-img.main{grid-row:1/3}
+.prop-hero-info{flex:1;color:#fff}
+.prop-breadcrumb{font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:10px}
+.prop-breadcrumb a{color:rgba(255,255,255,0.4);text-decoration:none}
+.prop-name{font-size:24px;font-weight:800;color:#fff;letter-spacing:-0.7px;margin-bottom:4px}
+.prop-address{font-size:13px;color:rgba(255,255,255,0.55);margin-bottom:18px}
+.prop-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}
+.ptag{font-size:10px;font-weight:600;padding:4px 10px;border-radius:4px;letter-spacing:0.04em}
+.ptag.demo{background:var(--purple-lt);color:var(--purple)}
+.ptag.chain{background:var(--green-lt);color:var(--green)}
+.ptag.freehold{background:var(--blue-lt);color:var(--blue)}
+.ptag.regen{background:var(--amber-lt);color:var(--amber)}
+.prop-quick-facts{display:flex;gap:20px}
+.pqf{text-align:center}
+.pqf-val{font-size:16px;font-weight:700;color:#fff}
+.pqf-label{font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px}
+
+/* SCORE SIDEBAR PANEL */
+.score-widget{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:20px;text-align:center;width:200px;flex-shrink:0}
+.sw-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:rgba(255,255,255,0.4);margin-bottom:14px}
+.sw-score{font-size:56px;font-weight:800;color:var(--green);letter-spacing:-2px;line-height:1}
+.sw-grade{font-size:12px;font-weight:700;color:var(--green);letter-spacing:0.06em;text-transform:uppercase;margin-top:4px}
+.sw-ring{width:80px;height:80px;margin:14px auto;position:relative}
+.sw-ring svg{transform:rotate(-90deg)}
+.sw-conf-label{font-size:10px;color:rgba(255,255,255,0.4);margin-top:10px}
+.sw-conf-bar{background:rgba(255,255,255,0.1);border-radius:100px;height:5px;margin:6px 0}
+.sw-conf-fill{background:var(--green);border-radius:100px;height:5px;width:85%}
+.sw-conf-text{font-size:11px;font-weight:700;color:rgba(255,255,255,0.8)}
+
+/* PAGE CONTENT */
+.page-body{padding:24px 32px;display:grid;grid-template-columns:1fr 340px;gap:20px}
+.main-col{display:flex;flex-direction:column;gap:16px}
+.side-col{display:flex;flex-direction:column;gap:16px}
+
+/* PANELS */
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.panel-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.panel-title{font-size:13px;font-weight:700;color:var(--text)}
+.panel-badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:100px}
+.pb-green{background:var(--green-lt);color:var(--green)}
+.pb-amber{background:var(--amber-lt);color:var(--amber)}
+.pb-blue{background:var(--blue-lt);color:var(--blue)}
+.panel-body{padding:16px 18px}
+.panel-action{font-size:11px;font-weight:600;color:var(--blue);cursor:pointer;text-decoration:none}
+
+/* METRICS ROW */
+.metrics-4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.mc{background:var(--bg);border-radius:8px;padding:12px 14px;border:1px solid var(--border)}
+.mc-l{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);margin-bottom:7px}
+.mc-v{font-size:20px;font-weight:800;color:var(--text);letter-spacing:-0.5px}
+.mc-s{font-size:10px;color:var(--muted);margin-top:3px}
+.mc-s.up{color:var(--green)}
+.mc-s.warn{color:var(--amber)}
+
+/* UNDERVALUATION PANEL */
+.uv-strip{background:linear-gradient(135deg,var(--green-lt),rgba(220,252,231,0.5));border:1px solid rgba(22,163,74,0.25);border-radius:8px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.uv-left .uv-title{font-size:13px;font-weight:700;color:var(--green);margin-bottom:3px}
+.uv-left .uv-desc{font-size:12px;color:var(--muted)}
+.uv-badge{background:var(--green);color:#fff;padding:7px 16px;border-radius:6px;font-size:13px;font-weight:700;white-space:nowrap}
+
+/* REFURB TABLE */
+.refurb-table{width:100%;border-collapse:collapse}
+.refurb-table th{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--light);padding:8px 10px;text-align:left;border-bottom:1px solid var(--border);background:var(--bg)}
+.refurb-table td{padding:11px 10px;border-bottom:1px solid var(--border);font-size:12px;color:var(--text);vertical-align:top}
+.refurb-table tr:last-child td{border-bottom:none;font-weight:700;background:var(--bg)}
+.refurb-table .scope{color:var(--muted);font-size:11px}
+.refurb-table .cost{font-weight:700;text-align:right}
+
+/* RENTAL PROJECTION BARS */
+.rental-bars{display:flex;flex-direction:column;gap:10px}
+.rb-row{display:flex;align-items:center;gap:10px}
+.rb-label{font-size:11px;color:var(--muted);width:82px;flex-shrink:0}
+.rb-bar-wrap{flex:1;background:var(--bg);border-radius:100px;height:8px;overflow:hidden}
+.rb-bar{height:100%;border-radius:100px}
+.rb-val{font-size:12px;font-weight:700;color:var(--text);width:50px;text-align:right;flex-shrink:0}
+
+/* RISKS */
+.risk-tags{display:flex;flex-wrap:wrap;gap:6px}
+.rtag{font-size:11px;font-weight:600;padding:5px 11px;border-radius:5px;display:flex;align-items:center;gap:5px;border:1px solid}
+.rtag.ok{color:var(--green);border-color:rgba(22,163,74,0.3);background:var(--green-lt)}
+.rtag.warn{color:var(--amber);border-color:rgba(217,119,6,0.3);background:var(--amber-lt)}
+.rtag.risk{color:var(--red);border-color:rgba(220,38,38,0.25);background:var(--red-lt)}
+.rtag.info{color:var(--blue);border-color:rgba(27,79,216,0.25);background:var(--blue-lt)}
+
+/* AREA ITEMS */
+.area-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)}
+.area-row:last-child{border-bottom:none}
+.area-label{font-size:12px;color:var(--text);display:flex;align-items:center;gap:7px}
+.area-val{font-size:12px;font-weight:700}
+.area-bar-wrap{width:80px;background:var(--bg);border-radius:100px;height:5px;overflow:hidden;margin-left:8px}
+.area-bar{height:100%;border-radius:100px}
+
+/* COMPARABLE SALES */
+.comp-item{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)}
+.comp-item:last-child{border-bottom:none}
+.comp-addr{font-size:12px;font-weight:600;color:var(--text)}
+.comp-meta{font-size:10px;color:var(--muted);margin-top:1px}
+.comp-price{font-size:13px;font-weight:700;color:var(--text)}
+.comp-psqft{font-size:10px;color:var(--muted);text-align:right;margin-top:1px}
+
+/* GDV ANALYSIS (demo & rebuild specific) */
+.gdv-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.gdv-box{background:var(--bg);border-radius:8px;padding:12px 14px;border:1px solid var(--border)}
+.gdv-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);margin-bottom:6px}
+.gdv-val{font-size:18px;font-weight:800;color:var(--text);letter-spacing:-0.5px}
+.gdv-val.green{color:var(--green)}
+.gdv-val.red{color:var(--red)}
+.gdv-sub{font-size:10px;color:var(--muted);margin-top:2px}
+.gdv-waterfall{background:var(--bg);border-radius:8px;padding:12px 14px;border:1px solid var(--border)}
+.wf-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px}
+.wf-row:last-child{border-bottom:none;font-weight:700;font-size:13px;padding-top:10px}
+.wf-label{color:var(--muted)}
+.wf-val{font-weight:600;color:var(--text)}
+.wf-val.neg{color:var(--red)}
+.wf-val.pos{color:var(--green)}
+
+/* AI INSIGHT BOX */
+.ai-insight{background:var(--navy);border-radius:8px;padding:14px 16px;display:flex;gap:10px}
+.ai-insight-icon{font-size:18px;flex-shrink:0}
+.ai-insight-text{font-size:12px;color:rgba(255,255,255,0.65);line-height:1.6}
+.ai-insight-text strong{color:#fff}
+
+/* REGEN PIPELINE */
+.regen-item{padding:10px 0;border-bottom:1px solid var(--border)}
+.regen-item:last-child{border-bottom:none}
+.regen-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:3px}
+.regen-tag{font-size:9px;font-weight:700;padding:2px 7px;border-radius:3px;letter-spacing:0.05em;text-transform:uppercase}
+.rt-underway{background:var(--green-lt);color:var(--green)}
+.rt-planning{background:var(--amber-lt);color:var(--amber)}
+.rt-proposal{background:var(--blue-lt);color:var(--blue)}
+.regen-value{font-size:10px;font-weight:700;color:var(--muted)}
+.regen-name{font-size:12px;font-weight:700;color:var(--text)}
+.regen-desc{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.5}
+
+/* PROXIMITY */
+.prox-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px}
+.prox-item:last-child{border-bottom:none}
+.prox-name{color:var(--text)}
+.prox-dist{font-weight:700;color:var(--blue)}
+</style>
+</head>
+<body data-page="analyse">
+<aside class="sidebar">
+  <a href="valora-dashboard.html" class="sb-brand">
+    <div class="sb-brand-inner">
+      <div class="sb-logo">V</div>
+      <div><div class="sb-brand-name">Valora</div><div class="sb-brand-sub">Property Intelligence</div></div>
+    </div>
+  </a>
+  <div class="sb-section">
+    <div class="sb-section-label">Main</div>
+    <a href="valora-dashboard.html" class="sb-item"><span class="icon">⊞</span> Dashboard</a>
+    <a href="valora-discover.html" class="sb-item"><span class="icon">◎</span> Discover <span class="badge">5</span></a>
+    <a href="valora-portfolio.html" class="sb-item"><span class="icon">▤</span> Portfolio</a>
+    <a href="valora-area-intel.html" class="sb-item"><span class="icon">∿</span> Area Intel</a>
+    <a href="valora-analyse.html" class="sb-item active"><span class="icon">⬡</span> Analyse</a>
+  </div>
+  <div class="sb-section">
+    <div class="sb-section-label">Account</div>
+    <a href="valora-settings.html" class="sb-item"><span class="icon">⚙</span> Settings</a>
+    <a href="valora-settings.html#support" class="sb-item"><span class="icon">?</span> Support</a>
+  </div>
+  <div class="sb-bottom">
+    <button class="sb-new">+ New Analysis</button>
+    <a href="valora-settings.html#billing" class="sb-upgrade">
+      <div class="sb-upgrade-label">Current plan</div>
+      <div class="sb-upgrade-plan">Pro · £49/mo</div>
+      <div class="sb-upgrade-cta">Upgrade to Investor →</div>
+    </a>
+    <div class="sb-user" style="margin-top:12px">
+      <div class="sb-avatar">AS</div>
+      <div><div class="sb-user-name">Alex Sterling</div><div class="sb-user-plan">Pro Plan</div></div>
+    </div>
+  </div>
+</aside>
+
+<div class="main">
+  <div id="analyse-entry" class="analyse-entry">
+    <div class="analyse-entry-card">
+      <div class="analyse-entry-hero">
+        <div class="icon">⬡</div>
+        <h1>Valora Analyse</h1>
+        <p>Paste any property listing URL and get a complete investment analysis in seconds — yields, rents, risks, and an investment score.</p>
+      </div>
+      <div class="analyse-entry-form">
+        <form id="analyse-url-form">
+          <div class="analyse-url-wrap">
+            <span class="url-icon">🔗</span>
+            <input id="analyse-url-input" type="url" placeholder="Paste Rightmove, Zoopla, or OnTheMarket URL…" required>
+          </div>
+          <button type="submit" class="analyse-submit">✦ Analyse Property</button>
+        </form>
+        <div class="analyse-features">
+          <div class="analyse-feat"><div class="f-icon">📊</div><div class="f-label">Yield &amp; Cash Flow</div></div>
+          <div class="analyse-feat"><div class="f-icon">🏠</div><div class="f-label">Rental Estimate</div></div>
+          <div class="analyse-feat"><div class="f-icon">⚠️</div><div class="f-label">Risk Assessment</div></div>
+        </div>
+        <div class="analyse-recent">
+          <div class="analyse-recent-title">Recent Analyses</div>
+          <div id="analyse-recent-list"></div>
+        </div>
+        <div class="demo-props">
+          <div class="demo-props-title">Or explore example analyses</div>
+          <div class="demo-props-grid" id="demo-props-grid"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="topbar valora-hidden" id="analyse-topbar">
+    <div class="breadcrumb">
+      <a href="valora-discover.html">Discover</a>
+      <span class="sep">›</span>
+      <a href="valora-area-intel.html">Sheffield S6</a>
+      <span class="sep">›</span>
+      <span class="current" id="report-breadcrumb-current">Derelict Corner Plot — Demo Potential</span>
+    </div>
+    <div class="topbar-actions">
+      <a href="#" class="btn-sm">♡ Save</a>
+      <a href="#" class="btn-sm">⇪ Share</a>
+      <a href="#" class="btn-sm blue">📄 Export PDF Report</a>
+    </div>
+  </div>
+
+  <div class="page valora-hidden" id="analyse-report">
+    <!-- HERO -->
+    <div class="page-hero">
+      <div class="prop-images">
+        <div class="prop-img main">🏗️</div>
+        <div class="prop-img">🌳</div>
+        <div class="prop-img">📐</div>
+      </div>
+      <div class="prop-hero-info">
+        <div class="prop-breadcrumb"><a href="#">Portfolio</a> › <a href="#">Sheffield Assets</a></div>
+        <div class="prop-name" id="report-title">Derelict Corner Plot, Walkley Road</div>
+        <div class="prop-address" id="report-address">Sheffield, South Yorkshire · S6 2LT · Analysis generated today</div>
+        <div class="prop-tags" id="report-tags">
+          <span class="ptag demo">Demolish &amp; Rebuild</span>
+          <span class="ptag chain">Chain Free</span>
+          <span class="ptag freehold">Freehold</span>
+          <span class="ptag regen">Regen Zone</span>
+        </div>
+        <div class="prop-quick-facts">
+          <div class="pqf"><div class="pqf-val" id="report-fact-val-0">£155,000</div><div class="pqf-label" id="report-fact-label-0">Asking Price</div></div>
+          <div class="pqf"><div class="pqf-val" id="report-fact-val-1">0.12 acres</div><div class="pqf-label" id="report-fact-label-1">Plot Size</div></div>
+          <div class="pqf"><div class="pqf-val" id="report-fact-val-2">£420k</div><div class="pqf-label" id="report-fact-label-2">Est. GDV</div></div>
+          <div class="pqf"><div class="pqf-val" id="report-fact-val-3">24%</div><div class="pqf-label" id="report-fact-label-3">Profit on Cost</div></div>
+        </div>
+      </div>
+      <div class="score-widget">
+        <div class="sw-label">Investment Grade</div>
+        <div class="sw-score" id="report-score">91</div>
+        <div class="sw-grade" id="report-grade">Exceptional</div>
+        <div id="report-score-ring" style="margin:10px auto 0"></div>
+        <div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.1)">
+          <div class="sw-conf-label">Market Confidence</div>
+          <div class="sw-conf-bar"><div class="sw-conf-fill"></div></div>
+          <div class="sw-conf-text">High · 14 comparable sites</div>
+        </div>
+        <div style="margin-top:10px;font-size:10px;color:rgba(255,255,255,0.35);line-height:1.5">Based on plot size, planning context, build cost benchmarks, and new-build comparables in S6</div>
+      </div>
+    </div>
+
+    <!-- BODY -->
+    <div class="page-body">
+      <div class="main-col">
+
+        <!-- KEY METRICS -->
+        <div class="panel">
+          <div class="panel-head"><div class="panel-title">Financial Summary</div><span class="panel-badge pb-green">Pro-Forma Verified</span></div>
+          <div class="panel-body">
+            <div class="metrics-4">
+              <div class="mc"><div class="mc-l">Purchase Price</div><div class="mc-v" id="report-mc-land">£155k</div><div class="mc-s">Asking price</div></div>
+              <div class="mc"><div class="mc-l">Refurb / Build</div><div class="mc-v" id="report-mc-build">£185k</div><div class="mc-s warn">Est. ±10%</div></div>
+              <div class="mc"><div class="mc-l">Total Cost</div><div class="mc-v" id="report-mc-total">£340k</div><div class="mc-s">All-in incl. fees</div></div>
+              <div class="mc"><div class="mc-l" id="report-mc-return-label">Profit on Cost</div><div class="mc-v" style="color:var(--green)" id="report-mc-return">24%</div><div class="mc-s up">↑ Strong margin</div></div>
+            </div>
+            <div style="margin-top:12px">
+              <div class="uv-strip">
+                <div class="uv-left">
+                  <div class="uv-title" id="report-uv-title">Gross Development Value: £420,000</div>
+                  <div class="uv-desc" id="report-uv-desc">4-bed new-build detached in S6 — based on 14 comparable new-build sales within 0.5 miles. GDV is conservative at £280/sqft on 1,500sqft.</div>
+                </div>
+                <div class="uv-badge" id="report-uv-badge">£80k profit</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- GDV WATERFALL (Demo & Rebuild specific) -->
+        <div class="panel" id="report-dev-panel">
+          <div class="panel-head"><div class="panel-title">Development Appraisal</div><span class="panel-badge pb-blue">Demolish &amp; Rebuild Strategy</span></div>
+          <div class="panel-body">
+            <div class="gdv-grid">
+              <div class="gdv-box"><div class="gdv-label">Estimated GDV</div><div class="gdv-val green">£420,000</div><div class="gdv-sub">4-bed detached at £280/sqft · 1,500sqft</div></div>
+              <div class="gdv-box"><div class="gdv-label">Plot Size</div><div class="gdv-val">0.12 acres</div><div class="gdv-sub">Corner plot · Vehicular access confirmed</div></div>
+              <div class="gdv-box"><div class="gdv-label">Planning Status</div><div class="gdv-val" style="color:var(--amber);font-size:15px">Pre-App Advised</div><div class="gdv-sub">Similar consent granted at no. 42 (2023)</div></div>
+              <div class="gdv-box"><div class="gdv-label">Build Cost Est.</div><div class="gdv-val">£185,000</div><div class="gdv-sub">£123/sqft · BCIS Sheffield benchmark</div></div>
+            </div>
+            <div class="gdv-waterfall">
+              <div class="wf-row"><span class="wf-label">Gross Development Value</span><span class="wf-val">£420,000</span></div>
+              <div class="wf-row"><span class="wf-label">Land acquisition</span><span class="wf-val neg">−£155,000</span></div>
+              <div class="wf-row"><span class="wf-label">Demolition cost</span><span class="wf-val neg">−£12,000</span></div>
+              <div class="wf-row"><span class="wf-label">Build cost (1,500sqft @ £123)</span><span class="wf-val neg">−£184,500</span></div>
+              <div class="wf-row"><span class="wf-label">Professional fees (8%)</span><span class="wf-val neg">−£11,200</span></div>
+              <div class="wf-row"><span class="wf-label">Finance cost (est.)</span><span class="wf-val neg">−£8,500</span></div>
+              <div class="wf-row" style="margin-top:2px"><span class="wf-label" style="color:var(--text);font-weight:700">Estimated Profit</span><span class="wf-val pos">+£48,800 (14.4%)</span></div>
+            </div>
+            <div class="ai-insight" style="margin-top:12px">
+              <span class="ai-insight-icon">✦</span>
+              <div class="ai-insight-text"><strong>AI Insight:</strong> A single 4-bed detached is the lowest-risk option given planning precedent at comparable plots in S6. Alternatively, a pair of 3-bed semis on this footprint could achieve GDV of £480k–£500k, improving profit margin to 29–31%, subject to planning — worth exploring with a pre-application enquiry.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- REFURB / DEMOLITION BREAKDOWN -->
+        <div class="panel" id="report-refurb-panel">
+          <div class="panel-head">
+            <div class="panel-title">Demolition &amp; Build Cost Breakdown</div>
+            <span class="panel-badge pb-amber">Est. Total: £196,500</span>
+          </div>
+          <div class="panel-body">
+            <table class="refurb-table">
+              <thead><tr><th>Category</th><th>Scope</th><th style="text-align:right">Est. Cost</th></tr></thead>
+              <tbody>
+                <tr><td><strong>Demolition</strong></td><td class="scope">Strip and clear existing structure, waste disposal</td><td class="cost">£12,000</td></tr>
+                <tr><td><strong>Foundations &amp; Structure</strong></td><td class="scope">Strip foundations, blockwork, beam &amp; block floor</td><td class="cost">£38,000</td></tr>
+                <tr><td><strong>Roof &amp; Envelope</strong></td><td class="scope">Timber frame, roof tiles, external doors &amp; windows</td><td class="cost">£42,000</td></tr>
+                <tr><td><strong>First Fix</strong></td><td class="scope">Plumbing, electrics, insulation, plasterboard</td><td class="cost">£28,000</td></tr>
+                <tr><td><strong>Second Fix &amp; Fit-Out</strong></td><td class="scope">Kitchen, bathrooms, flooring, decoration</td><td class="cost">£44,500</td></tr>
+                <tr><td><strong>External Works</strong></td><td class="scope">Driveway, fencing, landscaping, utilities</td><td class="cost">£12,000</td></tr>
+                <tr><td><strong>Contingency (10%)</strong></td><td class="scope">Buffer for unexpected overheads</td><td class="cost">£17,650</td></tr>
+                <tr><td style="color:var(--text)"><strong>Total Estimated Cost</strong></td><td></td><td class="cost" style="color:var(--text)">£194,150</td></tr>
+              </tbody>
+            </table>
+            <a href="#" class="panel-action" style="display:inline-block;margin-top:10px">View detailed quantity survey estimates →</a>
+          </div>
+        </div>
+
+        <!-- COMPARABLE NEW-BUILD SALES -->
+        <div class="panel">
+          <div class="panel-head"><div class="panel-title">Comparable New-Build Sales</div><div style="font-size:11px;color:var(--muted)">Within 0.5 miles · Last 18 months</div></div>
+          <div class="panel-body">
+            <div class="comp-item">
+              <div><div class="comp-addr">14 Walkley Crescent Road, S6</div><div class="comp-meta">4 bed detached · New build · Sold Apr 2024</div></div>
+              <div><div class="comp-price">£415,000</div><div class="comp-psqft">£277/sqft</div></div>
+            </div>
+            <div class="comp-item">
+              <div><div class="comp-addr">7 Langsett Avenue, S6</div><div class="comp-meta">4 bed detached · New build · Sold Jan 2024</div></div>
+              <div><div class="comp-price">£428,000</div><div class="comp-psqft">£285/sqft</div></div>
+            </div>
+            <div class="comp-item">
+              <div><div class="comp-addr">22 Marlcliffe Road, S6</div><div class="comp-meta">3 bed detached · New build · Sold Nov 2023</div></div>
+              <div><div class="comp-price">£348,000</div><div class="comp-psqft">£261/sqft</div></div>
+            </div>
+            <div class="comp-item">
+              <div><div class="comp-addr">Plot 4, Hillfoot Road, S6</div><div class="comp-meta">4 bed semi · New build · Sold Sep 2023</div></div>
+              <div><div class="comp-price">£375,000</div><div class="comp-psqft">£250/sqft</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RISKS & FLAGS -->
+        <div class="panel">
+          <div class="panel-head"><div class="panel-title">Risk Assessment</div></div>
+          <div class="panel-body">
+            <div class="risk-tags" id="report-risks">
+              <span class="rtag ok">✓ Corner plot — good access</span>
+              <span class="rtag ok">✓ Chain free</span>
+              <span class="rtag ok">✓ Planning precedent nearby</span>
+              <span class="rtag ok">✓ Regen zone — rising values</span>
+              <span class="rtag ok">✓ Strong new-build demand</span>
+              <span class="rtag warn">⚠ Planning not yet secured</span>
+              <span class="rtag warn">⚠ Build cost risk ±10%</span>
+              <span class="rtag warn">⚠ Finance cost sensitivity</span>
+              <span class="rtag risk">✕ No services confirmed on plot</span>
+              <span class="rtag info">ℹ Pre-app enquiry recommended</span>
+              <span class="rtag info">ℹ Article 4 area — check PD rights</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT SIDEBAR -->
+      <div class="side-col">
+
+        <!-- RENTAL ESTIMATE (if converted to rental) -->
+        <div class="panel">
+          <div class="panel-head"><div class="panel-title">Rental Estimate (if retained)</div></div>
+          <div class="panel-body">
+            <div class="rental-bars">
+              <div class="rb-row">
+                <span class="rb-label" style="font-size:10px;color:var(--muted)">Conservative</span>
+                <div class="rb-bar-wrap"><div class="rb-bar" style="width:70%;background:var(--light)"></div></div>
+                <span class="rb-val" id="report-rent-cons">£1,350</span>
+              </div>
+              <div class="rb-row">
+                <span class="rb-label" style="font-size:10px;color:var(--text);font-weight:600">Expected</span>
+                <div class="rb-bar-wrap"><div class="rb-bar" style="width:82%;background:var(--blue)"></div></div>
+                <span class="rb-val" style="color:var(--blue);font-weight:700" id="report-rent-exp">£1,550</span>
+              </div>
+              <div class="rb-row">
+                <span class="rb-label" style="font-size:10px;color:var(--muted)">Optimistic</span>
+                <div class="rb-bar-wrap"><div class="rb-bar" style="width:92%;background:var(--green)"></div></div>
+                <span class="rb-val" id="report-rent-opt">£1,750</span>
+              </div>
+            </div>
+            <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                <div class="gdv-box"><div class="gdv-label">Gross Yield</div><div class="gdv-val" style="font-size:15px" id="report-gross-yield">4.4%</div><div class="gdv-sub">Annual return</div></div>
+                <div class="gdv-box"><div class="gdv-label">Net Yield</div><div class="gdv-val" style="font-size:15px" id="report-net-yield">3.8%</div><div class="gdv-sub">After costs</div></div>
+              </div>
+              <div class="ai-insight" style="margin-top:10px">
+                <span class="ai-insight-icon">✦</span>
+                <div class="ai-insight-text" style="font-size:11px">Sell is the stronger exit. Rental yield on a new-build at GDV is modest. Sell upon completion to recycle capital into the next site.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- AREA INTELLIGENCE -->
+        <div class="panel">
+          <div class="panel-head"><div class="panel-title">Area Intelligence</div><a href="valora-area-intel.html" class="panel-action">Full report →</a></div>
+          <div class="panel-body">
+            <div class="area-row">
+              <span class="area-label">🏫 Schools</span>
+              <span class="area-val" style="color:var(--blue)">Top 20%</span>
+            </div>
+            <div class="area-row">
+              <span class="area-label">🚔 Crime Rate</span>
+              <span class="area-val" style="color:var(--green)">Low</span>
+            </div>
+            <div class="area-row">
+              <span class="area-label">🚇 Transport</span>
+              <span class="area-val" style="color:var(--green)">Excellent</span>
+            </div>
+            <div class="area-row">
+              <span class="area-label">📈 Price Growth (5yr)</span>
+              <span class="area-val" style="color:var(--green)">+42%</span>
+            </div>
+            <div class="area-row">
+              <span class="area-label">🏗 Regen Pipeline</span>
+              <span class="area-val" style="color:var(--blue)">Active</span>
+            </div>
+            <div class="area-row">
+              <span class="area-label">🏠 Rental Demand</span>
+              <span class="area-val" style="color:var(--green)">High</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- PROXIMITY -->
+        <div class="panel">
+          <div class="panel-head"><div class="panel-title">Proximity</div></div>
+          <div class="panel-body">
+            <div class="prox-item"><span class="prox-name">🚇 Hillsborough Interchange</span><span class="prox-dist">4 min walk</span></div>
+            <div class="prox-item"><span class="prox-name">🛒 Morrisons Hillsborough</span><span class="prox-dist">6 min walk</span></div>
+            <div class="prox-item"><span class="prox-name">🏫 Forge Valley School</span><span class="prox-dist">9 min walk</span></div>
+            <div class="prox-item"><span class="prox-name">🏥 Northern General Hospital</span><span class="prox-dist">12 min drive</span></div>
+            <div class="prox-item"><span class="prox-name">🏙 Sheffield City Centre</span><span class="prox-dist">15 min drive</span></div>
+          </div>
+        </div>
+
+        <!-- REGEN PIPELINE -->
+        <div class="panel">
+          <div class="panel-head"><div class="panel-title">Upcoming Regeneration</div></div>
+          <div class="panel-body">
+            <div class="regen-item">
+              <div class="regen-head"><span class="regen-tag rt-underway">Underway</span><span class="regen-value">£320M value</span></div>
+              <div class="regen-name">Hillsborough Park Masterplan</div>
+              <div class="regen-desc">New leisure quarter and 400-unit residential scheme. Expected to lift surrounding values by 5–8%.</div>
+            </div>
+            <div class="regen-item">
+              <div class="regen-head"><span class="regen-tag rt-planning">Planning</span><span class="regen-value">£85M value</span></div>
+              <div class="regen-name">S6 Transport Corridor Upgrade</div>
+              <div class="regen-desc">Tram-train extension connecting Hillsborough to Sheffield centre. Journey time cut to 8 minutes.</div>
+            </div>
+            <div class="regen-item">
+              <div class="regen-head"><span class="regen-tag rt-proposal">Proposal</span><span class="regen-value">Est. £40M</span></div>
+              <div class="regen-name">Retail High Street Renewal</div>
+              <div class="regen-desc">Pedestrianisation of Hillsborough main street. Public realm investment anchored by new food market.</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+<script src="valora-data.js"></script>
+<script src="valora-app.js"></script>
+</body>
+</html>

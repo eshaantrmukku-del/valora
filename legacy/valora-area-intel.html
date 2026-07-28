@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Valora — Area Intel</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="valora-core.css" rel="stylesheet">
+<link href="valora-shared.css" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0D1B2A;--blue:#1B4FD8;--blue-lt:#EEF2FF;
+  --green:#16A34A;--green-lt:#DCFCE7;--amber:#D97706;--amber-lt:#FEF3C7;
+  --red:#DC2626;--red-lt:#FEE2E2;--purple:#7C3AED;--purple-lt:#EDE9FE;
+  --cyan:#0891B2;--cyan-lt:#CFFAFE;
+  --bg:#F1F4F8;--surface:#FFFFFF;--border:#E2E8F0;
+  --text:#0F172A;--muted:#64748B;--light:#94A3B8;
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;display:flex;height:100vh;overflow:hidden}
+.sidebar{width:220px;min-width:220px;background:var(--navy);display:flex;flex-direction:column;height:100vh;position:fixed;left:0;top:0;z-index:100}
+.sb-brand{padding:20px 18px 18px;border-bottom:1px solid rgba(255,255,255,0.07)}
+.sb-brand-name{font-size:15px;font-weight:700;color:#fff}
+.sb-brand-sub{font-size:9px;color:rgba(255,255,255,0.3);letter-spacing:0.12em;text-transform:uppercase;margin-top:2px}
+.sb-section{padding:16px 10px 8px}
+.sb-section-label{font-size:9px;font-weight:700;color:rgba(255,255,255,0.25);text-transform:uppercase;letter-spacing:0.1em;padding:0 10px;margin-bottom:6px}
+.sb-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:7px;margin-bottom:2px;font-size:13px;font-weight:500;color:rgba(255,255,255,0.5);text-decoration:none;transition:all 0.15s}
+.sb-item:hover{color:rgba(255,255,255,0.85);background:rgba(255,255,255,0.06)}
+.sb-item.active{background:rgba(255,255,255,0.1);color:#fff}
+.sb-item .icon{width:16px;text-align:center;font-size:14px;flex-shrink:0}
+.sb-item .badge{margin-left:auto;background:var(--blue);color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:100px}
+.sb-bottom{margin-top:auto;padding:12px 10px}
+.sb-new{background:var(--blue);color:#fff;font-size:12px;font-weight:600;padding:10px 14px;border-radius:8px;text-align:center;cursor:pointer;border:none;width:100%;transition:background 0.15s}
+.sb-new:hover{background:#1a45c4}
+.sb-user{display:flex;align-items:center;gap:10px;padding:12px 12px 0}
+.sb-avatar{width:30px;height:30px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0}
+.sb-user-name{font-size:12px;font-weight:600;color:rgba(255,255,255,0.8)}
+.sb-user-plan{font-size:10px;color:rgba(255,255,255,0.35)}
+.main{margin-left:220px;flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden}
+.topbar{height:56px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 28px;gap:16px;flex-shrink:0}
+.search-box{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:9px 14px;flex:1;max-width:420px}
+.search-box input{background:none;border:none;outline:none;font-size:13px;color:var(--text);width:100%;font-family:'Inter',sans-serif}
+.search-box input::placeholder{color:var(--light)}
+.topbar-right{display:flex;align-items:center;gap:8px;margin-left:auto}
+.btn-sm{font-size:12px;font-weight:600;padding:8px 14px;border-radius:6px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px;transition:all 0.15s;border:1px solid var(--border);background:var(--surface);color:var(--muted)}
+.btn-sm:hover{border-color:var(--blue);color:var(--blue)}
+.btn-primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+.btn-primary:hover{background:#1a45c4}
+
+/* LAYOUT: map left, data right */
+.content-area{flex:1;display:grid;grid-template-columns:1fr 400px;overflow:hidden}
+
+/* MAP PANE */
+.map-pane{position:relative;background:var(--navy);overflow:hidden}
+.map-bg{width:100%;height:100%;background:
+  radial-gradient(circle at 30% 40%, rgba(27,79,216,0.12) 0%, transparent 50%),
+  radial-gradient(circle at 70% 60%, rgba(22,163,74,0.08) 0%, transparent 50%),
+  linear-gradient(160deg, #0d1b2a 0%, #162336 50%, #0d1b2a 100%);
+  display:flex;align-items:center;justify-content:center;position:relative}
+/* Grid overlay */
+.map-bg::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px);background-size:40px 40px}
+/* Road lines */
+.map-roads{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.road{position:absolute;background:rgba(255,255,255,0.07);border-radius:2px}
+.road-h{height:2px;width:100%}
+.road-v{width:2px;height:100%}
+/* Map pins */
+.map-pins{position:absolute;inset:0}
+.pin{position:absolute;display:flex;flex-direction:column;align-items:center;cursor:pointer;transform:translate(-50%,-100%)}
+.pin-dot{width:14px;height:14px;border-radius:50%;border:2.5px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.4)}
+.pin-label{background:rgba(15,26,45,0.9);color:#fff;font-size:9px;font-weight:700;padding:3px 7px;border-radius:4px;white-space:nowrap;margin-bottom:4px;backdrop-filter:blur(4px)}
+.pin-needle{width:2px;height:8px;background:#fff;margin-top:0}
+/* Map controls */
+.map-controls{position:absolute;top:16px;right:16px;display:flex;flex-direction:column;gap:4px}
+.mc-btn{width:32px;height:32px;background:var(--surface);border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:var(--text);border:1px solid var(--border);transition:all 0.15s}
+.mc-btn:hover{border-color:var(--blue);color:var(--blue)}
+/* Map legend */
+.map-legend{position:absolute;bottom:16px;left:16px;background:rgba(15,26,45,0.85);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;display:flex;flex-direction:column;gap:7px}
+.ml-item{display:flex;align-items:center;gap:8px;font-size:11px;color:rgba(255,255,255,0.7)}
+.ml-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+
+/* RIGHT PANEL */
+.data-pane{overflow-y:auto;background:var(--bg);border-left:1px solid var(--border)}
+.area-header{background:var(--surface);border-bottom:1px solid var(--border);padding:18px 22px}
+.area-title-row{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px}
+.area-premium{font-size:9px;font-weight:700;background:var(--navy);color:#fff;padding:3px 8px;border-radius:3px;letter-spacing:0.06em;text-transform:uppercase}
+.area-updated{font-size:10px;color:var(--light);margin-top:4px}
+.area-title{font-size:20px;font-weight:800;color:var(--text);letter-spacing:-0.7px;margin-bottom:2px}
+.area-subtitle{font-size:12px;color:var(--muted)}
+.area-header-actions{display:flex;gap:8px;margin-top:12px}
+
+/* SCORE CARDS ROW */
+.score-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;padding:16px 22px;background:var(--surface);border-bottom:1px solid var(--border)}
+.score-box{text-align:center;padding:10px;background:var(--bg);border-radius:8px}
+.sb-num{font-size:26px;font-weight:800;letter-spacing:-1px;line-height:1}
+.sb-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);margin-top:4px}
+.sb-sub{font-size:10px;color:var(--light);margin-top:2px}
+
+/* PANEL */
+.section{padding:16px 22px;border-bottom:1px solid var(--border)}
+.section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.section-benchmark{font-size:10px;color:var(--light);font-weight:400;text-transform:none;letter-spacing:0}
+
+/* RESILIENCE BARS */
+.res-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)}
+.res-row:last-child{border-bottom:none}
+.res-label{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text)}
+.res-bar-wrap{width:90px;background:var(--bg);border-radius:100px;height:6px;overflow:hidden}
+.res-bar{height:100%;border-radius:100px}
+.res-val{font-size:11px;font-weight:700;min-width:70px;text-align:right}
+
+/* AMENITY TABLE */
+.amenity-table{width:100%;border-collapse:collapse}
+.amenity-table th{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--light);padding:7px 0;border-bottom:1px solid var(--border);text-align:left}
+.amenity-table td{padding:8px 0;border-bottom:1px solid var(--border);font-size:11px;vertical-align:middle}
+.amenity-table tr:last-child td{border-bottom:none}
+.amenity-status{font-size:9px;font-weight:700;padding:2px 7px;border-radius:3px;text-transform:uppercase;letter-spacing:0.04em}
+.as-premium{background:var(--blue-lt);color:var(--blue)}
+.as-good{background:var(--green-lt);color:var(--green)}
+.as-limited{background:var(--amber-lt);color:var(--amber)}
+.amenity-trend{font-size:10px;font-weight:600}
+
+/* REGEN LIST */
+.regen-item{padding:10px 0;border-bottom:1px solid var(--border)}
+.regen-item:last-child{border-bottom:none}
+.regen-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.rtag{font-size:9px;font-weight:700;padding:2px 7px;border-radius:3px;text-transform:uppercase;letter-spacing:0.04em}
+.rt-underway{background:var(--green-lt);color:var(--green)}
+.rt-planning{background:var(--amber-lt);color:var(--amber)}
+.rt-proposal{background:var(--blue-lt);color:var(--blue)}
+.regen-value{font-size:10px;font-weight:700;color:var(--muted)}
+.regen-name{font-size:12px;font-weight:700;color:var(--text)}
+.regen-desc{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.5}
+.regen-btn{display:block;width:100%;text-align:center;padding:10px;border-radius:7px;border:1px solid var(--border);background:var(--surface);font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;margin-top:10px;transition:all 0.15s}
+.regen-btn:hover{border-color:var(--blue);color:var(--blue)}
+
+/* ANALYST INSIGHT */
+.analyst-box{background:var(--navy);border-radius:8px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start}
+.analyst-avatar{width:36px;height:36px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}
+.analyst-text{font-size:12px;color:rgba(255,255,255,0.6);line-height:1.6}
+.analyst-text strong{color:#fff}
+.analyst-name{font-size:10px;color:rgba(255,255,255,0.35);margin-top:6px}
+
+/* COMPARABLE AREAS */
+.comp-area-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)}
+.comp-area-row:last-child{border-bottom:none}
+.ca-name{font-size:12px;font-weight:600;color:var(--text)}
+.ca-detail{font-size:10px;color:var(--muted);margin-top:1px}
+.ca-score{font-size:14px;font-weight:800}
+.ca-change{font-size:10px;font-weight:600;margin-top:1px}
+</style>
+</head>
+<body data-page="area-intel">
+<aside class="sidebar">
+  <a href="valora-dashboard.html" class="sb-brand">
+    <div class="sb-brand-inner">
+      <div class="sb-logo">V</div>
+      <div><div class="sb-brand-name">Valora</div><div class="sb-brand-sub">Property Intelligence</div></div>
+    </div>
+  </a>
+  <div class="sb-section">
+    <div class="sb-section-label">Main</div>
+    <a href="valora-dashboard.html" class="sb-item"><span class="icon">⊞</span> Dashboard</a>
+    <a href="valora-discover.html" class="sb-item"><span class="icon">◎</span> Discover <span class="badge">5</span></a>
+    <a href="valora-portfolio.html" class="sb-item"><span class="icon">▤</span> Portfolio</a>
+    <a href="valora-area-intel.html" class="sb-item active"><span class="icon">∿</span> Area Intel</a>
+    <a href="valora-analyse.html" class="sb-item"><span class="icon">⬡</span> Analyse</a>
+  </div>
+  <div class="sb-section">
+    <div class="sb-section-label">Account</div>
+    <a href="valora-settings.html" class="sb-item"><span class="icon">⚙</span> Settings</a>
+    <a href="valora-settings.html#support" class="sb-item"><span class="icon">?</span> Support</a>
+  </div>
+  <div class="sb-bottom">
+    <button class="sb-new">+ New Analysis</button>
+    <a href="valora-settings.html#billing" class="sb-upgrade">
+      <div class="sb-upgrade-label">Current plan</div>
+      <div class="sb-upgrade-plan">Pro · £49/mo</div>
+      <div class="sb-upgrade-cta">Upgrade to Investor →</div>
+    </a>
+    <div class="sb-user" style="margin-top:12px"><div class="sb-avatar">AS</div><div><div class="sb-user-name">Alex Sterling</div><div class="sb-user-plan">Pro Plan</div></div></div>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="search-box">
+      <span style="color:var(--light)">🔍</span>
+      <input type="text" value="Sheffield S6, S7, S10" placeholder="Search postcode, city, or district…">
+    </div>
+    <div class="topbar-right">
+      <a href="#" class="btn-sm">📄 Export PDF</a>
+      <a href="#" class="btn-sm">⇪ Share Report</a>
+    </div>
+  </div>
+
+  <div class="content-area">
+    <!-- MAP -->
+    <div class="map-pane">
+      <div class="map-bg">
+        <!-- Road lines -->
+        <div class="map-roads">
+          <div class="road road-h" style="top:28%;width:100%"></div>
+          <div class="road road-h" style="top:52%;width:100%"></div>
+          <div class="road road-h" style="top:72%;width:100%"></div>
+          <div class="road road-v" style="left:22%;height:100%"></div>
+          <div class="road road-v" style="left:55%;height:100%"></div>
+          <div class="road road-v" style="left:78%;height:100%"></div>
+          <div class="road road-h" style="top:40%;width:60%;left:20%;transform:rotate(-8deg)"></div>
+        </div>
+        <!-- Pins -->
+        <div class="map-pins">
+          <div class="pin" style="top:35%;left:38%">
+            <div class="pin-label">Growth Hotspot · Score 91</div>
+            <div class="pin-dot" style="background:var(--blue)"></div>
+            <div class="pin-needle"></div>
+          </div>
+          <div class="pin" style="top:55%;left:62%">
+            <div class="pin-label">High Yield · Score 83</div>
+            <div class="pin-dot" style="background:var(--green)"></div>
+            <div class="pin-needle"></div>
+          </div>
+          <div class="pin" style="top:45%;left:25%">
+            <div class="pin-label">Regen Zone</div>
+            <div class="pin-dot" style="background:var(--amber)"></div>
+            <div class="pin-needle"></div>
+          </div>
+          <div class="pin" style="top:68%;left:48%">
+            <div class="pin-label">Demo Potential</div>
+            <div class="pin-dot" style="background:var(--purple)"></div>
+            <div class="pin-needle"></div>
+          </div>
+        </div>
+        <!-- Controls -->
+        <div class="map-controls">
+          <div class="mc-btn">⧉</div>
+          <div class="mc-btn">+</div>
+          <div class="mc-btn">−</div>
+        </div>
+        <!-- Legend -->
+        <div class="map-legend">
+          <div class="ml-item"><div class="ml-dot" style="background:var(--blue)"></div>Growth Hotspot</div>
+          <div class="ml-item"><div class="ml-dot" style="background:var(--green)"></div>Resilient Yield</div>
+          <div class="ml-item"><div class="ml-dot" style="background:var(--amber)"></div>Regen Zone</div>
+          <div class="ml-item"><div class="ml-dot" style="background:var(--purple)"></div>Dev Opportunity</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DATA PANE -->
+    <div class="data-pane">
+      <!-- AREA HEADER -->
+      <div class="area-header">
+        <div class="area-title-row">
+          <div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+              <span class="area-premium">Premium Report</span>
+              <span class="area-updated">Last updated: 14 Jun 2026</span>
+            </div>
+            <div class="area-title">Sheffield City North</div>
+            <div class="area-subtitle">S6, S7, S10 · 3 postcode districts · 42,800 residents</div>
+          </div>
+        </div>
+        <div class="area-header-actions">
+          <a href="#" class="btn-sm">📄 Export PDF</a>
+          <a href="valora-discover.html" class="btn-sm btn-primary">◎ Find Deals Here</a>
+        </div>
+      </div>
+
+      <!-- SCORE ROW -->
+      <div class="score-row">
+        <div class="score-box">
+          <div class="sb-num" style="color:var(--green)">78</div>
+          <div class="sb-label">Investment Score</div>
+          <div class="sb-sub">High Potential · Top 5% UK</div>
+        </div>
+        <div class="score-box">
+          <div class="sb-num" style="color:var(--red)">42°C</div>
+          <div class="sb-label">Market Temp</div>
+          <div class="sb-sub">Very Hot · Fast-moving</div>
+        </div>
+        <div class="score-box">
+          <div class="sb-num" style="color:var(--blue)">£242k</div>
+          <div class="sb-label">Avg Entry Price</div>
+          <div class="sb-sub">+8.4% YoY</div>
+        </div>
+      </div>
+
+      <!-- MARKET DATA -->
+      <div class="section">
+        <div class="section-title">Market Data <span class="section-benchmark">Benchmark: National Avg</span></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div style="background:var(--bg);border-radius:7px;padding:10px 12px;border:1px solid var(--border)">
+            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:5px">Rental Demand</div>
+            <div style="font-size:16px;font-weight:800;color:var(--green)">High</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:2px">+12% YoY · 8 days avg to let</div>
+          </div>
+          <div style="background:var(--bg);border-radius:7px;padding:10px 12px;border:1px solid var(--border)">
+            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:5px">5yr Price Growth</div>
+            <div style="font-size:16px;font-weight:800;color:var(--green)">+42.3%</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:2px">vs +28.1% national avg</div>
+          </div>
+          <div style="background:var(--bg);border-radius:7px;padding:10px 12px;border:1px solid var(--border)">
+            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:5px">Avg Gross Yield</div>
+            <div style="font-size:16px;font-weight:800;color:var(--blue)">7.1%</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:2px">vs 4.8% national avg</div>
+          </div>
+          <div style="background:var(--bg);border-radius:7px;padding:10px 12px;border:1px solid var(--border)">
+            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:5px">Vacancy Rate</div>
+            <div style="font-size:16px;font-weight:800;color:var(--green)">2.1%</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:2px">vs 4.3% national avg · Very low</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LOCAL RESILIENCE -->
+      <div class="section">
+        <div class="section-title">Local Resilience Indicators <span class="section-benchmark">Benchmark: Regional Avg</span></div>
+        <div class="res-row">
+          <span class="res-label">🏫 Schools &amp; Education</span>
+          <div class="res-bar-wrap"><div class="res-bar" style="width:90%;background:var(--blue)"></div></div>
+          <span class="res-val" style="color:var(--blue)">Top 15%</span>
+        </div>
+        <div class="res-row">
+          <span class="res-label">🚔 Public Safety</span>
+          <div class="res-bar-wrap"><div class="res-bar" style="width:55%;background:var(--amber)"></div></div>
+          <span class="res-val" style="color:var(--amber)">Neutral</span>
+        </div>
+        <div class="res-row">
+          <span class="res-label">🚇 Transport Connectivity</span>
+          <div class="res-bar-wrap"><div class="res-bar" style="width:95%;background:var(--green)"></div></div>
+          <span class="res-val" style="color:var(--green)">Excellent</span>
+        </div>
+        <div class="res-row">
+          <span class="res-label">💼 Employment Rate</span>
+          <div class="res-bar-wrap"><div class="res-bar" style="width:80%;background:var(--blue)"></div></div>
+          <span class="res-val" style="color:var(--blue)">Strong</span>
+        </div>
+        <div class="res-row">
+          <span class="res-label">🏗 Development Activity</span>
+          <div class="res-bar-wrap"><div class="res-bar" style="width:85%;background:var(--purple)"></div></div>
+          <span class="res-val" style="color:var(--purple)">Very High</span>
+        </div>
+
+        <div style="margin-top:14px">
+          <table class="amenity-table">
+            <thead><tr><th>Amenity Type</th><th>Status</th><th>Trend</th></tr></thead>
+            <tbody>
+              <tr><td>Supermarkets (Tier 1)</td><td><span class="amenity-status as-premium">Premium</span></td><td class="amenity-trend" style="color:var(--green)">+4.2%</td></tr>
+              <tr><td>Restaurants &amp; Cafés</td><td><span class="amenity-status as-good">Good</span></td><td class="amenity-trend" style="color:var(--green)">+6.8%</td></tr>
+              <tr><td>Green Space Access</td><td><span class="amenity-status as-limited">Limited</span></td><td class="amenity-trend" style="color:var(--red)">−1.1%</td></tr>
+              <tr><td>GP &amp; Healthcare</td><td><span class="amenity-status as-good">Good</span></td><td class="amenity-trend" style="color:var(--muted)">Stable</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- REGEN PIPELINE -->
+      <div class="section">
+        <div class="section-title">Upcoming Regeneration Projects</div>
+        <div class="regen-item">
+          <div class="regen-head"><span class="rtag rt-underway">Q4 2023 — Underway</span><span class="regen-value">£1.2BN VALUE</span></div>
+          <div class="regen-name">Hillsborough Park Urban Quarter</div>
+          <div class="regen-desc">Phase 2 ground-breaking. New leisure, retail, and 400 residential units. Expected to lift surrounding property values by 4–6% upon completion.</div>
+        </div>
+        <div class="regen-item">
+          <div class="regen-head"><span class="rtag rt-planning">Q2 2025 — Planning</span><span class="regen-value">£450M VALUE</span></div>
+          <div class="regen-name">S6 Tram-Train Extension</div>
+          <div class="regen-desc">Approval granted. Connects Hillsborough directly to Sheffield city centre in 8 minutes. Pedestrian-first interchange at Langsett Road.</div>
+        </div>
+        <div class="regen-item">
+          <div class="regen-head"><span class="rtag rt-proposal">2026 — Proposal</span><span class="regen-value">EST. £280M</span></div>
+          <div class="regen-name">New East Tech Campus</div>
+          <div class="regen-desc">University of Sheffield satellite campus targeting 3,000 postgrad students. Strong catalyst for short-let and HMO demand in surrounding streets.</div>
+        </div>
+        <button class="regen-btn">View full pipeline report</button>
+      </div>
+
+      <!-- COMPARABLE AREAS -->
+      <div class="section">
+        <div class="section-title">Compare with Similar Areas</div>
+        <div class="comp-area-row">
+          <div><div class="ca-name">Manchester M1–M4</div><div class="ca-detail">City centre · Very high demand</div></div>
+          <div style="text-align:right"><div class="ca-score" style="color:var(--green)">82</div><div class="ca-change" style="color:var(--green)">↑ +3pts</div></div>
+        </div>
+        <div class="comp-area-row">
+          <div><div class="ca-name">Sheffield S6 (current)</div><div class="ca-detail">Regen zone · Rising fast</div></div>
+          <div style="text-align:right"><div class="ca-score" style="color:var(--green)">78</div><div class="ca-change" style="color:var(--green)">↑ +5pts</div></div>
+        </div>
+        <div class="comp-area-row">
+          <div><div class="ca-name">Birmingham B12</div><div class="ca-detail">Buy-to-let hub · Stable</div></div>
+          <div style="text-align:right"><div class="ca-score" style="color:var(--amber)">71</div><div class="ca-change" style="color:var(--green)">↑ +2pts</div></div>
+        </div>
+        <div class="comp-area-row">
+          <div><div class="ca-name">Leeds LS6</div><div class="ca-detail">HMO / student · Mature</div></div>
+          <div style="text-align:right"><div class="ca-score" style="color:var(--amber)">68</div><div class="ca-change" style="color:var(--muted)">→ Stable</div></div>
+        </div>
+        <div class="comp-area-row">
+          <div><div class="ca-name">Nottingham NG1</div><div class="ca-detail">Mixed · Supply pressure</div></div>
+          <div style="text-align:right"><div class="ca-score" style="color:var(--red)">52</div><div class="ca-change" style="color:var(--red)">↓ −4pts</div></div>
+        </div>
+      </div>
+
+      <!-- AI ANALYST INSIGHT -->
+      <div class="section" style="border-bottom:none">
+        <div class="section-title">Analyst Insight</div>
+        <div class="analyst-box">
+          <div class="analyst-avatar">AI</div>
+          <div>
+            <div class="analyst-text">
+              <strong>Sheffield S6 is outperforming the Northern England benchmark on all key metrics.</strong> The area's investment score of 78 is driven primarily by a shortage of Grade A residential supply against a backdrop of increasing demand from young professionals relocating from London and Leeds. The Hillsborough tram-train extension is a major catalyst — historically, transport upgrades of this scale drive 8–12% value uplift within 0.5 miles of the new interchange. Investors should prioritise <strong>corner plots and end-of-terrace sites on Walkley Road, Langsett Avenue, and Marlcliffe Road</strong> for early-cycle entry before planning consent becomes priced in.
+            </div>
+            <div class="analyst-name">Valora AI · Sheffield Market Intelligence · Updated Jun 2026</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="valora-data.js"></script>
+<script src="valora-app.js"></script>
+</body>
+</html>
