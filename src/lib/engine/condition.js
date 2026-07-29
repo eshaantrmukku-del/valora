@@ -10,7 +10,7 @@
  *
  * Soft negatives must NEVER override strong completed-renovation language.
  */
-import { costsFromRooms, overallFromRooms, worseLevel } from './refurbCosts';
+import { costsFromRooms, overallFromRooms, worseLevel } from './refurbCosts.js';
 
 /** Clear evidence the home has ALREADY been done up. */
 const COMPLETED_RENOVATION = [
@@ -220,10 +220,36 @@ function emptyResult(source) {
 
 /**
  * Merge text + vision.
- * Text completed-renovation / Good must not be dragged to Poor by photo heuristics.
+ * Photos must be able to set overall when listing text is silent.
+ * Text completed-renovation / Good must not be dragged to Poor by weak photo cues.
  */
 export function mergeCondition(textCondition, visionCondition) {
   if (!visionCondition?.rooms || !Object.keys(visionCondition.rooms).length) {
+    // If vision gave an overall without rooms, still use it when text is Unknown
+    if (
+      visionCondition?.overall
+      && visionCondition.overall !== 'Unknown'
+      && (textCondition.overall === 'Unknown' || !textCondition.overall)
+    ) {
+      return {
+        ...textCondition,
+        overall: visionCondition.overall === 'Average' ? 'Fair' : visionCondition.overall,
+        signals: [...(textCondition.signals || []), ...(visionCondition.notes || [])].slice(0, 8),
+        source: [textCondition.source, visionCondition.source].filter(Boolean).join(' + '),
+        confidence: visionCondition.confidence || 'medium',
+        verdict: conditionVerdict(
+          visionCondition.overall === 'Average' ? 'Fair' : visionCondition.overall,
+          visionCondition.notes || [],
+          visionCondition.confidence || 'medium',
+        ),
+        vision: {
+          rooms: {},
+          confidence: visionCondition.confidence,
+          source: visionCondition.source,
+          imagesUsed: visionCondition.imagesUsed || 0,
+        },
+      };
+    }
     return {
       ...textCondition,
       verdict: conditionVerdict(
@@ -245,21 +271,19 @@ export function mergeCondition(textCondition, visionCondition) {
     const pessimistic = rating === 'Poor' || rating === 'Fair'
       || rating === 'Required' || rating === 'Needs replacing';
 
-    // Low-confidence vision: never invent upside; never worsen a text-Good home
+    // Low-confidence vision: can still fill empty text, but never worsen text-Good
     if (visionConf === 'low' || visionConf === 'none') {
-      if (optimistic) continue;
       if (textIsGood && pessimistic) continue;
+      if (optimistic && textOverall !== 'Unknown' && textOverall !== 'Fair') continue;
       rooms[room] = rooms[room] ? worseLevel(rooms[room], rating) : rating;
       continue;
     }
 
-    // Medium/high vision: can add room detail, but cannot override text Good → Poor overall
     if (textIsGood && optimistic) {
       rooms[room] = 'Good';
       continue;
     }
     if (textIsGood && pessimistic) {
-      // Note caution on a room without flipping whole house to Poor
       rooms[room] = rooms[room] ? worseLevel(rooms[room], 'Fair') : 'Fair';
       continue;
     }
@@ -268,36 +292,48 @@ export function mergeCondition(textCondition, visionCondition) {
 
   const priced = costsFromRooms(rooms);
   let overall = textOverall;
+  const fromVisionRooms = overallFromRooms(visionCondition.rooms);
+  const visionOverallRaw = visionCondition.overall && visionCondition.overall !== 'Unknown'
+    ? visionCondition.overall
+    : fromVisionRooms;
+  const visionOverall = visionOverallRaw === 'Average' ? 'Fair' : visionOverallRaw;
 
-  if (!textIsGood) {
-    if (visionConf === 'low' || visionConf === 'none') {
-      const fromVision = overallFromRooms(visionCondition.rooms);
-      if (textOverall === 'Unknown' && (fromVision === 'Fair' || fromVision === 'Poor')) {
-        overall = fromVision === 'Poor' ? 'Fair' : fromVision; // soft: heuristic alone ≠ Poor
-      }
-    } else {
-      const fromVision = overallFromRooms(visionCondition.rooms);
-      overall = worseLevel(
-        fromVision === 'Unknown' ? textOverall : fromVision,
-        textOverall === 'Unknown' ? fromVision : textOverall,
-      );
+  if (textIsGood) {
+    overall = 'Good';
+  } else if (textOverall === 'Unknown' || !textOverall) {
+    // Photos decide when the listing text is silent
+    overall = visionOverall && visionOverall !== 'Unknown' ? visionOverall : 'Fair';
+  } else if (visionConf === 'high' || visionConf === 'medium') {
+    overall = worseLevel(
+      visionOverall === 'Unknown' ? textOverall : visionOverall,
+      textOverall,
+    );
+  } else {
+    // Low-conf vision can nudge Unknown/Fair but not invent Poor alone
+    if (visionOverall === 'Fair' || visionOverall === 'Good') {
+      overall = worseLevel(textOverall, visionOverall === 'Good' ? 'Fair' : visionOverall);
+    } else if (visionOverall === 'Poor') {
+      overall = textOverall === 'Poor' ? 'Poor' : 'Fair';
     }
   }
-  // If text is Good, overall stays Good (room flags may still show Fair for survey notes)
 
   overall = overall === 'Average' ? 'Fair' : overall;
   if (textIsGood && overall === 'Poor') overall = 'Good';
+  // If we analysed photos and somehow still Unknown, default Fair not "unclear"
+  if (overall === 'Unknown' && (visionCondition.imagesUsed || 0) > 0) overall = 'Fair';
 
   const signals = [
     ...(textCondition.signals || []),
-    ...(visionCondition.notes || []).slice(0, 2),
+    ...(visionCondition.notes || []).slice(0, 3),
   ].slice(0, 8);
 
   const confidence = textIsGood || visionConf === 'high' || textCondition.confidence === 'high'
     ? 'high'
     : visionConf === 'medium' || textCondition.confidence === 'medium'
       ? 'medium'
-      : 'low';
+      : (visionCondition.imagesUsed || 0) > 0
+        ? 'medium'
+        : 'low';
 
   return {
     overall,
@@ -311,7 +347,7 @@ export function mergeCondition(textCondition, visionCondition) {
     signals,
     source: [
       textCondition.source,
-      visionCondition.source || 'Vision classification',
+      visionCondition.source || 'Photo analysis',
     ].filter(Boolean).join(' + '),
     confidence,
     verdict: conditionVerdict(overall, signals, confidence),
@@ -320,6 +356,7 @@ export function mergeCondition(textCondition, visionCondition) {
       confidence: visionCondition.confidence,
       source: visionCondition.source,
       imagesUsed: visionCondition.imagesUsed || 0,
+      overall: visionCondition.overall,
     },
   };
 }
@@ -329,7 +366,7 @@ export function conditionVerdict(overall, signals = [], confidence = 'low') {
     return {
       label: 'Good condition',
       tone: 'good',
-      summary: 'Listing language indicates a refurbished / well-presented home.',
+      summary: 'Photos / listing indicate a refurbished or well-presented home.',
       evidence: signals.slice(0, 4),
     };
   }
@@ -337,7 +374,7 @@ export function conditionVerdict(overall, signals = [], confidence = 'low') {
     return {
       label: 'Needs significant work',
       tone: 'poor',
-      summary: 'Listing signals point to a renovation / project property.',
+      summary: 'Photos / listing point to a renovation project.',
       evidence: signals.slice(0, 4),
     };
   }
@@ -345,14 +382,14 @@ export function conditionVerdict(overall, signals = [], confidence = 'low') {
     return {
       label: 'Needs updating',
       tone: 'fair',
-      summary: 'Signals suggest cosmetic or partial modernisation rather than turn-key.',
+      summary: 'Photos / listing suggest cosmetic or partial modernisation rather than turn-key.',
       evidence: signals.slice(0, 4),
     };
   }
   return {
-    label: 'Condition unclear',
+    label: 'No photos to analyse',
     tone: 'unknown',
-    summary: 'Not enough listing evidence to judge condition — assess on viewing / survey.',
+    summary: 'Listing had no usable photos or text cues — confirm on viewing / survey.',
     evidence: signals.slice(0, 4),
   };
 }

@@ -243,7 +243,11 @@ export default function PropertyReport({ property: p }) {
               <div className="panel-head">
                 <div className="panel-title">Condition &amp; refurbishment</div>
                 <span className="panel-badge">
-                  {p.condition.vision ? 'Text + photos' : 'Rule-based'}
+                  {p.condition.vision?.imagesUsed
+                    ? `Photos · ${p.condition.vision.imagesUsed} analysed`
+                    : p.condition.vision
+                      ? 'Text + photos'
+                      : 'Listing text'}
                 </span>
               </div>
               <div className="panel-body">

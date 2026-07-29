@@ -186,7 +186,7 @@ export function scoreBriefMatch(property, intent) {
     if (remodel) {
       hard(18, true, `${cond} condition — renovation opportunity`, '');
     } else if (unknown) {
-      soft(18, false, '', 'Condition unclear — confirm on viewing', true, 0.3);
+      soft(18, false, '', 'No usable photos/text for condition — rare; re-analyse', true, 0.2);
     } else if (turnkey) {
       hard(18, false, '', 'Good condition — limited modernisation need');
     }

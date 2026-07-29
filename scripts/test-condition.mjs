@@ -1,4 +1,4 @@
-import { classifyCondition, mergeCondition } from './src/lib/engine/condition.js';
+import { classifyCondition, mergeCondition } from '../src/lib/engine/condition.js';
 
 const cases = [
   {

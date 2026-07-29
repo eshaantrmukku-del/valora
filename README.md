@@ -29,13 +29,15 @@ npm run build
 npm start          # serves dist + APIs on PORT (default 4173)
 ```
 
-Deploy the repo to **Railway**, **Render**, or any Node host:
+### Deploy live (one click)
 
-- Build: `npm install && npm run build`
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/eshaantrmukku-del/valora)
+
+Or connect the repo in [Railway](https://railway.com/new) — it auto-detects `npm run build` / `npm start`.
+
+- Build: `npm ci && npm run build`
 - Start: `npm start`
-- Env: optional `OPENAI_API_KEY` / `GROQ_API_KEY` / `GEMINI_API_KEY`
-
-Push to GitHub, then connect that repo in your host’s dashboard.
+- Env (optional): `OPENAI_API_KEY` / `GROQ_API_KEY` / `GEMINI_API_KEY` for LLM photo analysis
 
 ## Tests
 

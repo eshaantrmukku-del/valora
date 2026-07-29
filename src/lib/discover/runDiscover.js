@@ -274,7 +274,7 @@ function whyMatches(property, intent) {
     if (property.condition?.overall === 'Poor' || property.condition?.overall === 'Fair') {
       reasons.push(`${property.condition.overall} condition — refurb angle`);
     } else if (property.condition?.overall === 'Unknown') {
-      reasons.push('Condition unclear — check on viewing');
+      reasons.push('Few photo/text cues — confirm condition on viewing');
     }
     if (bmv && disc != null) {
       reasons.push(`${Math.abs(disc)}% below sold median`);

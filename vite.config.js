@@ -196,11 +196,13 @@ function imageProxyMiddleware() {
     try {
       const upstream = await fetch(target, {
         headers: {
-          'User-Agent': 'Mozilla/5.0 (compatible; ValoraImageProxy/1.0)',
-          Accept: 'image/*,*/*',
-          Referer: 'https://www.rightmove.co.uk/',
+          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+          Accept: 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
+          Referer: target.includes('zoopla') ? 'https://www.zoopla.co.uk/' : 'https://www.rightmove.co.uk/',
+          'Accept-Language': 'en-GB,en;q=0.9',
         },
         signal: AbortSignal.timeout(15000),
+        redirect: 'follow',
       });
       if (!upstream.ok) {
         res.statusCode = upstream.status;
