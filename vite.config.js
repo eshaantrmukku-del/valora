@@ -249,4 +249,10 @@ function listingApiPlugin() {
 export default defineConfig({
   plugins: [react(), listingApiPlugin()],
   server: { port: 5173, open: true },
+  preview: {
+    host: '0.0.0.0',
+    port: 4173,
+    // Required for Render / Railway / tunnel URLs — otherwise Host check returns 403
+    allowedHosts: true,
+  },
 });
