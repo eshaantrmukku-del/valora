@@ -25,6 +25,7 @@ import { documentRoutes } from './routes/documents';
 import { assistantRoutes } from './routes/assistant';
 import { dashboardRoutes } from './routes/dashboard';
 import { systemRoutes } from './routes/system';
+import { areaRoutes } from './routes/area';
 
 const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
 
@@ -106,6 +107,7 @@ export async function buildApp(opts: { logger?: boolean } = {}): Promise<Fastify
     documentRoutes,
     assistantRoutes,
     dashboardRoutes,
+    areaRoutes,
   ]) {
     await app.register(routes);
   }

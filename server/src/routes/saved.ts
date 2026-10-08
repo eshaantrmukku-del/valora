@@ -32,6 +32,7 @@ export async function savedRoutes(app: FastifyInstance) {
           id: s.id,
           propertyId: p.id,
           note: s.note,
+          status: s.status,
           briefId: s.briefId,
           briefName,
           createdAt: s.createdAt.toISOString(),
@@ -62,7 +63,14 @@ export async function savedRoutes(app: FastifyInstance) {
   app.patch('/api/saved/:id', async (req) => {
     const me = requireUser(req);
     const { id } = parse(IdParam, req.params);
-    const body = parse(z.object({ note: z.string().max(2_000).nullable().optional(), briefId: z.string().uuid().nullable().optional() }), req.body);
+    const body = parse(
+      z.object({
+        note: z.string().max(2_000).nullable().optional(),
+        briefId: z.string().uuid().nullable().optional(),
+        status: z.enum(['watching', 'offer', 'owned', 'passed']).optional(),
+      }),
+      req.body,
+    );
     if (body.briefId) await getOwnedBrief(me.id, body.briefId);
     const [row] = await getDb()
       .update(schema.savedProperties)

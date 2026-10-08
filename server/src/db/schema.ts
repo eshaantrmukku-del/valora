@@ -272,6 +272,7 @@ export const savedProperties = pgTable(
       .references(() => properties.id, { onDelete: 'cascade' }),
     briefId: uuid('brief_id').references(() => investmentBriefs.id, { onDelete: 'set null' }),
     note: text('note'),
+    status: text('status', { enum: ['watching', 'offer', 'owned', 'passed'] }).notNull().default('watching'),
     createdAt: created(),
   },
   (t) => [uniqueIndex('saved_user_property_idx').on(t.userId, t.propertyId)],

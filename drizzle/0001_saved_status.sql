@@ -1,0 +1,1 @@
+ALTER TABLE "saved_properties" ADD COLUMN "status" text DEFAULT 'watching' NOT NULL;
