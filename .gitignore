@@ -8,3 +8,6 @@ dist
 *.bak
 .vscode
 .idea
+playwright-report
+test-results
+coverage
