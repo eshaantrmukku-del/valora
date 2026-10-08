@@ -1,18 +1,41 @@
-# Render blueprint — connect repo at https://dashboard.render.com
-# New → Blueprint → eshaantrmukku-del/valora
+# Render blueprint — Valora API + worker + web UI, with managed Postgres.
+# Dashboard → New → Blueprint → select this repository. Then fill the secret env vars marked sync: false.
+databases:
+  - name: valora-db
+    plan: free
+    databaseName: valora
+    user: valora
+
 services:
   - type: web
     name: valora
     runtime: node
     plan: free
     buildCommand: npm ci && npm run build
-    startCommand: npm start
-    healthCheckPath: /
+    startCommand: npm run db:migrate:prod && npm start
+    healthCheckPath: /api/health
     envVars:
       - key: NODE_VERSION
         value: "22"
       - key: NODE_ENV
         value: production
-      # Optional — add in Render dashboard for LLM photo analysis:
-      # - key: OPENAI_API_KEY
-      #   sync: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: valora-db
+          property: connectionString
+      - key: RUN_WORKER
+        value: "true"
+      - key: APP_URL
+        sync: false # e.g. https://valora.vercel.app (or this Render URL if you don't use Vercel)
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: PROPERTYDATA_API_KEY
+        sync: false
+      - key: EPC_API_EMAIL
+        sync: false
+      - key: EPC_API_KEY
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
