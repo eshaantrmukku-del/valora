@@ -49,7 +49,8 @@ export function assertAllowedUrl(raw: string): URL {
     throw new AppError('bad_request', 'Invalid outbound URL');
   }
   if (url.protocol !== 'https:') throw new AppError('forbidden', 'Outbound requests must use HTTPS');
-  if (!ALLOWED_HOSTS.has(url.hostname)) throw new AppError('forbidden', `Outbound host not allowed: ${url.hostname}`);
+  if (!ALLOWED_HOSTS.has(url.hostname))
+    throw new AppError('forbidden', `Outbound host not allowed: ${url.hostname}`);
   return url;
 }
 
@@ -70,7 +71,11 @@ export async function fetchJson<T = unknown>(rawUrl: string, opts: FetchJsonOpti
     try {
       const res = await f(url, {
         method: opts.method ?? 'GET',
-        headers: { Accept: 'application/json', 'User-Agent': 'Valora/2.0 (property investment research)', ...opts.headers },
+        headers: {
+          Accept: 'application/json',
+          'User-Agent': 'Valora/2.0 (property investment research)',
+          ...opts.headers,
+        },
         body: opts.body === undefined ? undefined : JSON.stringify(opts.body),
         redirect: 'manual',
         signal: AbortSignal.timeout(opts.timeoutMs ?? 15_000),
@@ -79,20 +84,29 @@ export async function fetchJson<T = unknown>(rawUrl: string, opts: FetchJsonOpti
         const loc = res.headers.get('location');
         if (!loc) throw new ProviderHttpError('Redirect without location', res.status, false);
         assertAllowedUrl(new URL(loc, url).toString());
-        throw new ProviderHttpError(`Unexpected redirect to ${new URL(loc, url).hostname}`, res.status, false);
+        throw new ProviderHttpError(
+          `Unexpected redirect to ${new URL(loc, url).hostname}`,
+          res.status,
+          false,
+        );
       }
       if (!res.ok) {
         const retryable = res.status === 429 || res.status >= 500;
         lastErr = new ProviderHttpError(`HTTP ${res.status}`, res.status, retryable);
         if (retryable && attempt < retries) {
           const retryAfter = Number(res.headers.get('retry-after'));
-          await sleep(Number.isFinite(retryAfter) && retryAfter > 0 ? Math.min(retryAfter * 1000, 10_000) : 400 * 2 ** attempt);
+          await sleep(
+            Number.isFinite(retryAfter) && retryAfter > 0
+              ? Math.min(retryAfter * 1000, 10_000)
+              : 400 * 2 ** attempt,
+          );
           continue;
         }
         throw lastErr;
       }
       const len = Number(res.headers.get('content-length'));
-      if (Number.isFinite(len) && len > maxBytes) throw new ProviderHttpError('Response too large', res.status, false);
+      if (Number.isFinite(len) && len > maxBytes)
+        throw new ProviderHttpError('Response too large', res.status, false);
       const text = await res.text();
       if (text.length > maxBytes) throw new ProviderHttpError('Response too large', res.status, false);
       try {
@@ -108,7 +122,13 @@ export async function fetchJson<T = unknown>(rawUrl: string, opts: FetchJsonOpti
       }
       if (err instanceof AppError) throw err;
       const name = (err as Error)?.name;
-      lastErr = new ProviderHttpError(name === 'TimeoutError' ? 'Request timed out' : `Network error: ${(err as Error)?.message ?? 'unknown'}`, null, true);
+      lastErr = new ProviderHttpError(
+        name === 'TimeoutError'
+          ? 'Request timed out'
+          : `Network error: ${(err as Error)?.message ?? 'unknown'}`,
+        null,
+        true,
+      );
       if (attempt < retries) {
         await sleep(400 * 2 ** attempt);
         continue;
@@ -120,7 +140,11 @@ export async function fetchJson<T = unknown>(rawUrl: string, opts: FetchJsonOpti
 }
 
 /** Run async tasks with bounded concurrency, preserving order. */
-export async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T, index: number) => Promise<R>): Promise<R[]> {
+export async function mapLimit<T, R>(
+  items: T[],
+  limit: number,
+  fn: (item: T, index: number) => Promise<R>,
+): Promise<R[]> {
   const out: R[] = new Array(items.length);
   let next = 0;
   const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {

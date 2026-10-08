@@ -30,32 +30,43 @@ export function serialiseRun(r: typeof schema.searchRuns.$inferSelect) {
 
 export async function discoverRoutes(app: FastifyInstance) {
   /** Start a search from a saved brief, or from an unsaved draft brief. Long-running: returns a run id to poll. */
-  app.post('/api/search-runs', { config: { rateLimit: { max: 10, timeWindow: '1 minute' } } }, async (req) => {
-    const me = requireUser(req);
-    const body = parse(
-      z.object({
-        briefId: z.string().uuid().nullable(),
-        criteria: BriefCriteriaSchema.nullable(),
-        name: z.string().trim().max(120).nullable(),
-        idempotencyKey: z.string().min(8).max(100).nullable(),
-      }),
-      req.body,
-    );
-    let criteria;
-    let name: string;
-    if (body.briefId) {
-      const b = await getOwnedBrief(me.id, body.briefId);
-      criteria = b.criteria;
-      name = b.name;
-    } else if (body.criteria) {
-      criteria = normaliseCriteria(body.criteria);
-      name = body.name || 'Unsaved search';
-    } else {
-      throw new AppError('bad_request', 'Provide a briefId or criteria.');
-    }
-    const run = await createSearchRun({ userId: me.id, briefId: body.briefId, briefName: name, criteria, trigger: 'manual', idempotencyKey: body.idempotencyKey });
-    return { run: serialiseRun(run) };
-  });
+  app.post(
+    '/api/search-runs',
+    { config: { rateLimit: { max: 10, timeWindow: '1 minute' } } },
+    async (req) => {
+      const me = requireUser(req);
+      const body = parse(
+        z.object({
+          briefId: z.string().uuid().nullable(),
+          criteria: BriefCriteriaSchema.nullable(),
+          name: z.string().trim().max(120).nullable(),
+          idempotencyKey: z.string().min(8).max(100).nullable(),
+        }),
+        req.body,
+      );
+      let criteria;
+      let name: string;
+      if (body.briefId) {
+        const b = await getOwnedBrief(me.id, body.briefId);
+        criteria = b.criteria;
+        name = b.name;
+      } else if (body.criteria) {
+        criteria = normaliseCriteria(body.criteria);
+        name = body.name || 'Unsaved search';
+      } else {
+        throw new AppError('bad_request', 'Provide a briefId or criteria.');
+      }
+      const run = await createSearchRun({
+        userId: me.id,
+        briefId: body.briefId,
+        briefName: name,
+        criteria,
+        trigger: 'manual',
+        idempotencyKey: body.idempotencyKey,
+      });
+      return { run: serialiseRun(run) };
+    },
+  );
 
   app.get('/api/search-runs', async (req) => {
     const me = requireUser(req);
@@ -63,7 +74,12 @@ export async function discoverRoutes(app: FastifyInstance) {
     const where = q.briefId
       ? and(eq(schema.searchRuns.userId, me.id), eq(schema.searchRuns.briefId, q.briefId))
       : eq(schema.searchRuns.userId, me.id);
-    const runs = await getDb().select().from(schema.searchRuns).where(where).orderBy(desc(schema.searchRuns.createdAt)).limit(20);
+    const runs = await getDb()
+      .select()
+      .from(schema.searchRuns)
+      .where(where)
+      .orderBy(desc(schema.searchRuns.createdAt))
+      .limit(20);
     return { runs: runs.map(serialiseRun) };
   });
 
@@ -71,7 +87,10 @@ export async function discoverRoutes(app: FastifyInstance) {
     const me = requireUser(req);
     const { id } = parse(IdParam, req.params);
     const db = getDb();
-    const [run] = await db.select().from(schema.searchRuns).where(and(eq(schema.searchRuns.id, id), eq(schema.searchRuns.userId, me.id)));
+    const [run] = await db
+      .select()
+      .from(schema.searchRuns)
+      .where(and(eq(schema.searchRuns.id, id), eq(schema.searchRuns.userId, me.id)));
     if (!run) throw notFound('Search');
     const results = await db
       .select({ r: schema.searchResults, l: schema.listings })
@@ -84,7 +103,12 @@ export async function discoverRoutes(app: FastifyInstance) {
       ? await db
           .select({ propertyId: schema.savedProperties.propertyId })
           .from(schema.savedProperties)
-          .where(and(eq(schema.savedProperties.userId, me.id), inArray(schema.savedProperties.propertyId, propertyIds)))
+          .where(
+            and(
+              eq(schema.savedProperties.userId, me.id),
+              inArray(schema.savedProperties.propertyId, propertyIds),
+            ),
+          )
       : [];
     const savedSet = new Set(saved.map((s) => s.propertyId));
     return {
@@ -99,7 +123,14 @@ export async function discoverRoutes(app: FastifyInstance) {
         facts: r.factsSnapshot,
         isNew: r.isNew,
         saved: savedSet.has(r.propertyId),
-        listing: l ? { provider: l.provider, url: l.url, lastCheckedAt: l.lastCheckedAt.toISOString(), status: l.status } : null,
+        listing: l
+          ? {
+              provider: l.provider,
+              url: l.url,
+              lastCheckedAt: l.lastCheckedAt.toISOString(),
+              status: l.status,
+            }
+          : null,
       })),
     };
   });
@@ -109,27 +140,50 @@ export async function discoverRoutes(app: FastifyInstance) {
     const me = requireUser(req);
     const { id } = parse(IdParam, req.params);
     const db = getDb();
-    const [r] = await db.select().from(schema.searchResults).where(and(eq(schema.searchResults.id, id), eq(schema.searchResults.userId, me.id)));
+    const [r] = await db
+      .select()
+      .from(schema.searchResults)
+      .where(and(eq(schema.searchResults.id, id), eq(schema.searchResults.userId, me.id)));
     if (!r) throw notFound('Result');
-    await db.update(schema.searchResults).set({ dismissedAt: new Date() }).where(eq(schema.searchResults.id, id));
-    await db.insert(schema.dismissedProperties).values({ userId: me.id, propertyId: r.propertyId }).onConflictDoNothing();
+    await db
+      .update(schema.searchResults)
+      .set({ dismissedAt: new Date() })
+      .where(eq(schema.searchResults.id, id));
+    await db
+      .insert(schema.dismissedProperties)
+      .values({ userId: me.id, propertyId: r.propertyId })
+      .onConflictDoNothing();
     return { ok: true };
   });
 
   app.get('/api/dismissed', async (req) => {
     const me = requireUser(req);
     const rows = await getDb()
-      .select({ propertyId: schema.dismissedProperties.propertyId, createdAt: schema.dismissedProperties.createdAt, facts: schema.properties.facts })
+      .select({
+        propertyId: schema.dismissedProperties.propertyId,
+        createdAt: schema.dismissedProperties.createdAt,
+        facts: schema.properties.facts,
+      })
       .from(schema.dismissedProperties)
       .innerJoin(schema.properties, eq(schema.properties.id, schema.dismissedProperties.propertyId))
       .where(eq(schema.dismissedProperties.userId, me.id));
-    return { dismissed: rows.map((r) => ({ propertyId: r.propertyId, address: r.facts.address, createdAt: r.createdAt.toISOString() })) };
+    return {
+      dismissed: rows.map((r) => ({
+        propertyId: r.propertyId,
+        address: r.facts.address,
+        createdAt: r.createdAt.toISOString(),
+      })),
+    };
   });
 
   app.delete('/api/dismissed/:id', async (req) => {
     const me = requireUser(req);
     const { id } = parse(IdParam, req.params);
-    await getDb().delete(schema.dismissedProperties).where(and(eq(schema.dismissedProperties.userId, me.id), eq(schema.dismissedProperties.propertyId, id)));
+    await getDb()
+      .delete(schema.dismissedProperties)
+      .where(
+        and(eq(schema.dismissedProperties.userId, me.id), eq(schema.dismissedProperties.propertyId, id)),
+      );
     return { ok: true };
   });
 }

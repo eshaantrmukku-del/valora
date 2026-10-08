@@ -19,7 +19,9 @@ import { fetchRentalEvidence } from '../providers/propertyData';
 
 export function summariseSold(sold: SoldEvidence, outcode: string | null) {
   const comps = sold.comparables;
-  const local = outcode ? comps.filter((c) => c.postcode?.toUpperCase().startsWith(`${outcode.toUpperCase()} `)) : [];
+  const local = outcode
+    ? comps.filter((c) => c.postcode?.toUpperCase().startsWith(`${outcode.toUpperCase()} `))
+    : [];
   const pool = local.length >= 10 ? local : comps;
   const byType = new Map<string, number[]>();
   for (const c of pool) {
@@ -37,15 +39,34 @@ export function summariseSold(sold: SoldEvidence, outcode: string | null) {
     scope: pool === local ? `${outcode} postcode district` : sold.scope,
     count: pool.length,
     median: median(pool.map((c) => c.price)),
-    lowerQuartile: quantile(pool.map((c) => c.price), 0.25),
-    upperQuartile: quantile(pool.map((c) => c.price), 0.75),
-    byType: [...byType.entries()].map(([type, prices]) => ({ type, count: prices.length, median: median(prices) })).sort((a, b) => b.count - a.count),
+    lowerQuartile: quantile(
+      pool.map((c) => c.price),
+      0.25,
+    ),
+    upperQuartile: quantile(
+      pool.map((c) => c.price),
+      0.75,
+    ),
+    byType: [...byType.entries()]
+      .map(([type, prices]) => ({ type, count: prices.length, median: median(prices) }))
+      .sort((a, b) => b.count - a.count),
     medianChange12m:
       recent.length >= 10 && prior.length >= 10 && recentMedian && priorMedian
-        ? { recentMedian, priorMedian, changePct: Math.round(((recentMedian - priorMedian) / priorMedian) * 1000) / 10, recentCount: recent.length, priorCount: prior.length }
+        ? {
+            recentMedian,
+            priorMedian,
+            changePct: Math.round(((recentMedian - priorMedian) / priorMedian) * 1000) / 10,
+            recentCount: recent.length,
+            priorCount: prior.length,
+          }
         : null,
-    newestSale: pool.map((c) => c.date).sort().at(-1) ?? null,
-    caveat: 'Median of recorded sales; the mix of property types and sizes changes between periods, so changes are not a house-price index.',
+    newestSale:
+      pool
+        .map((c) => c.date)
+        .sort()
+        .at(-1) ?? null,
+    caveat:
+      'Median of recorded sales; the mix of property types and sizes changes between periods, so changes are not a house-price index.',
   };
 }
 
@@ -63,7 +84,11 @@ export async function areaRoutes(app: FastifyInstance) {
         throw new AppError('upstream_failed', `Location lookup failed: ${(e as Error).message}`);
       }
     }
-    if (!geo) throw new AppError('not_found', `Couldn’t find “${q}”. Try a postcode district like M20 or a town name.`);
+    if (!geo)
+      throw new AppError(
+        'not_found',
+        `Couldn’t find “${q}”. Try a postcode district like M20 or a town name.`,
+      );
 
     let sold: SoldEvidence | null = null;
     let rental: RentalEvidence | null = null;
@@ -76,8 +101,13 @@ export async function areaRoutes(app: FastifyInstance) {
     } else {
       await Promise.all([
         (async () => {
-          if (!geo.district) return unavailable.push({ source: 'HM Land Registry', reason: 'Local authority unknown' });
-          if (geo.country && !/england|wales/i.test(geo.country)) return unavailable.push({ source: 'HM Land Registry', reason: `Not available for ${geo.country}` });
+          if (!geo.district)
+            return unavailable.push({ source: 'HM Land Registry', reason: 'Local authority unknown' });
+          if (geo.country && !/england|wales/i.test(geo.country))
+            return unavailable.push({
+              source: 'HM Land Registry',
+              reason: `Not available for ${geo.country}`,
+            });
           try {
             sold = await fetchSoldEvidence({ district: geo.district, propertyType: null });
           } catch (e) {
@@ -85,9 +115,14 @@ export async function areaRoutes(app: FastifyInstance) {
           }
         })(),
         (async () => {
-          if (!config().PROPERTYDATA_API_KEY) return unavailable.push({ source: 'Rental evidence', reason: 'No rental data provider configured' });
+          if (!config().PROPERTYDATA_API_KEY)
+            return unavailable.push({
+              source: 'Rental evidence',
+              reason: 'No rental data provider configured',
+            });
           const pc = geo.postcode ?? geo.outcode;
-          if (!pc) return unavailable.push({ source: 'Rental evidence', reason: 'No postcode for this place' });
+          if (!pc)
+            return unavailable.push({ source: 'Rental evidence', reason: 'No postcode for this place' });
           try {
             rental = await fetchRentalEvidence({ postcode: pc, bedrooms: null, propertyType: null });
           } catch (e) {
@@ -95,7 +130,8 @@ export async function areaRoutes(app: FastifyInstance) {
           }
         })(),
         (async () => {
-          if (geo.country && !/england/i.test(geo.country)) return unavailable.push({ source: 'planning.data.gov.uk', reason: 'England only' });
+          if (geo.country && !/england/i.test(geo.country))
+            return unavailable.push({ source: 'planning.data.gov.uk', reason: 'England only' });
           try {
             planning = await fetchPlanningConstraints(geo.latitude, geo.longitude);
           } catch (e) {
@@ -109,11 +145,23 @@ export async function areaRoutes(app: FastifyInstance) {
     const s = sold as SoldEvidence | null;
     return {
       query: q,
-      place: { label: geo.label, postcode: geo.postcode, outcode: geo.outcode, district: geo.district, country: geo.country, kind: geo.kind, latitude: geo.latitude, longitude: geo.longitude },
-      sold: soldSummary ? { ...soldSummary, source: s!.source, sourceUrl: s!.sourceUrl, retrievedAt: s!.retrievedAt } : null,
+      place: {
+        label: geo.label,
+        postcode: geo.postcode,
+        outcode: geo.outcode,
+        district: geo.district,
+        country: geo.country,
+        kind: geo.kind,
+        latitude: geo.latitude,
+        longitude: geo.longitude,
+      },
+      sold: soldSummary
+        ? { ...soldSummary, source: s!.source, sourceUrl: s!.sourceUrl, retrievedAt: s!.retrievedAt }
+        : null,
       rental,
       planning,
-      planningNote: 'Designations are checked at the centre point of this place only; individual streets may differ.',
+      planningNote:
+        'Designations are checked at the centre point of this place only; individual streets may differ.',
       unavailable,
       generatedAt: new Date().toISOString(),
     };

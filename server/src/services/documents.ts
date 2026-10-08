@@ -27,8 +27,21 @@ export async function storeDocument(userId: string, filename: string, buf: Buffe
   const safeName = filename.replace(/[^\w.\- ]+/g, '_').slice(0, 120) || 'document';
   const [row] = await getDb()
     .insert(schema.documents)
-    .values({ userId, filename: safeName, mimeType: mime, sizeBytes: buf.length, sha256: createHash('sha256').update(buf).digest('hex'), content: buf, status: 'processing' })
-    .returning({ id: schema.documents.id, filename: schema.documents.filename, status: schema.documents.status, createdAt: schema.documents.createdAt });
+    .values({
+      userId,
+      filename: safeName,
+      mimeType: mime,
+      sizeBytes: buf.length,
+      sha256: createHash('sha256').update(buf).digest('hex'),
+      content: buf,
+      status: 'processing',
+    })
+    .returning({
+      id: schema.documents.id,
+      filename: schema.documents.filename,
+      status: schema.documents.status,
+      createdAt: schema.documents.createdAt,
+    });
   await enqueue('document.extract', { documentId: row!.id }, { dedupeKey: `doc:${row!.id}`, maxAttempts: 2 });
   return row!;
 }
@@ -46,10 +59,20 @@ export async function processDocument(documentId: string) {
   const [doc] = await db.select().from(schema.documents).where(eq(schema.documents.id, documentId));
   if (!doc || doc.status === 'extracted') return;
   try {
-    const text = doc.mimeType === 'application/pdf' ? await pdfText(doc.content) : doc.content.toString('utf8');
-    const clean = text.replace(/\u0000/g, '').trim();
-    if (clean.length < 40) throw new AppError('unsupported', 'No readable text was found. Scanned (image-only) PDFs are not supported yet.');
-    const result = await extractFacts(clean, doc.userId, aiAvailable(), `Uploaded document “${doc.filename}”`);
+    const text =
+      doc.mimeType === 'application/pdf' ? await pdfText(doc.content) : doc.content.toString('utf8');
+    const clean = text.split(String.fromCharCode(0)).join('').trim();
+    if (clean.length < 40)
+      throw new AppError(
+        'unsupported',
+        'No readable text was found. Scanned (image-only) PDFs are not supported yet.',
+      );
+    const result = await extractFacts(
+      clean,
+      doc.userId,
+      aiAvailable(),
+      `Uploaded document “${doc.filename}”`,
+    );
     await db
       .update(schema.documents)
       .set({ extractedText: clean.slice(0, 200_000), extraction: result, status: 'extracted', error: null })
@@ -60,7 +83,10 @@ export async function processDocument(documentId: string) {
 }
 
 export async function markDocumentFailed(documentId: string, message: string) {
-  await getDb().update(schema.documents).set({ status: 'failed', error: message.slice(0, 500) }).where(eq(schema.documents.id, documentId));
+  await getDb()
+    .update(schema.documents)
+    .set({ status: 'failed', error: message.slice(0, 500) })
+    .where(eq(schema.documents.id, documentId));
 }
 
 export async function getOwnedDocument(userId: string, id: string) {

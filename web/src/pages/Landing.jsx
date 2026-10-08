@@ -137,7 +137,9 @@ export default function Landing() {
 
       <section className="vx-hero">
         <div className="vx-badge">
-          <span className="vx-badge-spark" aria-hidden="true">✦</span>
+          <span className="vx-badge-spark" aria-hidden="true">
+            ✦
+          </span>
           AI-powered property analytics
         </div>
 
@@ -154,8 +156,18 @@ export default function Landing() {
         <form className="vx-form" onSubmit={onHeroSubmit}>
           <span className="vx-form-icon" aria-hidden="true">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path d="M10 14a4 4 0 0 0 5.66 0l2.83-2.83a4 4 0 0 0-5.66-5.66L11.5 6.83" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-              <path d="M14 10a4 4 0 0 0-5.66 0L5.5 12.83a4 4 0 1 0 5.66 5.66L12.5 17.17" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+              <path
+                d="M10 14a4 4 0 0 0 5.66 0l2.83-2.83a4 4 0 0 0-5.66-5.66L11.5 6.83"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+              />
+              <path
+                d="M14 10a4 4 0 0 0-5.66 0L5.5 12.83a4 4 0 1 0 5.66 5.66L12.5 17.17"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+              />
             </svg>
           </span>
           <input
@@ -175,7 +187,12 @@ export default function Landing() {
 
         <p className="vx-trust">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M12 3 5 6v5c0 5 3 8.5 7 10 4-1.5 7-5 7-10V6l-7-3Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+            <path
+              d="M12 3 5 6v5c0 5 3 8.5 7 10 4-1.5 7-5 7-10V6l-7-3Z"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinejoin="round"
+            />
           </svg>
           Sign in required for full workspace access
         </p>
@@ -188,12 +205,7 @@ export default function Landing() {
               <div className="vx-path-illu">{p.art}</div>
               <h3>{p.title}</h3>
               <p>{p.desc}</p>
-              <Link
-                to={gate(p.to)}
-                state={gateState(p.to)}
-                viewTransition
-                className="vx-path-btn"
-              >
+              <Link to={gate(p.to)} state={gateState(p.to)} viewTransition className="vx-path-btn">
                 {p.cta}
               </Link>
             </article>
@@ -222,12 +234,15 @@ export default function Landing() {
             </div>
             <h2>Investment insights that matter.</h2>
             <p>
-              Every report surfaces the numbers investors actually use — yields, rent, score, and risk — without the spreadsheet grind.
+              Every report surfaces the numbers investors actually use — yields, rent, score, and risk —
+              without the spreadsheet grind.
             </p>
             <ul className="vx-checks">
               {CHECKS.map((c) => (
                 <li key={c}>
-                  <span className="vx-check" aria-hidden="true">✓</span>
+                  <span className="vx-check" aria-hidden="true">
+                    ✓
+                  </span>
                   {c}
                 </li>
               ))}
@@ -271,12 +286,7 @@ export default function Landing() {
               </div>
             </div>
 
-            <Link
-              to={gate('/analyse')}
-              state={gateState('/analyse')}
-              viewTransition
-              className="vx-card-cta"
-            >
+            <Link to={gate('/analyse')} state={gateState('/analyse')} viewTransition className="vx-card-cta">
               View full analysis
               <span aria-hidden="true">→</span>
             </Link>
@@ -337,10 +347,18 @@ export default function Landing() {
           </Link>
           <p>Illustrative estimates only. Verify figures on the original listing.</p>
           <div className="vx-footer-links">
-            <Link to={gate('/analyse')} state={gateState('/analyse')} viewTransition>Analyse</Link>
-            <Link to={gate('/discover')} state={gateState('/discover')} viewTransition>Discover</Link>
-            <Link to={gate('/portfolio')} state={gateState('/portfolio')} viewTransition>Portfolio</Link>
-            <Link to={gate('/settings')} viewTransition>Account</Link>
+            <Link to={gate('/analyse')} state={gateState('/analyse')} viewTransition>
+              Analyse
+            </Link>
+            <Link to={gate('/discover')} state={gateState('/discover')} viewTransition>
+              Discover
+            </Link>
+            <Link to={gate('/portfolio')} state={gateState('/portfolio')} viewTransition>
+              Portfolio
+            </Link>
+            <Link to={gate('/settings')} viewTransition>
+              Account
+            </Link>
           </div>
         </div>
       </footer>

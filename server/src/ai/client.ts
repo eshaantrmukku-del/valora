@@ -36,7 +36,11 @@ let client: Anthropic | null = null;
 export function anthropic(): Anthropic {
   const c = config();
   if (!c.ANTHROPIC_API_KEY) throw new AiNotConfiguredError();
-  client ??= new Anthropic({ apiKey: c.ANTHROPIC_API_KEY, timeout: c.AI_TIMEOUT_MS, maxRetries: c.AI_MAX_RETRIES });
+  client ??= new Anthropic({
+    apiKey: c.ANTHROPIC_API_KEY,
+    timeout: c.AI_TIMEOUT_MS,
+    maxRetries: c.AI_MAX_RETRIES,
+  });
   return client;
 }
 
@@ -52,20 +56,36 @@ export async function assertWithinBudget(userId: string | null) {
     .from(schema.aiUsage)
     .where(and(eq(schema.aiUsage.userId, userId), gt(schema.aiUsage.createdAt, since)));
   if ((row?.n ?? 0) >= config().AI_DAILY_CALL_LIMIT) {
-    throw new AppError('rate_limited', 'You have reached today’s AI usage limit. Deterministic features keep working; AI features reset within 24 hours.');
+    throw new AppError(
+      'rate_limited',
+      'You have reached today’s AI usage limit. Deterministic features keep working; AI features reset within 24 hours.',
+    );
   }
 }
 
-export async function recordUsage(userId: string | null, task: string, ok: boolean, usage?: { input_tokens?: number | null; output_tokens?: number | null }) {
+export async function recordUsage(
+  userId: string | null,
+  task: string,
+  ok: boolean,
+  usage?: { input_tokens?: number | null; output_tokens?: number | null },
+) {
   await getDb()
     .insert(schema.aiUsage)
-    .values({ userId, task, model: modelName(), ok, inputTokens: usage?.input_tokens ?? null, outputTokens: usage?.output_tokens ?? null });
+    .values({
+      userId,
+      task,
+      model: modelName(),
+      ok,
+      inputTokens: usage?.input_tokens ?? null,
+      outputTokens: usage?.output_tokens ?? null,
+    });
 }
 
 export function describeAiError(err: unknown): string {
   if (err instanceof AppError) return err.message;
   if (err instanceof Anthropic.AuthenticationError) return 'The AI provider rejected the API key.';
-  if (err instanceof Anthropic.RateLimitError) return 'The AI provider is rate limiting requests. Try again shortly.';
+  if (err instanceof Anthropic.RateLimitError)
+    return 'The AI provider is rate limiting requests. Try again shortly.';
   if (err instanceof Anthropic.BadRequestError) return `The AI request was rejected: ${err.message}`;
   if (err instanceof Anthropic.APIConnectionTimeoutError) return 'The AI provider timed out.';
   if (err instanceof Anthropic.APIConnectionError) return 'Could not reach the AI provider.';
@@ -103,9 +123,12 @@ export async function structured<T>(req: StructuredRequest<T>): Promise<{ data: 
       betas: [FALLBACK_BETA],
       fallbacks: 'default',
     });
-    if (res.stop_reason === 'refusal') throw new AppError('upstream_failed', 'The AI model declined this request.');
-    if (res.stop_reason === 'max_tokens') throw new AppError('upstream_failed', 'The AI response was cut off before completion.');
-    if (res.parsed_output == null) throw new AppError('upstream_failed', 'The AI response did not match the expected structure.');
+    if (res.stop_reason === 'refusal')
+      throw new AppError('upstream_failed', 'The AI model declined this request.');
+    if (res.stop_reason === 'max_tokens')
+      throw new AppError('upstream_failed', 'The AI response was cut off before completion.');
+    if (res.parsed_output == null)
+      throw new AppError('upstream_failed', 'The AI response did not match the expected structure.');
     const data = req.schema.parse(res.parsed_output);
     await recordUsage(req.userId, req.task, true, res.usage);
     return { data, model: res.model };

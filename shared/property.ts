@@ -7,7 +7,14 @@
 import { z } from 'zod';
 import { PROPERTY_TYPES } from './brief';
 
-export const FACT_SOURCES = ['listing', 'user', 'document', 'official_dataset', 'provider_classification', 'derived'] as const;
+export const FACT_SOURCES = [
+  'listing',
+  'user',
+  'document',
+  'official_dataset',
+  'provider_classification',
+  'derived',
+] as const;
 export type FactSource = (typeof FACT_SOURCES)[number];
 
 export const FACT_SOURCE_LABELS: Record<FactSource, string> = {

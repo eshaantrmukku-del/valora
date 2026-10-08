@@ -13,7 +13,10 @@ import { IdParam, parse } from '../lib/validate';
 import { getAccessibleProperty } from '../services/properties';
 
 const money = z.number().min(0).max(100_000_000).nullable();
-const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Use YYYY-MM-DD').nullable();
+const isoDate = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, 'Use YYYY-MM-DD')
+  .nullable();
 
 const AssetSchema = z.object({
   propertyId: z.string().uuid().nullable().optional(),
@@ -30,7 +33,9 @@ const AssetSchema = z.object({
   monthlyRent: money,
   monthlyOperatingCosts: money,
   currentValuation: money,
-  valuationSource: z.enum(['purchase_price', 'surveyor', 'agent_estimate', 'automated_estimate', 'own_estimate']).nullable(),
+  valuationSource: z
+    .enum(['purchase_price', 'surveyor', 'agent_estimate', 'automated_estimate', 'own_estimate'])
+    .nullable(),
   valuationDate: isoDate,
   notes: z.string().max(5_000).nullable(),
 });
@@ -44,7 +49,10 @@ const TxSchema = z.object({
 
 type Asset = typeof schema.portfolioAssets.$inferSelect;
 
-export function summarisePortfolio(assets: Asset[], txs: (typeof schema.portfolioTransactions.$inferSelect)[]) {
+export function summarisePortfolio(
+  assets: Asset[],
+  txs: (typeof schema.portfolioTransactions.$inferSelect)[],
+) {
   const share = (a: Asset) => a.ownershipPct / 100;
   let valuation = 0;
   let valuedCount = 0;
@@ -64,7 +72,8 @@ export function summarisePortfolio(assets: Asset[], txs: (typeof schema.portfoli
     monthlyRent += (a.monthlyRent ?? 0) * share(a);
     monthlyCosts += (a.monthlyOperatingCosts ?? 0) * share(a);
     if (a.monthlyMortgagePayment != null) monthlyMortgage += a.monthlyMortgagePayment * share(a);
-    else if (a.mortgageBalance && a.interestRatePct != null && a.interestOnly) monthlyMortgage += ((a.mortgageBalance * a.interestRatePct) / 100 / 12) * share(a);
+    else if (a.mortgageBalance && a.interestRatePct != null && a.interestOnly)
+      monthlyMortgage += ((a.mortgageBalance * a.interestRatePct) / 100 / 12) * share(a);
     else if (a.mortgageBalance) missing.push(`${a.label}: mortgage payment unknown`);
   }
   const yearAgo = new Date(Date.now() - 365 * 86_400_000).toISOString().slice(0, 10);
@@ -95,7 +104,10 @@ export function summarisePortfolio(assets: Asset[], txs: (typeof schema.portfoli
 }
 
 async function getOwnedAsset(userId: string, id: string) {
-  const [a] = await getDb().select().from(schema.portfolioAssets).where(and(eq(schema.portfolioAssets.id, id), eq(schema.portfolioAssets.userId, userId)));
+  const [a] = await getDb()
+    .select()
+    .from(schema.portfolioAssets)
+    .where(and(eq(schema.portfolioAssets.id, id), eq(schema.portfolioAssets.userId, userId)));
   if (!a) throw notFound('Portfolio property');
   return a;
 }
@@ -104,11 +116,26 @@ export async function portfolioRoutes(app: FastifyInstance) {
   app.get('/api/portfolio', async (req) => {
     const me = requireUser(req);
     const db = getDb();
-    const assets = await db.select().from(schema.portfolioAssets).where(eq(schema.portfolioAssets.userId, me.id)).orderBy(desc(schema.portfolioAssets.createdAt));
-    const txs = await db.select().from(schema.portfolioTransactions).where(eq(schema.portfolioTransactions.userId, me.id)).orderBy(desc(schema.portfolioTransactions.date));
+    const assets = await db
+      .select()
+      .from(schema.portfolioAssets)
+      .where(eq(schema.portfolioAssets.userId, me.id))
+      .orderBy(desc(schema.portfolioAssets.createdAt));
+    const txs = await db
+      .select()
+      .from(schema.portfolioTransactions)
+      .where(eq(schema.portfolioTransactions.userId, me.id))
+      .orderBy(desc(schema.portfolioTransactions.date));
     return {
       summary: summarisePortfolio(assets, txs),
-      assets: assets.map((a) => ({ ...a, createdAt: a.createdAt.toISOString(), updatedAt: a.updatedAt.toISOString(), transactions: txs.filter((t) => t.assetId === a.id).map((t) => ({ ...t, createdAt: t.createdAt.toISOString() })) })),
+      assets: assets.map((a) => ({
+        ...a,
+        createdAt: a.createdAt.toISOString(),
+        updatedAt: a.updatedAt.toISOString(),
+        transactions: txs
+          .filter((t) => t.assetId === a.id)
+          .map((t) => ({ ...t, createdAt: t.createdAt.toISOString() })),
+      })),
     };
   });
 
@@ -117,8 +144,13 @@ export async function portfolioRoutes(app: FastifyInstance) {
     const body = parse(AssetSchema, req.body);
     if (body.propertyId) await getAccessibleProperty(me.id, body.propertyId);
     if (body.currentValuation != null && (!body.valuationSource || !body.valuationDate))
-      throw new AppError('validation_failed', 'Add the source and date of the valuation.', [{ path: 'valuationSource', message: 'Required with a valuation' }]);
-    const [a] = await getDb().insert(schema.portfolioAssets).values({ ...body, propertyId: body.propertyId ?? null, userId: me.id }).returning();
+      throw new AppError('validation_failed', 'Add the source and date of the valuation.', [
+        { path: 'valuationSource', message: 'Required with a valuation' },
+      ]);
+    const [a] = await getDb()
+      .insert(schema.portfolioAssets)
+      .values({ ...body, propertyId: body.propertyId ?? null, userId: me.id })
+      .returning();
     await audit(me.id, 'portfolio.create', { type: 'portfolio_asset', id: a!.id });
     return { asset: { id: a!.id } };
   });
@@ -130,8 +162,13 @@ export async function portfolioRoutes(app: FastifyInstance) {
     const body = parse(AssetSchema, req.body);
     if (body.propertyId) await getAccessibleProperty(me.id, body.propertyId);
     if (body.currentValuation != null && (!body.valuationSource || !body.valuationDate))
-      throw new AppError('validation_failed', 'Add the source and date of the valuation.', [{ path: 'valuationSource', message: 'Required with a valuation' }]);
-    await getDb().update(schema.portfolioAssets).set({ ...body, propertyId: body.propertyId ?? null, updatedAt: new Date() }).where(eq(schema.portfolioAssets.id, id));
+      throw new AppError('validation_failed', 'Add the source and date of the valuation.', [
+        { path: 'valuationSource', message: 'Required with a valuation' },
+      ]);
+    await getDb()
+      .update(schema.portfolioAssets)
+      .set({ ...body, propertyId: body.propertyId ?? null, updatedAt: new Date() })
+      .where(eq(schema.portfolioAssets.id, id));
     return { ok: true };
   });
 
@@ -149,7 +186,10 @@ export async function portfolioRoutes(app: FastifyInstance) {
     const { id } = parse(IdParam, req.params);
     await getOwnedAsset(me.id, id);
     const body = parse(TxSchema, req.body);
-    const [t] = await getDb().insert(schema.portfolioTransactions).values({ ...body, assetId: id, userId: me.id }).returning();
+    const [t] = await getDb()
+      .insert(schema.portfolioTransactions)
+      .values({ ...body, assetId: id, userId: me.id })
+      .returning();
     return { transaction: { id: t!.id } };
   });
 
@@ -159,7 +199,13 @@ export async function portfolioRoutes(app: FastifyInstance) {
     await getOwnedAsset(me.id, id);
     await getDb()
       .delete(schema.portfolioTransactions)
-      .where(and(eq(schema.portfolioTransactions.id, txId), eq(schema.portfolioTransactions.assetId, id), eq(schema.portfolioTransactions.userId, me.id)));
+      .where(
+        and(
+          eq(schema.portfolioTransactions.id, txId),
+          eq(schema.portfolioTransactions.assetId, id),
+          eq(schema.portfolioTransactions.userId, me.id),
+        ),
+      );
     return { ok: true };
   });
 }

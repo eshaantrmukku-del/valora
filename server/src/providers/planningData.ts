@@ -51,7 +51,10 @@ export function planningDataInfo(): ProviderInfo {
   };
 }
 
-export async function fetchPlanningConstraints(lat: number, lng: number): Promise<PlanningConstraint[] | null> {
+export async function fetchPlanningConstraints(
+  lat: number,
+  lng: number,
+): Promise<PlanningConstraint[] | null> {
   if (!config().ENABLE_PLANNING_DATA) return null;
   const q = new URLSearchParams({ latitude: lat.toFixed(6), longitude: lng.toFixed(6), limit: '100' });
   for (const d of DATASETS) q.append('dataset', d);

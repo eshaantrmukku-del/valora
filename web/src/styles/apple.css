@@ -5,7 +5,8 @@
 
 /* ── Reset shell (no fixed black bg / no rounded slabs) ── */
 body.marketing-route {
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', sans-serif;
   background: #fff;
   color: #1d1d1f;
   -webkit-font-smoothing: antialiased;
@@ -170,9 +171,15 @@ body.marketing-route {
 }
 
 @media (max-width: 833px) {
-  .ac-gn-list { display: none; }
-  .ac-gn-menu { display: block; }
-  .ac-gn-mobile { display: block; }
+  .ac-gn-list {
+    display: none;
+  }
+  .ac-gn-menu {
+    display: block;
+  }
+  .ac-gn-mobile {
+    display: block;
+  }
 }
 
 /* ── Links & buttons (apple.com) ── */
@@ -928,9 +935,15 @@ body.marketing-route {
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 }
 
-.drc-score.high { color: #34c759; }
-.drc-score.mid { color: #ff9500; }
-.drc-score.low { color: #ff3b30; }
+.drc-score.high {
+  color: #34c759;
+}
+.drc-score.mid {
+  color: #ff9500;
+}
+.drc-score.low {
+  color: #ff3b30;
+}
 
 /* ── Tables ── */
 .data-table {
@@ -1146,4 +1159,3 @@ body.marketing-route {
 .ac-product-cta .ac-button {
   margin: 0;
 }
-

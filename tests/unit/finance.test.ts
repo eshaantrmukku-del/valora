@@ -31,8 +31,14 @@ describe('mortgage', () => {
 });
 
 describe('transaction tax', () => {
-  const tax = (price: number, jurisdiction: 'england' | 'scotland' | 'wales', buyerType: 'additional_property' | 'first_time_buyer' | 'home_mover', nonResident = false) =>
-    computeTransactionTax({ price, jurisdiction, buyerType, nonResident, completionDate: '2026-10-08' })!.amount;
+  const tax = (
+    price: number,
+    jurisdiction: 'england' | 'scotland' | 'wales',
+    buyerType: 'additional_property' | 'first_time_buyer' | 'home_mover',
+    nonResident = false,
+  ) =>
+    computeTransactionTax({ price, jurisdiction, buyerType, nonResident, completionDate: '2026-10-08' })!
+      .amount;
 
   it('selects dated rule sets per jurisdiction', () => {
     expect(selectTaxRules('england', '2026-10-08')?.id).toBe('sdlt-2025-04-01');
@@ -59,16 +65,27 @@ describe('transaction tax', () => {
   it('Wales LTT', () => {
     expect(tax(300_000, 'wales', 'home_mover')).toBe(4_500);
     expect(tax(300_000, 'wales', 'additional_property')).toBe(19_950);
-    const r = computeTransactionTax({ price: 300_000, jurisdiction: 'wales', buyerType: 'first_time_buyer' })!;
+    const r = computeTransactionTax({
+      price: 300_000,
+      jurisdiction: 'wales',
+      buyerType: 'first_time_buyer',
+    })!;
     expect(r.amount).toBe(4_500);
     expect(r.notes.join(' ')).toMatch(/no first-time buyer relief/);
   });
   it('rejects invalid prices', () => {
     expect(computeTransactionTax({ price: -1, jurisdiction: 'england', buyerType: 'home_mover' })).toBeNull();
-    expect(computeTransactionTax({ price: Number.NaN, jurisdiction: 'england', buyerType: 'home_mover' })).toBeNull();
+    expect(
+      computeTransactionTax({ price: Number.NaN, jurisdiction: 'england', buyerType: 'home_mover' }),
+    ).toBeNull();
   });
   it('band arithmetic stops at the price', () => {
-    expect(applyBands(100, [{ upTo: 50, ratePct: 10 }, { upTo: null, ratePct: 20 }])).toBeCloseTo(15, 9);
+    expect(
+      applyBands(100, [
+        { upTo: 50, ratePct: 10 },
+        { upTo: null, ratePct: 20 },
+      ]),
+    ).toBeCloseTo(15, 9);
   });
 });
 
@@ -198,7 +215,13 @@ describe('renovate and resell', () => {
   });
 
   it('includes interest during the hold for financed purchases', () => {
-    const f = calculateDeal({ ...flipInputs(), cashPurchase: false, depositPct: 25, interestRatePct: 6, lenderFees: 0 }).flip!;
+    const f = calculateDeal({
+      ...flipInputs(),
+      cashPurchase: false,
+      depositPct: 25,
+      interestRatePct: 6,
+      lenderFees: 0,
+    }).flip!;
     // 150,000 × 6% / 12 × 6 months
     expect(f.financeCostsDuringHold).toBe(4_500);
   });
@@ -224,7 +247,13 @@ describe('defaults, scenarios and sensitivity', () => {
   });
 
   it('orders scenarios cautious ≤ base ≤ optimistic', () => {
-    const s = runScenarios({ ...rentalInputs(), resaleValue: 260_000, refurbCostLow: 10_000, refurbCostHigh: 20_000, holdingMonths: 6 });
+    const s = runScenarios({
+      ...rentalInputs(),
+      resaleValue: 260_000,
+      refurbCostLow: 10_000,
+      refurbCostHigh: 20_000,
+      holdingMonths: 6,
+    });
     const [c, b, o] = s;
     expect(c!.monthlyCashFlow!).toBeLessThan(b!.monthlyCashFlow!);
     expect(b!.monthlyCashFlow!).toBeLessThan(o!.monthlyCashFlow!);

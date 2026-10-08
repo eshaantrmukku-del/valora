@@ -6,8 +6,12 @@ import { interpretWithRules } from '../../server/src/domain/briefRules';
 import { DEFAULT_ASSUMPTIONS } from '../../shared/finance/deal';
 import { emptyEvidence, emptyFacts, type EvidenceBundle, type PropertyFacts } from '../../shared/property';
 
-const renovation = interpretWithRules('3 bed house in Manchester under £500k that needs modernising with a good-sized plot and potential for an extension').criteria;
-const rental = interpretWithRules('3 bed house in Manchester under £500k for long-term rental with positive cash flow').criteria;
+const renovation = interpretWithRules(
+  '3 bed house in Manchester under £500k that needs modernising with a good-sized plot and potential for an extension',
+).criteria;
+const rental = interpretWithRules(
+  '3 bed house in Manchester under £500k for long-term rental with positive cash flow',
+).criteria;
 
 function facts(over: Partial<PropertyFacts> = {}): PropertyFacts {
   return {
@@ -22,7 +26,8 @@ function facts(over: Partial<PropertyFacts> = {}): PropertyFacts {
     floorAreaSqm: 95,
     tenure: 'freehold',
     images: ['x'],
-    description: 'A three bedroom semi-detached house in need of modernisation throughout, set on a generous plot with scope to extend (STPP).',
+    description:
+      'A three bedroom semi-detached house in need of modernisation throughout, set on a generous plot with scope to extend (STPP).',
     ...over,
   };
 }
@@ -39,7 +44,13 @@ function evidence(): EvidenceBundle {
   }));
   return {
     ...emptyEvidence(),
-    sold: { source: 'HM Land Registry Price Paid Data', sourceUrl: null, retrievedAt: '2026-10-01', scope: 'M20', comparables: comps },
+    sold: {
+      source: 'HM Land Registry Price Paid Data',
+      sourceUrl: null,
+      retrievedAt: '2026-10-01',
+      scope: 'M20',
+      comparables: comps,
+    },
     rental: {
       source: 'Test rental evidence',
       sourceUrl: null,
@@ -59,8 +70,12 @@ const financing = { ...DEFAULT_ASSUMPTIONS };
 
 describe('signals', () => {
   it('detects listing claims with snippets', () => {
-    const s = detectSignals(['Offered with no onward chain. Requires full modernisation. Large rear garden.']);
-    expect(s.map((x) => x.kind)).toEqual(expect.arrayContaining(['needs_modernisation', 'no_chain', 'large_plot']));
+    const s = detectSignals([
+      'Offered with no onward chain. Requires full modernisation. Large rear garden.',
+    ]);
+    expect(s.map((x) => x.kind)).toEqual(
+      expect.arrayContaining(['needs_modernisation', 'no_chain', 'large_plot']),
+    );
     expect(s.find((x) => x.kind === 'needs_modernisation')!.snippet).toMatch(/Requires full modernisation/);
   });
   it('returns nothing for empty text', () => {
@@ -70,14 +85,24 @@ describe('signals', () => {
 
 describe('ranking engine', () => {
   it('excludes properties that fail hard constraints', () => {
-    const r = rankProperty({ criteria: renovation, facts: facts({ askingPrice: 650_000 }), evidence: evidence(), financing });
+    const r = rankProperty({
+      criteria: renovation,
+      facts: facts({ askingPrice: 650_000 }),
+      evidence: evidence(),
+      financing,
+    });
     expect(r.eligible).toBe(false);
     expect(r.matchScore).toBe(0);
     expect(r.constraints.find((c) => c.kind === 'max_price')!.status).toBe('fail');
   });
 
   it('keeps properties with unconfirmed constraints but reports them', () => {
-    const r = rankProperty({ criteria: renovation, facts: facts({ bedrooms: null }), evidence: evidence(), financing });
+    const r = rankProperty({
+      criteria: renovation,
+      facts: facts({ bedrooms: null }),
+      evidence: evidence(),
+      financing,
+    });
     expect(r.eligible).toBe(true);
     expect(r.constraints.find((c) => c.kind === 'min_bedrooms')!.status).toBe('unknown');
     expect(r.missing.some((m) => m.includes('Unconfirmed requirement'))).toBe(true);
@@ -85,7 +110,12 @@ describe('ranking engine', () => {
 
   it('missing data lowers confidence and never raises the score', () => {
     const full = rankProperty({ criteria: renovation, facts: facts(), evidence: evidence(), financing });
-    const sparse = rankProperty({ criteria: renovation, facts: facts({ description: null, floorAreaSqm: null }), evidence: emptyEvidence(), financing });
+    const sparse = rankProperty({
+      criteria: renovation,
+      facts: facts({ description: null, floorAreaSqm: null }),
+      evidence: emptyEvidence(),
+      financing,
+    });
     expect(sparse.confidence).toBeLessThan(full.confidence);
     expect(sparse.matchScore).toBeLessThan(full.matchScore);
   });
@@ -105,7 +135,9 @@ describe('ranking engine', () => {
     const needsWork = rankProperty({ criteria: renovation, facts: facts(), evidence: evidence(), financing });
     const refurbished = rankProperty({
       criteria: renovation,
-      facts: facts({ description: 'A newly refurbished three bedroom semi-detached house in walk-in condition.' }),
+      facts: facts({
+        description: 'A newly refurbished three bedroom semi-detached house in walk-in condition.',
+      }),
       evidence: evidence(),
       financing,
     });
@@ -113,7 +145,12 @@ describe('ranking engine', () => {
   });
 
   it('flats score low for extension potential', () => {
-    const r = rankProperty({ criteria: { ...renovation, propertyTypes: [] }, facts: facts({ propertyType: 'flat' }), evidence: evidence(), financing });
+    const r = rankProperty({
+      criteria: { ...renovation, propertyTypes: [] },
+      facts: facts({ propertyType: 'flat' }),
+      evidence: evidence(),
+      financing,
+    });
     expect(r.components.find((c) => c.key === 'extensionPotential')!.score).toBeLessThanOrEqual(10);
   });
 

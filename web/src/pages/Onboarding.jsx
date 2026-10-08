@@ -9,7 +9,8 @@ import { api } from '../lib/api';
 export default function Onboarding() {
   const navigate = useNavigate();
   const location = useLocation();
-  const from = location.state?.from && location.state.from !== '/onboarding' ? location.state.from : '/dashboard';
+  const from =
+    location.state?.from && location.state.from !== '/onboarding' ? location.state.from : '/dashboard';
   const { refresh } = useAuth();
   const { showToast } = useApp();
   const prefs = useApi('/api/preferences');
@@ -39,7 +40,11 @@ export default function Onboarding() {
   };
 
   return (
-    <AppPage eyebrow="Welcome" title="Set up your investment context" subtitle="Every question is optional. Valora uses these as labelled defaults and never assumes you have finance approved. You can change them any time in Settings.">
+    <AppPage
+      eyebrow="Welcome"
+      title="Set up your investment context"
+      subtitle="Every question is optional. Valora uses these as labelled defaults and never assumes you have finance approved. You can change them any time in Settings."
+    >
       <div className="settings-card">
         <div className="settings-card-body">
           {prefs.data ? (
@@ -47,7 +52,11 @@ export default function Onboarding() {
               initial={prefs.data.preferences}
               onSubmit={save}
               submitLabel="Save and continue"
-              secondary={<button type="button" className="app-btn app-btn--ghost" onClick={skip}>Skip for now</button>}
+              secondary={
+                <button type="button" className="app-btn app-btn--ghost" onClick={skip}>
+                  Skip for now
+                </button>
+              }
             />
           ) : (
             <p>{prefs.error ? prefs.error.message : 'Loading…'}</p>

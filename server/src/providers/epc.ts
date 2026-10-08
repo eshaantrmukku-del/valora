@@ -51,14 +51,20 @@ export function epcInfo(): ProviderInfo {
       'Matched to a property by full postcode and address text; a match is not guaranteed and is shown as such.',
       'Floor areas come from the certificate assessment and may differ from agent figures.',
     ],
-    setup: configured ? null : 'Register at epc.opendatacommunities.org (free), then set EPC_API_EMAIL and EPC_API_KEY.',
+    setup: configured
+      ? null
+      : 'Register at epc.opendatacommunities.org (free), then set EPC_API_EMAIL and EPC_API_KEY.',
     docsUrl: 'https://epc.opendatacommunities.org/docs/api/domestic',
     envVars: ['EPC_API_EMAIL', 'EPC_API_KEY'],
   };
 }
 
 function norm(s: string) {
-  return s.toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
+  return s
+    .toLowerCase()
+    .replace(/[^a-z0-9 ]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 /** Pick the certificate whose address best matches the subject's first address line. */
@@ -68,7 +74,9 @@ export function matchEpc(records: EpcRecord[], address: string | null): EpcRecor
   const number = /^(?:flat \S+ )?(\d+[a-z]?)\b/.exec(first)?.[1];
   const candidates = records.filter((r) => {
     const a = norm(r.address);
-    return number ? new RegExp(`\\b${number}\\b`).test(a) && a.includes(first.replace(/^\S+\s/, '').split(' ')[0] ?? '') : a.startsWith(first);
+    return number
+      ? new RegExp(`\\b${number}\\b`).test(a) && a.includes(first.replace(/^\S+\s/, '').split(' ')[0] ?? '')
+      : a.startsWith(first);
   });
   if (!candidates.length) return null;
   return [...candidates].sort((a, b) => (b.lodgementDate ?? '').localeCompare(a.lodgementDate ?? ''))[0]!;
@@ -79,10 +87,13 @@ export async function fetchEpcForPostcode(postcode: string): Promise<EpcRecord[]
   if (!c.EPC_API_EMAIL || !c.EPC_API_KEY) return null;
   const auth = Buffer.from(`${c.EPC_API_EMAIL}:${c.EPC_API_KEY}`).toString('base64');
   return cached('epc', `pc:${postcode}`, 30 * 86_400, async () => {
-    const res = await fetchJson<{ rows?: unknown[] }>(`${EPC_BASE}?postcode=${encodeURIComponent(postcode)}&size=100`, {
-      headers: { Authorization: `Basic ${auth}` },
-      timeoutMs: 15_000,
-    });
+    const res = await fetchJson<{ rows?: unknown[] }>(
+      `${EPC_BASE}?postcode=${encodeURIComponent(postcode)}&size=100`,
+      {
+        headers: { Authorization: `Basic ${auth}` },
+        timeoutMs: 15_000,
+      },
+    );
     return (res.rows ?? [])
       .map((r) => Row.safeParse(r))
       .filter((r) => r.success)

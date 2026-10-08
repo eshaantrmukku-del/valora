@@ -278,8 +278,14 @@ body.landing-route {
 
 /* Page transitions */
 @keyframes pageEnter {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .page-enter {
@@ -421,8 +427,13 @@ body.landing-route {
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
 }
 
 .preview-head {
@@ -1103,7 +1114,9 @@ body.landing-route {
   cursor: pointer;
   border: none;
   font-family: inherit;
-  transition: background 0.2s, opacity 0.2s;
+  transition:
+    background 0.2s,
+    opacity 0.2s;
 }
 
 .site-btn--primary {
@@ -1529,7 +1542,9 @@ body.landing-route {
   color: var(--muted);
   cursor: pointer;
   font-family: inherit;
-  transition: border-color 0.2s, color 0.2s;
+  transition:
+    border-color 0.2s,
+    color 0.2s;
 }
 
 .discover-example-chip:hover {
@@ -1666,7 +1681,9 @@ body.landing-route {
   cursor: pointer;
   text-align: left;
   font-family: inherit;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
 }
 
 .discover-result-card:hover {
@@ -1693,9 +1710,15 @@ body.landing-route {
   text-align: center;
 }
 
-.drc-score.high { color: var(--green); }
-.drc-score.mid { color: var(--amber); }
-.drc-score.low { color: var(--red); }
+.drc-score.high {
+  color: var(--green);
+}
+.drc-score.mid {
+  color: var(--amber);
+}
+.drc-score.low {
+  color: var(--red);
+}
 
 .saved-briefs {
   max-width: 720px;
@@ -1897,8 +1920,12 @@ body.landing-route {
   letter-spacing: 0.03em;
 }
 
-.score-breakdown-item--positive .score-breakdown-label { color: var(--green); }
-.score-breakdown-item--negative .score-breakdown-label { color: var(--red); }
+.score-breakdown-item--positive .score-breakdown-label {
+  color: var(--green);
+}
+.score-breakdown-item--negative .score-breakdown-label {
+  color: var(--red);
+}
 
 /* Pros & cons */
 .pros-cons-grid {
@@ -1928,8 +1955,12 @@ body.landing-route {
   color: var(--text);
 }
 
-.pros-col .pros-cons-head { color: var(--green); }
-.cons-col .pros-cons-head { color: var(--amber); }
+.pros-col .pros-cons-head {
+  color: var(--green);
+}
+.cons-col .pros-cons-head {
+  color: var(--amber);
+}
 
 .area-row--highlight {
   margin-top: 8px;

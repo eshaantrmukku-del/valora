@@ -9,7 +9,15 @@ import { structured } from './client';
 
 export const NARRATIVE_PROMPT_VERSION = 'analysis-narrative@2026-10-08';
 
-const BASES = ['listing_claim', 'official_dataset', 'provider_data', 'calculation', 'assumption', 'user_input', 'inference'] as const;
+const BASES = [
+  'listing_claim',
+  'official_dataset',
+  'provider_data',
+  'calculation',
+  'assumption',
+  'user_input',
+  'inference',
+] as const;
 const Point = z.object({ text: z.string(), basis: z.enum(BASES) });
 
 export const NarrativeSchema = z.object({
@@ -27,7 +35,12 @@ export const NarrativeSchema = z.object({
   dueDiligence: z.array(z.string()),
   unknowns: z.array(z.string()),
   overall: z.object({
-    verdict: z.enum(['worth_investigating', 'investigate_with_caution', 'unlikely_to_fit', 'insufficient_data']),
+    verdict: z.enum([
+      'worth_investigating',
+      'investigate_with_caution',
+      'unlikely_to_fit',
+      'insufficient_data',
+    ]),
     rationale: z.string(),
   }),
 });
@@ -100,10 +113,11 @@ export function collectNumbers(value: unknown, out: number[] = []): number[] {
   if (typeof value === 'number' && Number.isFinite(value)) out.push(value);
   else if (Array.isArray(value)) for (const v of value) collectNumbers(v, out);
   else if (value && typeof value === 'object') for (const v of Object.values(value)) collectNumbers(v, out);
-  else if (typeof value === 'string') for (const m of value.matchAll(/-?\d[\d,]*(?:\.\d+)?/g)) {
-    const n = parseFloat(m[0].replace(/,/g, ''));
-    if (Number.isFinite(n)) out.push(n);
-  }
+  else if (typeof value === 'string')
+    for (const m of value.matchAll(/-?\d[\d,]*(?:\.\d+)?/g)) {
+      const n = parseFloat(m[0].replace(/,/g, ''));
+      if (Number.isFinite(n)) out.push(n);
+    }
   return out;
 }
 
@@ -114,18 +128,29 @@ export function collectNumbers(value: unknown, out: number[] = []): number[] {
 export function checkGrounding(narrative: Narrative, sourceNumbers: number[]): string[] {
   const allowed = sourceNumbers.map(Math.abs);
   const near = (x: number) =>
-    allowed.some((a) => Math.abs(a - x) <= Math.max(1, a * 0.006) || (x >= 1000 && Math.abs(Math.round(a / 1000) * 1000 - x) < 1) || Math.abs(Math.round(a * 10) / 10 - x) < 0.05);
+    allowed.some(
+      (a) =>
+        Math.abs(a - x) <= Math.max(1, a * 0.006) ||
+        (x >= 1000 && Math.abs(Math.round(a / 1000) * 1000 - x) < 1) ||
+        Math.abs(Math.round(a * 10) / 10 - x) < 0.05,
+    );
   const text = JSON.stringify(narrative);
   const warnings: string[] = [];
   for (const m of text.matchAll(/£\s?(\d[\d,]*(?:\.\d+)?)\s?(k|m)?/gi)) {
     let v = parseFloat(m[1]!.replace(/,/g, ''));
     if (m[2]?.toLowerCase() === 'k') v *= 1_000;
     if (m[2]?.toLowerCase() === 'm') v *= 1_000_000;
-    if (!near(v)) warnings.push(`The narrative mentions ${m[0].trim()}, which does not match any figure in the analysed data.`);
+    if (!near(v))
+      warnings.push(
+        `The narrative mentions ${m[0].trim()}, which does not match any figure in the analysed data.`,
+      );
   }
   for (const m of text.matchAll(/(\d+(?:\.\d+)?)\s?%/g)) {
     const v = parseFloat(m[1]!);
-    if (!near(v)) warnings.push(`The narrative mentions ${m[0].trim()}, which does not match any figure in the analysed data.`);
+    if (!near(v))
+      warnings.push(
+        `The narrative mentions ${m[0].trim()}, which does not match any figure in the analysed data.`,
+      );
   }
   return [...new Set(warnings)];
 }

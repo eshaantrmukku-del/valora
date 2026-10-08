@@ -7,7 +7,10 @@ export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from || '/dashboard';
-  const mode = useMemo(() => (location.pathname.includes('signup') ? 'signup' : 'login'), [location.pathname]);
+  const mode = useMemo(
+    () => (location.pathname.includes('signup') ? 'signup' : 'login'),
+    [location.pathname],
+  );
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -24,9 +27,10 @@ export default function Login() {
     e.preventDefault();
     setError('');
     setBusy(true);
-    const result = mode === 'signup'
-      ? await signUp({ email, password, firstName, lastName })
-      : await signIn({ email, password });
+    const result =
+      mode === 'signup'
+        ? await signUp({ email, password, firstName, lastName })
+        : await signIn({ email, password });
     setBusy(false);
     if (!result.ok) {
       setError(result.error || 'Something went wrong');
@@ -39,7 +43,11 @@ export default function Login() {
     <div className="auth-page">
       <div className="auth-card">
         <Link to="/" className="auth-brand">
-          <img className="auth-logo" src="/valora-logo-lockup.jpg" alt="Valora — Find value before the market does" />
+          <img
+            className="auth-logo"
+            src="/valora-logo-lockup.jpg"
+            alt="Valora — Find value before the market does"
+          />
         </Link>
         <h1>{mode === 'signup' ? 'Create your account' : 'Sign in'}</h1>
         <p className="auth-sub">
@@ -53,11 +61,19 @@ export default function Login() {
             <div className="auth-row">
               <label>
                 First name
-                <input value={firstName} onChange={(e) => setFirstName(e.target.value)} autoComplete="given-name" />
+                <input
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  autoComplete="given-name"
+                />
               </label>
               <label>
                 Last name
-                <input value={lastName} onChange={(e) => setLastName(e.target.value)} autoComplete="family-name" />
+                <input
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  autoComplete="family-name"
+                />
               </label>
             </div>
           )}
@@ -92,13 +108,31 @@ export default function Login() {
 
         <p className="auth-switch">
           {mode === 'signup' ? (
-            <>Already have an account? <Link to="/login" state={{ from }}>Sign in</Link></>
+            <>
+              Already have an account?{' '}
+              <Link to="/login" state={{ from }}>
+                Sign in
+              </Link>
+            </>
           ) : (
-            <>New here? <Link to="/signup" state={{ from }}>Create an account</Link></>
+            <>
+              New here?{' '}
+              <Link to="/signup" state={{ from }}>
+                Create an account
+              </Link>
+            </>
           )}
         </p>
-        {mode === 'login' && <p className="auth-switch"><Link to="/forgot-password">Forgot your password?</Link></p>}
-        <p className="auth-note">{mode === 'signup' ? 'Use at least 10 characters. Your data is private to your account.' : 'Your session is kept in a secure cookie on this device.'}</p>
+        {mode === 'login' && (
+          <p className="auth-switch">
+            <Link to="/forgot-password">Forgot your password?</Link>
+          </p>
+        )}
+        <p className="auth-note">
+          {mode === 'signup'
+            ? 'Use at least 10 characters. Your data is private to your account.'
+            : 'Your session is kept in a secure cookie on this device.'}
+        </p>
       </div>
     </div>
   );

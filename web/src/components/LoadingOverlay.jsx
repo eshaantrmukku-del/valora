@@ -15,7 +15,8 @@ export default function LoadingOverlay() {
             key={s}
             className={`valora-loading-step${i < loadingStep ? ' done' : ''}${i === loadingStep - 1 ? ' active' : ''}`}
           >
-            <span className="dot" />{s}
+            <span className="dot" />
+            {s}
           </div>
         ))}
       </div>

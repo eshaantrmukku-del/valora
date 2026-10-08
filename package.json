@@ -17,7 +17,7 @@
     "start": "node --env-file-if-exists=.env dist/server/index.js",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx --env-file-if-exists=.env server/src/db/migrate.ts",
-    "db:migrate:prod": "node --env-file-if-exists=.env dist/server/migrate.js",
+    "db:migrate:prod": "node --env-file-if-exists=.env dist/server/db/migrate.js",
     "typecheck": "tsc -p tsconfig.server.json --noEmit && tsc -p tsconfig.web.json --noEmit",
     "lint": "eslint .",
     "format": "prettier --write .",
@@ -25,8 +25,9 @@
     "test": "npm run test:unit && npm run test:integration",
     "test:unit": "vitest run --project unit",
     "test:integration": "vitest run --project integration",
-    "test:e2e": "playwright test",
-    "check": "npm run format:check && npm run lint && npm run typecheck && npm test && npm run build"
+    "test:e2e": "sh tests/e2e/global-reset.sh && playwright test",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm test && npm run build",
+    "providers:check": "tsx --env-file-if-exists=.env scripts/providers-check.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.132.1",

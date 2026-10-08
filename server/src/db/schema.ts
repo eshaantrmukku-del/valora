@@ -80,10 +80,16 @@ export const userPreferences = pgTable('user_preferences', {
     .primaryKey()
     .references(() => users.id, { onDelete: 'cascade' }),
   onboardingCompletedAt: timestamp('onboarding_completed_at', { withTimezone: true }),
-  locations: text('locations').array().notNull().default(sql`'{}'::text[]`),
+  locations: text('locations')
+    .array()
+    .notNull()
+    .default(sql`'{}'::text[]`),
   budgetMin: integer('budget_min'),
   budgetMax: integer('budget_max'),
-  propertyTypes: text('property_types').array().notNull().default(sql`'{}'::text[]`),
+  propertyTypes: text('property_types')
+    .array()
+    .notNull()
+    .default(sql`'{}'::text[]`),
   objective: text('objective'),
   renovationAppetite: text('renovation_appetite'),
   riskTolerance: text('risk_tolerance'),
@@ -110,7 +116,9 @@ export const investmentBriefs = pgTable(
     originalRequest: text('original_request'),
     criteria: jsonb('criteria').$type<BriefCriteria>().notNull(),
     schemaVersion: integer('schema_version').notNull(),
-    status: text('status', { enum: ['active', 'inactive'] }).notNull().default('active'),
+    status: text('status', { enum: ['active', 'inactive'] })
+      .notNull()
+      .default('active'),
     interpreter: text('interpreter', { enum: ['ai', 'rules', 'manual'] }).notNull(),
     interpreterModel: text('interpreter_model'),
     createdAt: created(),
@@ -137,7 +145,9 @@ export const properties = pgTable(
   },
   (t) => [
     index('properties_owner_idx').on(t.ownerUserId),
-    uniqueIndex('properties_public_fingerprint_idx').on(t.fingerprint).where(sql`${t.ownerUserId} is null`),
+    uniqueIndex('properties_public_fingerprint_idx')
+      .on(t.fingerprint)
+      .where(sql`${t.ownerUserId} is null`),
   ],
 );
 
@@ -200,10 +210,19 @@ export const searchRuns = pgTable(
     briefName: text('brief_name').notNull(),
     criteriaSnapshot: jsonb('criteria_snapshot').$type<BriefCriteria>().notNull(),
     trigger: text('trigger', { enum: ['manual', 'monitor'] }).notNull(),
-    status: text('status', { enum: ['queued', 'running', 'completed', 'partial', 'failed'] }).notNull().default('queued'),
+    status: text('status', { enum: ['queued', 'running', 'completed', 'partial', 'failed'] })
+      .notNull()
+      .default('queued'),
     stage: text('stage'),
     providerStatus: jsonb('provider_status')
-      .$type<{ provider: string; status: 'ok' | 'failed' | 'skipped' | 'not_configured'; message: string; count: number }[]>()
+      .$type<
+        {
+          provider: string;
+          status: 'ok' | 'failed' | 'skipped' | 'not_configured';
+          message: string;
+          count: number;
+        }[]
+      >()
       .notNull()
       .default([]),
     error: text('error'),
@@ -272,7 +291,9 @@ export const savedProperties = pgTable(
       .references(() => properties.id, { onDelete: 'cascade' }),
     briefId: uuid('brief_id').references(() => investmentBriefs.id, { onDelete: 'set null' }),
     note: text('note'),
-    status: text('status', { enum: ['watching', 'offer', 'owned', 'passed'] }).notNull().default('watching'),
+    status: text('status', { enum: ['watching', 'offer', 'owned', 'passed'] })
+      .notNull()
+      .default('watching'),
     createdAt: created(),
   },
   (t) => [uniqueIndex('saved_user_property_idx').on(t.userId, t.propertyId)],
@@ -296,14 +317,19 @@ export const analyses = pgTable(
     inputProvenance: jsonb('input_provenance').$type<ProvenanceMap>().notNull(),
     ranking: jsonb('ranking').$type<RankingResult>().notNull(),
     report: jsonb('report').notNull(),
-    narrativeStatus: text('narrative_status', { enum: ['generated', 'not_configured', 'failed', 'pending'] }).notNull(),
+    narrativeStatus: text('narrative_status', {
+      enum: ['generated', 'not_configured', 'failed', 'pending'],
+    }).notNull(),
     narrativeError: text('narrative_error'),
     model: text('model'),
     promptVersion: text('prompt_version'),
     createdAt: created(),
     updatedAt: updated(),
   },
-  (t) => [index('analyses_user_idx').on(t.userId, t.createdAt), index('analyses_property_idx').on(t.propertyId)],
+  (t) => [
+    index('analyses_user_idx').on(t.userId, t.createdAt),
+    index('analyses_property_idx').on(t.propertyId),
+  ],
 );
 
 export const comparisons = pgTable(
@@ -373,7 +399,9 @@ export const portfolioTransactions = pgTable(
       .notNull()
       .references(() => portfolioAssets.id, { onDelete: 'cascade' }),
     date: text('date').notNull(),
-    type: text('type', { enum: ['income', 'operating_expense', 'capital_expenditure', 'mortgage_payment', 'other'] }).notNull(),
+    type: text('type', {
+      enum: ['income', 'operating_expense', 'capital_expenditure', 'mortgage_payment', 'other'],
+    }).notNull(),
     amount: doublePrecision('amount').notNull(),
     description: text('description'),
     createdAt: created(),
@@ -400,7 +428,10 @@ export const monitors = pgTable(
     createdAt: created(),
     updatedAt: updated(),
   },
-  (t) => [uniqueIndex('monitors_brief_idx').on(t.briefId), index('monitors_due_idx').on(t.active, t.nextRunAt)],
+  (t) => [
+    uniqueIndex('monitors_brief_idx').on(t.briefId),
+    index('monitors_due_idx').on(t.active, t.nextRunAt),
+  ],
 );
 
 /** Listings a monitor has already seen, for new-match and price-change detection. */
@@ -433,7 +464,10 @@ export const notifications = pgTable(
     readAt: timestamp('read_at', { withTimezone: true }),
     createdAt: created(),
   },
-  (t) => [uniqueIndex('notifications_dedupe_idx').on(t.userId, t.dedupeKey), index('notifications_user_idx').on(t.userId, t.createdAt)],
+  (t) => [
+    uniqueIndex('notifications_dedupe_idx').on(t.userId, t.dedupeKey),
+    index('notifications_user_idx').on(t.userId, t.createdAt),
+  ],
 );
 
 export const notificationDeliveries = pgTable('notification_deliveries', {
@@ -457,7 +491,9 @@ export const jobs = pgTable(
     id: bigserial('id', { mode: 'number' }).primaryKey(),
     type: text('type').notNull(),
     payload: jsonb('payload').notNull(),
-    status: text('status', { enum: ['queued', 'running', 'succeeded', 'failed'] }).notNull().default('queued'),
+    status: text('status', { enum: ['queued', 'running', 'succeeded', 'failed'] })
+      .notNull()
+      .default('queued'),
     attempts: integer('attempts').notNull().default(0),
     maxAttempts: integer('max_attempts').notNull().default(3),
     runAt: timestamp('run_at', { withTimezone: true }).notNull().defaultNow(),
@@ -470,7 +506,9 @@ export const jobs = pgTable(
   },
   (t) => [
     index('jobs_ready_idx').on(t.status, t.runAt),
-    uniqueIndex('jobs_dedupe_active_idx').on(t.dedupeKey).where(sql`${t.status} in ('queued','running')`),
+    uniqueIndex('jobs_dedupe_active_idx')
+      .on(t.dedupeKey)
+      .where(sql`${t.status} in ('queued','running')`),
   ],
 );
 
@@ -489,7 +527,9 @@ export const documents = pgTable(
     content: bytea('content').notNull(),
     extractedText: text('extracted_text'),
     extraction: jsonb('extraction'),
-    status: text('status', { enum: ['uploaded', 'processing', 'extracted', 'failed'] }).notNull().default('uploaded'),
+    status: text('status', { enum: ['uploaded', 'processing', 'extracted', 'failed'] })
+      .notNull()
+      .default('uploaded'),
     error: text('error'),
     createdAt: created(),
   },

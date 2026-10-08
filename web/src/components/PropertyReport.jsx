@@ -15,11 +15,13 @@ export default function PropertyReport({ property: p }) {
     <div className="page" id="analyse-report">
       {p.hasLiveData ? (
         <div className="prototype-banner prototype-banner--live">
-          Listing details from {p.sourcePortal}: {p.priceLabel}. Listing text is the agent’s description; scores and figures are modelled from the data shown — verify before offering.
+          Listing details from {p.sourcePortal}: {p.priceLabel}. Listing text is the agent’s description;
+          scores and figures are modelled from the data shown — verify before offering.
         </div>
       ) : (
         <div className="prototype-banner">
-          Details from {p.sourcePortal}: {p.priceLabel}. Figures are modelled from these details — verify them before relying on the results.
+          Details from {p.sourcePortal}: {p.priceLabel}. Figures are modelled from these details — verify them
+          before relying on the results.
         </div>
       )}
       {p.briefMatch && (
@@ -61,7 +63,9 @@ export default function PropertyReport({ property: p }) {
           )}
         </div>
         <div className="prop-hero-info">
-          <div className="prop-breadcrumb"><span>Analysis</span> › <span>{p.sourcePortal || 'Listing'}</span></div>
+          <div className="prop-breadcrumb">
+            <span>Analysis</span> › <span>{p.sourcePortal || 'Listing'}</span>
+          </div>
           <div className="prop-name">{p.name}</div>
           <div className="prop-address">{p.address}</div>
           {p.sourceUrl && (
@@ -70,7 +74,11 @@ export default function PropertyReport({ property: p }) {
             </a>
           )}
           <div className="prop-tags">
-            {p.tags.map((t) => <span key={t} className={`ptag ${tagClass(t)}`}>{t}</span>)}
+            {p.tags.map((t) => (
+              <span key={t} className={`ptag ${tagClass(t)}`}>
+                {t}
+              </span>
+            ))}
           </div>
           <div className="prop-quick-facts">
             {p.facts.map((f) => (
@@ -83,8 +91,12 @@ export default function PropertyReport({ property: p }) {
         </div>
         <div className="score-widget">
           <div className="sw-label">Match to strategy</div>
-          <div className="sw-score" style={{ color }}>{p.score}</div>
-          <div className="sw-grade" style={{ color }}>{p.grade}</div>
+          <div className="sw-score" style={{ color }}>
+            {p.score}
+          </div>
+          <div className="sw-grade" style={{ color }}>
+            {p.grade}
+          </div>
           <ScoreRing score={p.score} />
         </div>
       </div>
@@ -93,9 +105,13 @@ export default function PropertyReport({ property: p }) {
         <div className="main-col">
           {insight && (
             <div className="panel panel--ai">
-              <div className="panel-head"><div className="panel-title">Valora AI summary</div></div>
+              <div className="panel-head">
+                <div className="panel-title">Valora AI summary</div>
+              </div>
               <div className="panel-body">
-                <AiInsightPanel footer={`${p.location} · ${p.strategy} · every figure cited from data or calculation`}>
+                <AiInsightPanel
+                  footer={`${p.location} · ${p.strategy} · every figure cited from data or calculation`}
+                >
                   <p>{insight.opening}</p>
                   <p>{insight.yieldLine}</p>
                   <p>{insight.strategyLine}</p>
@@ -109,11 +125,16 @@ export default function PropertyReport({ property: p }) {
 
           {p.scoreBreakdown?.length > 0 && (
             <div className="panel">
-              <div className="panel-head"><div className="panel-title">Score breakdown</div></div>
+              <div className="panel-head">
+                <div className="panel-title">Score breakdown</div>
+              </div>
               <div className="panel-body">
                 <div className="score-breakdown">
                   {p.scoreBreakdown.map((item) => (
-                    <div key={item.text} className={`score-breakdown-item score-breakdown-item--${item.impact}`}>
+                    <div
+                      key={item.text}
+                      className={`score-breakdown-item score-breakdown-item--${item.impact}`}
+                    >
                       <span className="score-breakdown-label">{item.label}</span>
                       <span className="score-breakdown-text">{item.text}</span>
                     </div>
@@ -125,15 +146,33 @@ export default function PropertyReport({ property: p }) {
 
           <div className="panel">
             <div className="panel-head">
-              <div className="panel-title">{p.strategyKey === 'flip' ? 'Refurb & flip economics' : 'Financial summary'}</div>
+              <div className="panel-title">
+                {p.strategyKey === 'flip' ? 'Refurb & flip economics' : 'Financial summary'}
+              </div>
               <span className="panel-badge">Deterministic</span>
             </div>
             <div className="panel-body">
               <div className="metrics-4">
-                <div className="mc"><div className="mc-l">Purchase price</div><div className="mc-v">{p.metrics.land}</div></div>
-                <div className="mc"><div className="mc-l">Refurb est.</div><div className="mc-v">{p.metrics.build}</div></div>
-                <div className="mc"><div className="mc-l">{p.strategyKey === 'flip' ? 'All-in cost' : (p.deal ? 'Cash required' : 'Total cost')}</div><div className="mc-v">{p.metrics.total}</div></div>
-                <div className="mc"><div className="mc-l">{p.metrics.returnLabel}</div><div className="mc-v" style={{ color: 'var(--green)' }}>{p.metrics.return}</div></div>
+                <div className="mc">
+                  <div className="mc-l">Purchase price</div>
+                  <div className="mc-v">{p.metrics.land}</div>
+                </div>
+                <div className="mc">
+                  <div className="mc-l">Refurb est.</div>
+                  <div className="mc-v">{p.metrics.build}</div>
+                </div>
+                <div className="mc">
+                  <div className="mc-l">
+                    {p.strategyKey === 'flip' ? 'All-in cost' : p.deal ? 'Cash required' : 'Total cost'}
+                  </div>
+                  <div className="mc-v">{p.metrics.total}</div>
+                </div>
+                <div className="mc">
+                  <div className="mc-l">{p.metrics.returnLabel}</div>
+                  <div className="mc-v" style={{ color: 'var(--green)' }}>
+                    {p.metrics.return}
+                  </div>
+                </div>
               </div>
               {p.deal && p.strategyKey === 'flip' && p.flip && (
                 <div className="deal-grid">
@@ -143,11 +182,24 @@ export default function PropertyReport({ property: p }) {
                     ['Works (with contingency)', gbp(p.flip.works), 'assumption'],
                     ['Resale value', gbp(p.flip.gdv), 'assumption: sold median'],
                     ['Total costs', gbp(p.flip.totalIn), 'incl. tax, fees, hold, sale'],
-                    ['Uplift vs GDV', gbp(p.flip.uplift), p.flip.upliftPct != null ? `${p.flip.upliftPct}% on cost` : 'net profit'],
+                    [
+                      'Uplift vs GDV',
+                      gbp(p.flip.uplift),
+                      p.flip.upliftPct != null ? `${p.flip.upliftPct}% on cost` : 'net profit',
+                    ],
                   ].map(([l, v, hint]) => (
                     <div key={l} className="deal-cell">
                       <div className="deal-cell-label">{l}</div>
-                      <div className="deal-cell-val" style={l === 'Uplift vs GDV' && p.flip.uplift != null ? { color: p.flip.uplift >= 0 ? 'var(--green)' : 'var(--red, #dc2626)' } : undefined}>{v}</div>
+                      <div
+                        className="deal-cell-val"
+                        style={
+                          l === 'Uplift vs GDV' && p.flip.uplift != null
+                            ? { color: p.flip.uplift >= 0 ? 'var(--green)' : 'var(--red, #dc2626)' }
+                            : undefined
+                        }
+                      >
+                        {v}
+                      </div>
                       <div className="deal-cell-hint">{hint}</div>
                     </div>
                   ))}
@@ -159,13 +211,30 @@ export default function PropertyReport({ property: p }) {
                     ['Deposit', gbp(p.deal.deposit), `${p.deal.depositPct ?? '—'}%`],
                     [p.deal.stampDutyLabel, gbp(p.deal.stampDuty), 'estimate, dated rules'],
                     ['Legal & survey', gbp(p.deal.legalFees), 'assumption'],
-                    ['Mortgage / mo', gbp(p.deal.monthlyMortgage), `${p.deal.interestRate ?? '—'}% ${p.deal.interestOnly ? 'IO' : 'repay'}`],
-                    ['Cash flow / mo', gbp(p.deal.monthlyCashFlow), p.rental ? 'after operating costs' : 'needs rent evidence'],
+                    [
+                      'Mortgage / mo',
+                      gbp(p.deal.monthlyMortgage),
+                      `${p.deal.interestRate ?? '—'}% ${p.deal.interestOnly ? 'IO' : 'repay'}`,
+                    ],
+                    [
+                      'Cash flow / mo',
+                      gbp(p.deal.monthlyCashFlow),
+                      p.rental ? 'after operating costs' : 'needs rent evidence',
+                    ],
                     ['Break-even rent', gbp(p.deal.breakEvenRent), 'per month'],
                   ].map(([l, v, hint]) => (
                     <div key={l} className="deal-cell">
                       <div className="deal-cell-label">{l}</div>
-                      <div className="deal-cell-val" style={l === 'Cash flow / mo' && p.deal.monthlyCashFlow != null ? { color: p.deal.monthlyCashFlow >= 0 ? 'var(--green)' : 'var(--red, #dc2626)' } : undefined}>{v}</div>
+                      <div
+                        className="deal-cell-val"
+                        style={
+                          l === 'Cash flow / mo' && p.deal.monthlyCashFlow != null
+                            ? { color: p.deal.monthlyCashFlow >= 0 ? 'var(--green)' : 'var(--red, #dc2626)' }
+                            : undefined
+                        }
+                      >
+                        {v}
+                      </div>
                       <div className="deal-cell-hint">{hint}</div>
                     </div>
                   ))}
@@ -190,20 +259,54 @@ export default function PropertyReport({ property: p }) {
             <div className="panel">
               <div className="panel-head">
                 <div className="panel-title">Sold comparables</div>
-                <span className="panel-badge">{p.comparables.available ? 'HM Land Registry' : 'Unavailable'}</span>
+                <span className="panel-badge">
+                  {p.comparables.available ? 'HM Land Registry' : 'Unavailable'}
+                </span>
               </div>
               <div className="panel-body">
                 {p.comparables.available ? (
                   <>
                     <div className="metrics-4" style={{ marginBottom: 12 }}>
-                      <div className="mc"><div className="mc-l">Sold median</div><div className="mc-v">{gbp(p.comparables.median)}</div></div>
-                      <div className="mc"><div className="mc-l">Sample average</div><div className="mc-v">{gbp(p.comparables.average)}</div></div>
-                      <div className="mc"><div className="mc-l">Asking vs median</div><div className="mc-v" style={{ color: p.comparables.deviationPct != null && p.comparables.deviationPct <= 0 ? 'var(--green)' : 'var(--text)' }}>{p.comparables.deviationPct == null ? '—' : `${p.comparables.deviationPct > 0 ? '+' : ''}${p.comparables.deviationPct}%`}</div></div>
-                      <div className="mc"><div className="mc-l">Sales used</div><div className="mc-v">{p.comparables.count} · {p.comparables.confidence}</div></div>
+                      <div className="mc">
+                        <div className="mc-l">Sold median</div>
+                        <div className="mc-v">{gbp(p.comparables.median)}</div>
+                      </div>
+                      <div className="mc">
+                        <div className="mc-l">Sample average</div>
+                        <div className="mc-v">{gbp(p.comparables.average)}</div>
+                      </div>
+                      <div className="mc">
+                        <div className="mc-l">Asking vs median</div>
+                        <div
+                          className="mc-v"
+                          style={{
+                            color:
+                              p.comparables.deviationPct != null && p.comparables.deviationPct <= 0
+                                ? 'var(--green)'
+                                : 'var(--text)',
+                          }}
+                        >
+                          {p.comparables.deviationPct == null
+                            ? '—'
+                            : `${p.comparables.deviationPct > 0 ? '+' : ''}${p.comparables.deviationPct}%`}
+                        </div>
+                      </div>
+                      <div className="mc">
+                        <div className="mc-l">Sales used</div>
+                        <div className="mc-v">
+                          {p.comparables.count} · {p.comparables.confidence}
+                        </div>
+                      </div>
                     </div>
                     <table className="comps-table">
                       <thead>
-                        <tr><th>Sold</th><th>Price</th><th>Street</th><th>Postcode</th><th>Type</th></tr>
+                        <tr>
+                          <th>Sold</th>
+                          <th>Price</th>
+                          <th>Street</th>
+                          <th>Postcode</th>
+                          <th>Type</th>
+                        </tr>
                       </thead>
                       <tbody>
                         {p.comparables.sample.map((c) => (
@@ -212,18 +315,24 @@ export default function PropertyReport({ property: p }) {
                             <td>{gbp(c.price)}</td>
                             <td style={{ textTransform: 'capitalize' }}>{(c.street || '—').toLowerCase()}</td>
                             <td>{c.postcode || '—'}</td>
-                            <td>{c.propertyType || '—'}{c.newBuild ? ' · new' : ''}</td>
+                            <td>
+                              {c.propertyType || '—'}
+                              {c.newBuild ? ' · new' : ''}
+                            </td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
                     <div className="panel-footnote">
-                      {p.comparables.note} · {p.comparables.district ? `${p.comparables.district} district` : ''} · Source: {p.comparables.source}
+                      {p.comparables.note} ·{' '}
+                      {p.comparables.district ? `${p.comparables.district} district` : ''} · Source:{' '}
+                      {p.comparables.source}
                     </div>
                   </>
                 ) : (
                   <p style={{ color: 'var(--muted)', fontSize: 13 }}>
-                    No usable sold transactions were found for this property type and area, so no value comparison is made and the value component is scored as unknown.
+                    No usable sold transactions were found for this property type and area, so no value
+                    comparison is made and the value component is scored as unknown.
                   </p>
                 )}
               </div>
@@ -250,23 +359,42 @@ export default function PropertyReport({ property: p }) {
                     {p.condition.verdict.evidence?.length > 0 && (
                       <div className="cond-verdict-evidence">
                         {p.condition.verdict.evidence.map((e) => (
-                          <span key={e} className="app-chip">{e}</span>
+                          <span key={e} className="app-chip">
+                            {e}
+                          </span>
                         ))}
                       </div>
                     )}
                   </div>
                 )}
                 <div className="metrics-4" style={{ marginBottom: 12 }}>
-                  <div className="mc"><div className="mc-l">Overall condition</div><div className="mc-v">{p.condition.overall}</div></div>
-                  <div className="mc"><div className="mc-l">Refurb estimate</div><div className="mc-v">{p.condition.refurbHigh ? `£${p.condition.refurbLow.toLocaleString()}–£${p.condition.refurbHigh.toLocaleString()}` : 'Not priced (no works signals)'}</div></div>
-                  <div className="mc"><div className="mc-l">Tenure</div><div className="mc-v">{p.tenure || 'Unknown'}</div></div>
-                  <div className="mc"><div className="mc-l">EPC</div><div className="mc-v">{p.epc || 'Unknown'}</div></div>
+                  <div className="mc">
+                    <div className="mc-l">Overall condition</div>
+                    <div className="mc-v">{p.condition.overall}</div>
+                  </div>
+                  <div className="mc">
+                    <div className="mc-l">Refurb estimate</div>
+                    <div className="mc-v">
+                      {p.condition.refurbHigh
+                        ? `£${p.condition.refurbLow.toLocaleString()}–£${p.condition.refurbHigh.toLocaleString()}`
+                        : 'Not priced (no works signals)'}
+                    </div>
+                  </div>
+                  <div className="mc">
+                    <div className="mc-l">Tenure</div>
+                    <div className="mc-v">{p.tenure || 'Unknown'}</div>
+                  </div>
+                  <div className="mc">
+                    <div className="mc-l">EPC</div>
+                    <div className="mc-v">{p.epc || 'Unknown'}</div>
+                  </div>
                 </div>
 
                 {p.condition.vision?.rooms && Object.keys(p.condition.vision.rooms).length > 0 && (
                   <div className="vision-rooms" style={{ marginBottom: 12 }}>
                     <div className="panel-footnote" style={{ marginTop: 0, marginBottom: 8 }}>
-                      Photo assessment · {p.condition.vision.confidence} confidence · {p.condition.vision.imagesUsed} images · {p.condition.vision.source}
+                      Photo assessment · {p.condition.vision.confidence} confidence ·{' '}
+                      {p.condition.vision.imagesUsed} images · {p.condition.vision.source}
                     </div>
                     <div className="vision-room-grid">
                       {Object.entries(p.condition.vision.rooms)
@@ -274,7 +402,11 @@ export default function PropertyReport({ property: p }) {
                         .map(([room, rating]) => (
                           <div key={room} className="vision-room">
                             <span className="vision-room-name">{room}</span>
-                            <span className={`vision-room-rating vision-room-rating--${String(rating).toLowerCase().replace(/\s+/g, '-')}`}>{rating}</span>
+                            <span
+                              className={`vision-room-rating vision-room-rating--${String(rating).toLowerCase().replace(/\s+/g, '-')}`}
+                            >
+                              {rating}
+                            </span>
                           </div>
                         ))}
                     </div>
@@ -284,19 +416,27 @@ export default function PropertyReport({ property: p }) {
                 {p.condition.lineItems?.length > 0 && (
                   <table className="refurb-table" style={{ marginBottom: 10 }}>
                     <thead>
-                      <tr><th>Item</th><th>Rating</th><th className="cost">Est. cost</th></tr>
+                      <tr>
+                        <th>Item</th>
+                        <th>Rating</th>
+                        <th className="cost">Est. cost</th>
+                      </tr>
                     </thead>
                     <tbody>
                       {p.condition.lineItems.map((item) => (
                         <tr key={`${item.room}-${item.rating}`}>
                           <td style={{ textTransform: 'capitalize' }}>{item.room}</td>
                           <td>{item.rating}</td>
-                          <td className="cost">£{item.low.toLocaleString()}–£{item.high.toLocaleString()}</td>
+                          <td className="cost">
+                            £{item.low.toLocaleString()}–£{item.high.toLocaleString()}
+                          </td>
                         </tr>
                       ))}
                       <tr>
                         <td colSpan={2}>Total (rule table)</td>
-                        <td className="cost">£{p.condition.refurbLow.toLocaleString()}–£{p.condition.refurbHigh.toLocaleString()}</td>
+                        <td className="cost">
+                          £{p.condition.refurbLow.toLocaleString()}–£{p.condition.refurbHigh.toLocaleString()}
+                        </td>
                       </tr>
                     </tbody>
                   </table>
@@ -305,12 +445,15 @@ export default function PropertyReport({ property: p }) {
                 {p.condition.signals?.length > 0 && (
                   <div className="risk-tags">
                     {p.condition.signals.map((s) => (
-                      <span key={s} className="rtag info">“{s}”</span>
+                      <span key={s} className="rtag info">
+                        “{s}”
+                      </span>
                     ))}
                   </div>
                 )}
                 <div className="panel-footnote">
-                  {p.condition.source}. Listing text and photos cannot verify hidden defects (structure, damp, wiring, asbestos) — get a survey.
+                  {p.condition.source}. Listing text and photos cannot verify hidden defects (structure, damp,
+                  wiring, asbestos) — get a survey.
                 </div>
               </div>
             </div>
@@ -318,18 +461,24 @@ export default function PropertyReport({ property: p }) {
 
           {(p.pros?.length > 0 || p.cons?.length > 0) && (
             <div className="panel">
-              <div className="panel-head"><div className="panel-title">Pros &amp; cons</div></div>
+              <div className="panel-head">
+                <div className="panel-title">Pros &amp; cons</div>
+              </div>
               <div className="panel-body pros-cons-grid">
                 <div className="pros-col">
                   <div className="pros-cons-head">Strengths</div>
                   <ul className="pros-cons-list">
-                    {p.pros.map((x) => <li key={x}>{x}</li>)}
+                    {p.pros.map((x) => (
+                      <li key={x}>{x}</li>
+                    ))}
                   </ul>
                 </div>
                 <div className="cons-col">
                   <div className="pros-cons-head">Watchouts</div>
                   <ul className="pros-cons-list">
-                    {p.cons.map((x) => <li key={x}>{x}</li>)}
+                    {p.cons.map((x) => (
+                      <li key={x}>{x}</li>
+                    ))}
                   </ul>
                 </div>
               </div>
@@ -337,11 +486,15 @@ export default function PropertyReport({ property: p }) {
           )}
 
           <div className="panel">
-            <div className="panel-head"><div className="panel-title">Risk assessment</div></div>
+            <div className="panel-head">
+              <div className="panel-title">Risk assessment</div>
+            </div>
             <div className="panel-body">
               <div className="risk-tags">
                 {p.risks.map((r) => (
-                  <span key={r.text} className={`rtag ${r.type}`}>{riskIcon(r.type)} {r.text}</span>
+                  <span key={r.text} className={`rtag ${r.type}`}>
+                    {riskIcon(r.type)} {r.text}
+                  </span>
                 ))}
               </div>
             </div>
@@ -350,62 +503,125 @@ export default function PropertyReport({ property: p }) {
 
         <div className="side-col">
           <div className="panel">
-            <div className="panel-head"><div className="panel-title">Rental evidence</div></div>
+            <div className="panel-head">
+              <div className="panel-title">Rental evidence</div>
+            </div>
             <div className="panel-body">
               {!p.rental ? (
-                <p style={{ color: 'var(--muted)', fontSize: 13, margin: 0 }}>No rental evidence is available for this property, so yield and cash flow are not estimated. Add a known rent in Assumptions below.</p>
-              ) : (<>
-              <div className="rental-bars">
-                {[
-                  ['Conservative', p.rental.conservative, 70, 'var(--light)', false],
-                  ['Expected', p.rental.expected, 82, 'var(--blue)', true],
-                  ['Optimistic', p.rental.optimistic, 92, 'var(--green)', false],
-                ].map(([label, val, w, bg, bold]) => (
-                  <div key={label} className="rb-row">
-                    <span className="rb-label" style={{ fontSize: 10, color: bold ? 'var(--text)' : 'var(--muted)', fontWeight: bold ? 600 : 400 }}>{label}</span>
-                    <div className="rb-bar-wrap"><div className="rb-bar" style={{ width: `${w}%`, background: bg }} /></div>
-                    <span className="rb-val" style={bold ? { color: 'var(--blue)', fontWeight: 700 } : {}}>{gbp(val)}</span>
+                <p style={{ color: 'var(--muted)', fontSize: 13, margin: 0 }}>
+                  No rental evidence is available for this property, so yield and cash flow are not estimated.
+                  Add a known rent in Assumptions below.
+                </p>
+              ) : (
+                <>
+                  <div className="rental-bars">
+                    {[
+                      ['Conservative', p.rental.conservative, 70, 'var(--light)', false],
+                      ['Expected', p.rental.expected, 82, 'var(--blue)', true],
+                      ['Optimistic', p.rental.optimistic, 92, 'var(--green)', false],
+                    ].map(([label, val, w, bg, bold]) => (
+                      <div key={label} className="rb-row">
+                        <span
+                          className="rb-label"
+                          style={{
+                            fontSize: 10,
+                            color: bold ? 'var(--text)' : 'var(--muted)',
+                            fontWeight: bold ? 600 : 400,
+                          }}
+                        >
+                          {label}
+                        </span>
+                        <div className="rb-bar-wrap">
+                          <div className="rb-bar" style={{ width: `${w}%`, background: bg }} />
+                        </div>
+                        <span
+                          className="rb-val"
+                          style={bold ? { color: 'var(--blue)', fontWeight: 700 } : {}}
+                        >
+                          {gbp(val)}
+                        </span>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-              <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                  <div className="gdv-box"><div className="gdv-label">Gross yield</div><div className="gdv-val" style={{ fontSize: 15 }}>{p.rental.grossYield}</div></div>
-                  <div className="gdv-box"><div className="gdv-label">Net yield</div><div className="gdv-val" style={{ fontSize: 15 }}>{p.rental.netYield}</div></div>
-                </div>
-              </div>
-              {p.rentEstimate && (
-                <div className="panel-footnote">
-                  Basis: <strong style={{ textTransform: 'capitalize' }}>{p.rentEstimate.confidence}</strong> — {p.rentEstimate.source}
-                </div>
+                  <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                      <div className="gdv-box">
+                        <div className="gdv-label">Gross yield</div>
+                        <div className="gdv-val" style={{ fontSize: 15 }}>
+                          {p.rental.grossYield}
+                        </div>
+                      </div>
+                      <div className="gdv-box">
+                        <div className="gdv-label">Net yield</div>
+                        <div className="gdv-val" style={{ fontSize: 15 }}>
+                          {p.rental.netYield}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  {p.rentEstimate && (
+                    <div className="panel-footnote">
+                      Basis:{' '}
+                      <strong style={{ textTransform: 'capitalize' }}>{p.rentEstimate.confidence}</strong> —{' '}
+                      {p.rentEstimate.source}
+                    </div>
+                  )}
+                </>
               )}
-              </>)}
             </div>
           </div>
           <div className="panel">
             <div className="panel-head">
               <div className="panel-title">Area &amp; planning</div>
-              <Link to={areaLink} className="panel-action">Full report →</Link>
+              <Link to={areaLink} className="panel-action">
+                Full report →
+              </Link>
             </div>
             <div className="panel-body">
-              <div className="area-row"><span className="area-label">Local authority</span><span className="area-val">{p.raw.facts.district || 'Unknown'}</span></div>
-              <div className="area-row"><span className="area-label">Nation</span><span className="area-val">{p.raw.facts.country || 'Unknown'}</span></div>
-              <div className="area-row"><span className="area-label">Planning designations</span><span className="area-val">{p.planning == null ? 'Not checked' : p.planning.length ? p.planning.length : 'None recorded'}</span></div>
+              <div className="area-row">
+                <span className="area-label">Local authority</span>
+                <span className="area-val">{p.raw.facts.district || 'Unknown'}</span>
+              </div>
+              <div className="area-row">
+                <span className="area-label">Nation</span>
+                <span className="area-val">{p.raw.facts.country || 'Unknown'}</span>
+              </div>
+              <div className="area-row">
+                <span className="area-label">Planning designations</span>
+                <span className="area-val">
+                  {p.planning == null
+                    ? 'Not checked'
+                    : p.planning.length
+                      ? p.planning.length
+                      : 'None recorded'}
+                </span>
+              </div>
               {(p.planning || []).map((c) => (
                 <div key={`${c.dataset}-${c.reference}`} className="area-row area-row--highlight">
                   <span className="area-label">{c.dataset.replace(/-/g, ' ')}</span>
-                  <a className="area-val" href={c.sourceUrl} target="_blank" rel="noopener noreferrer">{c.name}</a>
+                  <a className="area-val" href={c.sourceUrl} target="_blank" rel="noopener noreferrer">
+                    {c.name}
+                  </a>
                 </div>
               ))}
-              {p.planning && p.planning.length === 0 && <p className="panel-footnote">No designation recorded in planning.data.gov.uk. Coverage varies by council, so this is not proof that none applies.</p>}
+              {p.planning && p.planning.length === 0 && (
+                <p className="panel-footnote">
+                  No designation recorded in planning.data.gov.uk. Coverage varies by council, so this is not
+                  proof that none applies.
+                </p>
+              )}
               {(p.unavailable || []).length > 0 && (
-                <p className="panel-footnote">Unavailable: {p.unavailable.map((u) => `${u.source} (${u.reason})`).join('; ')}</p>
+                <p className="panel-footnote">
+                  Unavailable: {p.unavailable.map((u) => `${u.source} (${u.reason})`).join('; ')}
+                </p>
               )}
             </div>
           </div>
           {p.provenance && (
             <div className="panel">
-              <div className="panel-head"><div className="panel-title">Where every number comes from</div></div>
+              <div className="panel-head">
+                <div className="panel-title">Where every number comes from</div>
+              </div>
               <div className="panel-body provenance-list">
                 {[
                   ['Listing', p.provenance.listing],

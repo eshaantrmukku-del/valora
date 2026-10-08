@@ -48,16 +48,16 @@ npm run test:condition
 
 ## Routes
 
-| Path | Page |
-|------|------|
-| `/` | Landing |
-| `/analyse` | Paste a listing URL |
-| `/analyse/:id` | Investment report |
-| `/discover` | Investment briefs → live opportunities |
-| `/dashboard` | Overview |
-| `/portfolio` | Saved properties |
-| `/area-intel` | Postcode area reports |
-| `/settings` | Profile & preferences |
+| Path           | Page                                   |
+| -------------- | -------------------------------------- |
+| `/`            | Landing                                |
+| `/analyse`     | Paste a listing URL                    |
+| `/analyse/:id` | Investment report                      |
+| `/discover`    | Investment briefs → live opportunities |
+| `/dashboard`   | Overview                               |
+| `/portfolio`   | Saved properties                       |
+| `/area-intel`  | Postcode area reports                  |
+| `/settings`    | Profile & preferences                  |
 
 ## Note
 

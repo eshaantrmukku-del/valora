@@ -50,13 +50,20 @@ export function mergeFacts(base: PropertyFacts, incoming: Partial<PropertyFacts>
  * Insert or update a provider listing and its canonical property, deduplicating by provider listing id
  * first and by property fingerprint second. Returns the property and listing ids.
  */
-export async function upsertProviderListing(l: ProviderListing): Promise<{ propertyId: string; listingId: string; isNewProperty: boolean }> {
+export async function upsertProviderListing(
+  l: ProviderListing,
+): Promise<{ propertyId: string; listingId: string; isNewProperty: boolean }> {
   const db = getDb();
   return db.transaction(async (tx) => {
     const [existingListing] = await tx
       .select()
       .from(schema.listings)
-      .where(and(eq(schema.listings.provider, l.provider), eq(schema.listings.providerListingId, l.providerListingId)));
+      .where(
+        and(
+          eq(schema.listings.provider, l.provider),
+          eq(schema.listings.providerListingId, l.providerListingId),
+        ),
+      );
 
     let propertyId = existingListing?.propertyId ?? null;
     const fingerprint = propertyFingerprint(l.facts);
@@ -83,7 +90,13 @@ export async function upsertProviderListing(l: ProviderListing): Promise<{ prope
     } else {
       const [created] = await tx
         .insert(schema.properties)
-        .values({ facts: mergeFacts(emptyFacts(), l.facts), factOrigins: l.factOrigins, fingerprint, origin: 'provider', ownerUserId: null })
+        .values({
+          facts: mergeFacts(emptyFacts(), l.facts),
+          factOrigins: l.factOrigins,
+          fingerprint,
+          origin: 'provider',
+          ownerUserId: null,
+        })
         .returning({ id: schema.properties.id });
       propertyId = created!.id;
       isNewProperty = true;
@@ -93,7 +106,13 @@ export async function upsertProviderListing(l: ProviderListing): Promise<{ prope
     if (existingListing) {
       await tx
         .update(schema.listings)
-        .set({ url: l.url, askingPrice: l.facts.askingPrice ?? null, status: l.facts.listingStatus ?? 'unknown', raw: l.raw as object, lastCheckedAt: new Date() })
+        .set({
+          url: l.url,
+          askingPrice: l.facts.askingPrice ?? null,
+          status: l.facts.listingStatus ?? 'unknown',
+          raw: l.raw as object,
+          lastCheckedAt: new Date(),
+        })
         .where(eq(schema.listings.id, existingListing.id));
       listingId = existingListing.id;
     } else {
@@ -123,7 +142,13 @@ export async function createPrivateProperty(
 ): Promise<PropertyRow> {
   const [row] = await getDb()
     .insert(schema.properties)
-    .values({ ownerUserId: userId, facts: mergeFacts(emptyFacts(), facts), factOrigins, origin, fingerprint: null })
+    .values({
+      ownerUserId: userId,
+      facts: mergeFacts(emptyFacts(), facts),
+      factOrigins,
+      origin,
+      fingerprint: null,
+    })
     .returning();
   return row!;
 }
@@ -133,7 +158,12 @@ export async function getAccessibleProperty(userId: string, id: string): Promise
   const [row] = await getDb()
     .select()
     .from(schema.properties)
-    .where(and(eq(schema.properties.id, id), or(isNull(schema.properties.ownerUserId), eq(schema.properties.ownerUserId, userId))));
+    .where(
+      and(
+        eq(schema.properties.id, id),
+        or(isNull(schema.properties.ownerUserId), eq(schema.properties.ownerUserId, userId)),
+      ),
+    );
   if (!row) throw notFound('Property');
   return row;
 }

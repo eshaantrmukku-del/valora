@@ -53,7 +53,9 @@ export function postcodesInfo(): ProviderInfo {
     openData: true,
     capabilities: { geocoding: true },
     coverage: 'All UK postcodes, outcodes and named places.',
-    limitations: ['Place-name lookups return the best match only; ambiguous names (e.g. "Newport") may resolve to the wrong town.'],
+    limitations: [
+      'Place-name lookups return the best match only; ambiguous names (e.g. "Newport") may resolve to the wrong town.',
+    ],
     setup: null,
     docsUrl: 'https://postcodes.io/docs',
     envVars: ['ENABLE_POSTCODES_IO'],
@@ -61,7 +63,9 @@ export function postcodesInfo(): ProviderInfo {
 }
 
 async function get<T>(path: string, schema: z.ZodType<T>): Promise<T | null> {
-  const res = await fetchJson<{ status: number; result: unknown }>(`${BASE}${path}`, { timeoutMs: 8_000 }).catch((err) => {
+  const res = await fetchJson<{ status: number; result: unknown }>(`${BASE}${path}`, {
+    timeoutMs: 8_000,
+  }).catch((err) => {
     if (String(err?.message).includes('HTTP 404')) return { status: 404, result: null };
     throw err;
   });
@@ -102,13 +106,17 @@ export async function geocode(query: string): Promise<GeoPoint | null> {
         kind: 'outcode',
       } satisfies GeoPoint;
     }
-    const list = await fetchJson<{ status: number; result: unknown[] | null }>(`${BASE}/places?q=${encodeURIComponent(q)}&limit=10`, {
-      timeoutMs: 8_000,
-    });
+    const list = await fetchJson<{ status: number; result: unknown[] | null }>(
+      `${BASE}/places?q=${encodeURIComponent(q)}&limit=10`,
+      {
+        timeoutMs: 8_000,
+      },
+    );
     const places = z.array(PlaceResult).parse(list.result ?? []);
     // Prefer settlements over other place types, and exact name matches.
     const rank = (p: z.infer<typeof PlaceResult>) =>
-      (p.name_1.toLowerCase() === q.toLowerCase() ? 0 : 10) + (/city|town|village|suburb|hamlet/i.test(p.local_type ?? '') ? 0 : 5);
+      (p.name_1.toLowerCase() === q.toLowerCase() ? 0 : 10) +
+      (/city|town|village|suburb|hamlet/i.test(p.local_type ?? '') ? 0 : 5);
     const best = [...places].sort((a, b) => rank(a) - rank(b))[0];
     if (!best || best.latitude == null || best.longitude == null) return null;
     return {

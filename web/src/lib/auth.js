@@ -3,7 +3,14 @@ import { api } from './api';
 function toUser(u) {
   if (!u) return null;
   const [firstName = '', ...rest] = (u.displayName || '').split(' ');
-  return { id: u.id, email: u.email, displayName: u.displayName, firstName, lastName: rest.join(' '), onboardingCompleted: u.onboardingCompleted };
+  return {
+    id: u.id,
+    email: u.email,
+    displayName: u.displayName,
+    firstName,
+    lastName: rest.join(' '),
+    onboardingCompleted: u.onboardingCompleted,
+  };
 }
 
 export async function fetchCurrentUser() {
@@ -18,7 +25,10 @@ export async function signUp({ email, password, firstName = '', lastName = '' })
     return { ok: true, user: toUser({ ...r.user, onboardingCompleted: false }) };
   } catch (err) {
     const fieldMsg = err.details?.[0]?.message;
-    return { ok: false, error: err.code === 'validation_failed' && fieldMsg ? `${err.message} ${fieldMsg}` : err.message };
+    return {
+      ok: false,
+      error: err.code === 'validation_failed' && fieldMsg ? `${err.message} ${fieldMsg}` : err.message,
+    };
   }
 }
 

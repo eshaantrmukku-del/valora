@@ -28,7 +28,6 @@ export function greeting() {
   return 'Good evening';
 }
 
-
 const RISK_ICONS = { ok: '✓', warn: '⚠', risk: '✕', info: 'ℹ' };
 export function riskIcon(type) {
   return RISK_ICONS[type] || '•';

@@ -24,9 +24,16 @@ export async function systemRoutes(app: FastifyInstance) {
       ai: aiInfo(),
       email: {
         configured: isEmailConfigured(),
-        setup: isEmailConfigured() ? null : 'Set RESEND_API_KEY and EMAIL_FROM (a verified sender domain) to enable email alerts and password-reset emails.',
+        setup: isEmailConfigured()
+          ? null
+          : 'Set RESEND_API_KEY and EMAIL_FROM (a verified sender domain) to enable email alerts and password-reset emails.',
       },
-      monitoring: { schedulerRunning: config().RUN_WORKER, note: config().RUN_WORKER ? 'Background worker runs in the web process.' : 'Run `npm run worker` as a separate process for searches and monitoring.' },
+      monitoring: {
+        schedulerRunning: config().RUN_WORKER,
+        note: config().RUN_WORKER
+          ? 'Background worker runs in the web process.'
+          : 'Run `npm run worker` as a separate process for searches and monitoring.',
+      },
       environment: config().NODE_ENV,
     };
   });

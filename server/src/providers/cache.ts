@@ -2,7 +2,12 @@ import { and, eq, gt, lt } from 'drizzle-orm';
 import { getDb, schema } from '../db/client';
 
 /** Read-through cache for provider responses, stored in Postgres so it survives restarts and is shared by workers. */
-export async function cached<T>(provider: string, key: string, ttlSeconds: number, load: () => Promise<T>): Promise<T> {
+export async function cached<T>(
+  provider: string,
+  key: string,
+  ttlSeconds: number,
+  load: () => Promise<T>,
+): Promise<T> {
   const db = getDb();
   const fullKey = `${provider}:${key}`;
   const [hit] = await db
@@ -15,7 +20,10 @@ export async function cached<T>(provider: string, key: string, ttlSeconds: numbe
   await db
     .insert(schema.providerCache)
     .values({ key: fullKey, provider, value: { v: value }, expiresAt, fetchedAt: new Date() })
-    .onConflictDoUpdate({ target: schema.providerCache.key, set: { value: { v: value }, expiresAt, fetchedAt: new Date() } });
+    .onConflictDoUpdate({
+      target: schema.providerCache.key,
+      set: { value: { v: value }, expiresAt, fetchedAt: new Date() },
+    });
   return value;
 }
 

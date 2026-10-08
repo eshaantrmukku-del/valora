@@ -52,39 +52,55 @@ function safeNormalise(c: BriefCriteria) {
   try {
     return normaliseCriteria(c);
   } catch (e) {
-    if (e instanceof z.ZodError) throw new AppError('validation_failed', e.issues[0]?.message ?? 'Invalid brief', e.issues.map((i) => ({ path: i.path.join('.'), message: i.message })));
+    if (e instanceof z.ZodError)
+      throw new AppError(
+        'validation_failed',
+        e.issues[0]?.message ?? 'Invalid brief',
+        e.issues.map((i) => ({ path: i.path.join('.'), message: i.message })),
+      );
     throw e;
   }
 }
 
 export async function briefRoutes(app: FastifyInstance) {
   /** Interpret a natural-language goal into a draft brief (not saved). */
-  app.post('/api/briefs/interpret', { config: { rateLimit: { max: 20, timeWindow: '1 minute' } } }, async (req) => {
-    const me = requireUser(req);
-    const { request } = parse(InterpretRequestSchema, req.body);
-    let aiError: string | null = null;
-    if (aiAvailable()) {
-      try {
-        const prefs = await getPreferences(me.id);
-        const r = await extractBriefWithAi(request, prefs, me.id);
-        return { name: r.name, criteria: r.criteria, interpreter: 'ai', model: r.model, readiness: searchReadiness(r.criteria), notice: null };
-      } catch (err) {
-        aiError = describeAiError(err);
-        req.log.warn({ err: aiError }, 'AI brief extraction failed; falling back to rules');
+  app.post(
+    '/api/briefs/interpret',
+    { config: { rateLimit: { max: 20, timeWindow: '1 minute' } } },
+    async (req) => {
+      const me = requireUser(req);
+      const { request } = parse(InterpretRequestSchema, req.body);
+      let aiError: string | null = null;
+      if (aiAvailable()) {
+        try {
+          const prefs = await getPreferences(me.id);
+          const r = await extractBriefWithAi(request, prefs, me.id);
+          return {
+            name: r.name,
+            criteria: r.criteria,
+            interpreter: 'ai',
+            model: r.model,
+            readiness: searchReadiness(r.criteria),
+            notice: null,
+          };
+        } catch (err) {
+          aiError = describeAiError(err);
+          req.log.warn({ err: aiError }, 'AI brief extraction failed; falling back to rules');
+        }
       }
-    }
-    const r = interpretWithRules(request);
-    return {
-      name: r.name,
-      criteria: r.criteria,
-      interpreter: 'rules',
-      model: null,
-      readiness: searchReadiness(r.criteria),
-      notice: aiError
-        ? `AI interpretation failed (${aiError}). Valora used its rule-based parser instead — please review every field.`
-        : 'AI interpretation is not configured, so Valora used its rule-based parser. Please review every field.',
-    };
-  });
+      const r = interpretWithRules(request);
+      return {
+        name: r.name,
+        criteria: r.criteria,
+        interpreter: 'rules',
+        model: null,
+        readiness: searchReadiness(r.criteria),
+        notice: aiError
+          ? `AI interpretation failed (${aiError}). Valora used its rule-based parser instead — please review every field.`
+          : 'AI interpretation is not configured, so Valora used its rule-based parser. Please review every field.',
+      };
+    },
+  );
 
   app.get('/api/briefs', async (req) => {
     const me = requireUser(req);
@@ -134,7 +150,14 @@ export async function briefRoutes(app: FastifyInstance) {
     const criteria = safeNormalise(body.criteria);
     const [b] = await getDb()
       .update(schema.investmentBriefs)
-      .set({ name: body.name, originalRequest: body.originalRequest, criteria, schemaVersion: criteria.schemaVersion, status: body.status ?? 'active', updatedAt: new Date() })
+      .set({
+        name: body.name,
+        originalRequest: body.originalRequest,
+        criteria,
+        schemaVersion: criteria.schemaVersion,
+        status: body.status ?? 'active',
+        updatedAt: new Date(),
+      })
       .where(and(eq(schema.investmentBriefs.id, id), eq(schema.investmentBriefs.userId, me.id)))
       .returning();
     return { brief: serialiseBrief(b!, null) };
@@ -144,13 +167,20 @@ export async function briefRoutes(app: FastifyInstance) {
     const me = requireUser(req);
     const { id } = parse(IdParam, req.params);
     await getOwnedBrief(me.id, id);
-    const body = parse(z.object({ name: z.string().trim().min(1).max(120).optional(), status: z.enum(['active', 'inactive']).optional() }), req.body);
+    const body = parse(
+      z.object({
+        name: z.string().trim().min(1).max(120).optional(),
+        status: z.enum(['active', 'inactive']).optional(),
+      }),
+      req.body,
+    );
     const [b] = await getDb()
       .update(schema.investmentBriefs)
       .set({ ...body, updatedAt: new Date() })
       .where(and(eq(schema.investmentBriefs.id, id), eq(schema.investmentBriefs.userId, me.id)))
       .returning();
-    if (body.status === 'inactive') await getDb().update(schema.monitors).set({ active: false }).where(eq(schema.monitors.briefId, id));
+    if (body.status === 'inactive')
+      await getDb().update(schema.monitors).set({ active: false }).where(eq(schema.monitors.briefId, id));
     return { brief: serialiseBrief(b!, null) };
   });
 
@@ -160,7 +190,15 @@ export async function briefRoutes(app: FastifyInstance) {
     const src = await getOwnedBrief(me.id, id);
     const [b] = await getDb()
       .insert(schema.investmentBriefs)
-      .values({ userId: me.id, name: `${src.name} (copy)`.slice(0, 120), originalRequest: src.originalRequest, criteria: src.criteria, schemaVersion: src.schemaVersion, interpreter: src.interpreter, status: 'inactive' })
+      .values({
+        userId: me.id,
+        name: `${src.name} (copy)`.slice(0, 120),
+        originalRequest: src.originalRequest,
+        criteria: src.criteria,
+        schemaVersion: src.schemaVersion,
+        interpreter: src.interpreter,
+        status: 'inactive',
+      })
       .returning();
     return { brief: serialiseBrief(b!, null) };
   });
@@ -169,7 +207,9 @@ export async function briefRoutes(app: FastifyInstance) {
     const me = requireUser(req);
     const { id } = parse(IdParam, req.params);
     await getOwnedBrief(me.id, id);
-    await getDb().delete(schema.investmentBriefs).where(and(eq(schema.investmentBriefs.id, id), eq(schema.investmentBriefs.userId, me.id)));
+    await getDb()
+      .delete(schema.investmentBriefs)
+      .where(and(eq(schema.investmentBriefs.id, id), eq(schema.investmentBriefs.userId, me.id)));
     await audit(me.id, 'brief.delete', { type: 'brief', id });
     return { ok: true };
   });
@@ -179,19 +219,40 @@ export async function briefRoutes(app: FastifyInstance) {
     const me = requireUser(req);
     const { id } = parse(IdParam, req.params);
     const brief = await getOwnedBrief(me.id, id);
-    const body = parse(z.object({ active: z.boolean(), frequencyHours: z.union([z.literal(6), z.literal(12), z.literal(24), z.literal(72), z.literal(168)]) }), req.body);
-    if (body.active && searchReadiness(brief.criteria).length) throw new AppError('validation_failed', searchReadiness(brief.criteria)[0]!);
+    const body = parse(
+      z.object({
+        active: z.boolean(),
+        frequencyHours: z.union([z.literal(6), z.literal(12), z.literal(24), z.literal(72), z.literal(168)]),
+      }),
+      req.body,
+    );
+    if (body.active && searchReadiness(brief.criteria).length)
+      throw new AppError('validation_failed', searchReadiness(brief.criteria)[0]!);
     const db = getDb();
     const [existing] = await db.select().from(schema.monitors).where(eq(schema.monitors.briefId, id));
     let m;
     if (existing) {
       [m] = await db
         .update(schema.monitors)
-        .set({ active: body.active, frequencyHours: body.frequencyHours, updatedAt: new Date(), ...(body.active && !existing.active ? { nextRunAt: new Date() } : {}) })
+        .set({
+          active: body.active,
+          frequencyHours: body.frequencyHours,
+          updatedAt: new Date(),
+          ...(body.active && !existing.active ? { nextRunAt: new Date() } : {}),
+        })
         .where(eq(schema.monitors.id, existing.id))
         .returning();
     } else {
-      [m] = await db.insert(schema.monitors).values({ userId: me.id, briefId: id, active: body.active, frequencyHours: body.frequencyHours, nextRunAt: new Date() }).returning();
+      [m] = await db
+        .insert(schema.monitors)
+        .values({
+          userId: me.id,
+          briefId: id,
+          active: body.active,
+          frequencyHours: body.frequencyHours,
+          nextRunAt: new Date(),
+        })
+        .returning();
     }
     await audit(me.id, body.active ? 'monitor.enable' : 'monitor.pause', { type: 'brief', id });
     return { brief: serialiseBrief(brief, m!) };

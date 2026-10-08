@@ -2,7 +2,10 @@ import type { Preferences } from '../../../shared/api';
 import { DEFAULT_ASSUMPTIONS, type DealInputs, type ProvenanceMap } from '../../../shared/finance/deal';
 
 /** The user's financing assumptions from preferences, falling back to labelled defaults. */
-export function financingFromPreferences(p: Preferences): { inputs: Partial<DealInputs>; provenance: ProvenanceMap } {
+export function financingFromPreferences(p: Preferences): {
+  inputs: Partial<DealInputs>;
+  provenance: ProvenanceMap;
+} {
   const inputs: Partial<DealInputs> = { ...DEFAULT_ASSUMPTIONS };
   const provenance: ProvenanceMap = {};
   for (const k of Object.keys(DEFAULT_ASSUMPTIONS) as (keyof DealInputs)[]) provenance[k] = 'default';

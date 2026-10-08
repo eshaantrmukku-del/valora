@@ -360,7 +360,12 @@ export function calculateDeal(raw: DealInputs): DealResult {
     pctLine('vacancyPct', i.vacancyPct, gross * v, `${i.vacancyPct ?? '?'}% of gross rent`);
     pctLine('managementPct', i.managementPct, collected * m, `${i.managementPct ?? '?'}% of collected rent`);
     pctLine('maintenancePct', i.maintenancePct, gross * k, `${i.maintenancePct ?? '?'}% of gross rent`);
-    const fixedKeys: DealInputKey[] = ['insuranceAnnual', 'serviceChargeAnnual', 'groundRentAnnual', 'otherOperatingAnnual'];
+    const fixedKeys: DealInputKey[] = [
+      'insuranceAnnual',
+      'serviceChargeAnnual',
+      'groundRentAnnual',
+      'otherOperatingAnnual',
+    ];
     let fixed = 0;
     for (const key of fixedKeys) {
       const val = i[key] as number | null;
@@ -397,7 +402,8 @@ export function calculateDeal(raw: DealInputs): DealResult {
       breakEvenMonthlyRent: marginFactor > 0 ? round2((fixed + debt) / marginFactor / 12) : null,
       interestCoverageRatio: annualInterest > 0 ? round2(gross / annualInterest) : null,
     };
-    if (refurb.base == null) warnings.push('No refurbishment budget supplied — cash invested excludes works.');
+    if (refurb.base == null)
+      warnings.push('No refurbishment budget supplied — cash invested excludes works.');
   }
 
   // ---- Renovate & resell ----
@@ -556,12 +562,20 @@ export function sensitivity(inputs: DealInputs): SensitivityRow[] {
     ['Interest rate +2 points', (i) => ({ ...i, interestRatePct: add(i.interestRatePct, 2) })],
     [
       'Refurbishment +20%',
-      (i) => ({ ...i, refurbCostLow: scale(i.refurbCostLow, 1.2), refurbCostHigh: scale(i.refurbCostHigh, 1.2) }),
+      (i) => ({
+        ...i,
+        refurbCostLow: scale(i.refurbCostLow, 1.2),
+        refurbCostHigh: scale(i.refurbCostHigh, 1.2),
+      }),
     ],
     ['Resale value −10%', (i) => ({ ...i, resaleValue: scale(i.resaleValue, 0.9) })],
   ];
   return rows.map(([label, f]) => {
     const r = calculateDeal(f(inputs));
-    return { label, monthlyCashFlow: r.rental?.monthlyCashFlow ?? null, flipNetProfit: r.flip?.netProfit ?? null };
+    return {
+      label,
+      monthlyCashFlow: r.rental?.monthlyCashFlow ?? null,
+      flipNetProfit: r.flip?.netProfit ?? null,
+    };
   });
 }

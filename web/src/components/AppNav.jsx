@@ -29,7 +29,11 @@ export default function AppNav() {
     navigate('/', { replace: true, viewTransition: true });
   };
 
-  const initials = ((user?.firstName?.[0] || '') + (user?.lastName?.[0] || '') || user?.email?.[0] || 'U').toUpperCase();
+  const initials = (
+    (user?.firstName?.[0] || '') + (user?.lastName?.[0] || '') ||
+    user?.email?.[0] ||
+    'U'
+  ).toUpperCase();
 
   return (
     <header className="app-nav">
@@ -41,21 +45,41 @@ export default function AppNav() {
 
         <div className="app-nav-right">
           <Link to="/analyse" viewTransition className="app-nav-cta" onClick={() => setOpen(false)}>
-            <span className="app-nav-cta-icon" aria-hidden="true">+</span>
+            <span className="app-nav-cta-icon" aria-hidden="true">
+              +
+            </span>
             New analysis
           </Link>
-          <Link to="/settings#alerts" viewTransition className="app-nav-cta" style={{ background: 'transparent', color: 'inherit', boxShadow: 'none' }} aria-label={`Alerts${unread ? `, ${unread} unread` : ''}`} onClick={() => setOpen(false)}>
+          <Link
+            to="/settings#alerts"
+            viewTransition
+            className="app-nav-cta"
+            style={{ background: 'transparent', color: 'inherit', boxShadow: 'none' }}
+            aria-label={`Alerts${unread ? `, ${unread} unread` : ''}`}
+            onClick={() => setOpen(false)}
+          >
             Alerts{unread ? ` (${unread})` : ''}
           </Link>
           <div className="app-nav-user">
-            <Link to="/settings" viewTransition className="app-nav-account" aria-label="Account" onClick={() => setOpen(false)}>
+            <Link
+              to="/settings"
+              viewTransition
+              className="app-nav-account"
+              aria-label="Account"
+              onClick={() => setOpen(false)}
+            >
               <span className="app-nav-initials">{initials}</span>
             </Link>
             <button type="button" className="app-nav-logout" onClick={onLogout}>
               Sign out
             </button>
           </div>
-          <button type="button" className="app-nav-menu" aria-label="Open menu" onClick={() => setOpen(!open)}>
+          <button
+            type="button"
+            className="app-nav-menu"
+            aria-label="Open menu"
+            onClick={() => setOpen(!open)}
+          >
             {open ? 'Close' : 'Menu'}
           </button>
         </div>

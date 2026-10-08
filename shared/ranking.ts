@@ -22,7 +22,8 @@ export interface ComponentScore {
   evidence: { text: string; basis: EvidenceBasis }[];
 }
 
-export type EvidenceBasis = 'listing_claim' | 'official_dataset' | 'provider_data' | 'calculation' | 'assumption' | 'user_input';
+export type EvidenceBasis =
+  'listing_claim' | 'official_dataset' | 'provider_data' | 'calculation' | 'assumption' | 'user_input';
 
 export const EVIDENCE_BASIS_LABELS: Record<EvidenceBasis, string> = {
   listing_claim: 'Listing claim',

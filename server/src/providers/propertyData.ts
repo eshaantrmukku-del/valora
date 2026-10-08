@@ -109,7 +109,8 @@ export function propertyDataInfo(): ProviderInfo {
     configured: Boolean(c.PROPERTYDATA_API_KEY),
     openData: false,
     capabilities: { listingSearch: true, askingPrice: true, listingUrl: true, rentalEvidence: true },
-    coverage: 'England, Wales and Scotland. Listings are limited to PropertyData sourcing lists (e.g. unmodernised, reduced, repossessed).',
+    coverage:
+      'England, Wales and Scotland. Listings are limited to PropertyData sourcing lists (e.g. unmodernised, reduced, repossessed).',
     limitations: [
       'Only properties on the configured sourcing lists are returned — not every property on the market.',
       'Listing descriptions and photos may not be included; Valora shows only fields the API returns.',
@@ -138,7 +139,12 @@ export function mapSourcedProperty(item: unknown, list: string, retrievedAt: str
   const parsed = SourcedPropertySchema.safeParse(item);
   if (!parsed.success) return null;
   const p = parsed.data;
-  const origin = (label = 'PropertyData sourced listing') => ({ source: 'listing' as const, label, url: p.url ?? null, retrievedAt });
+  const origin = (label = 'PropertyData sourced listing') => ({
+    source: 'listing' as const,
+    label,
+    url: p.url ?? null,
+    retrievedAt,
+  });
   const facts: Partial<PropertyFacts> = {
     address: p.address ?? null,
     postcode: p.postcode ? p.postcode.toUpperCase() : null,
@@ -158,10 +164,23 @@ export function mapSourcedProperty(item: unknown, list: string, retrievedAt: str
   };
   const factOrigins: FactOrigins = {};
   for (const [k, v] of Object.entries(facts)) {
-    if (v != null && !(Array.isArray(v) && v.length === 0)) (factOrigins as Record<string, unknown>)[k] = origin();
+    if (v != null && !(Array.isArray(v) && v.length === 0))
+      (factOrigins as Record<string, unknown>)[k] = origin();
   }
-  factOrigins.providerTags = { source: 'provider_classification', label: `PropertyData list: ${list}`, url: null, retrievedAt };
-  return { provider: 'propertydata', providerListingId: p.id, url: facts.listingUrl ?? null, facts, factOrigins, raw: item };
+  factOrigins.providerTags = {
+    source: 'provider_classification',
+    label: `PropertyData list: ${list}`,
+    url: null,
+    retrievedAt,
+  };
+  return {
+    provider: 'propertydata',
+    providerListingId: p.id,
+    url: facts.listingUrl ?? null,
+    facts,
+    factOrigins,
+    raw: item,
+  };
 }
 
 export const propertyDataProvider: ListingProvider = {
@@ -173,12 +192,19 @@ export const propertyDataProvider: ListingProvider = {
       .map((s) => s.trim())
       .filter(Boolean);
     const location = q.centre.postcode ?? q.centre.outcode;
-    const params = new URLSearchParams({ key, list: lists.join(','), radius: String(Math.max(1, Math.round(q.radiusMiles))), results: String(Math.min(q.limit, 100)) });
+    const params = new URLSearchParams({
+      key,
+      list: lists.join(','),
+      radius: String(Math.max(1, Math.round(q.radiusMiles))),
+      results: String(Math.min(q.limit, 100)),
+    });
     if (location) params.set('postcode', location);
     else params.set('location', `${q.centre.latitude},${q.centre.longitude}`);
     const types = [...new Set(q.propertyTypes.map((t) => PD_TYPE[t]).filter(Boolean))];
     if (types.length) params.set('standardised_type', types.join(','));
-    const raw = SourcedResponse.parse(await fetchJson(`${url}/sourced-properties?${params}`, { timeoutMs: 25_000 }));
+    const raw = SourcedResponse.parse(
+      await fetchJson(`${url}/sourced-properties?${params}`, { timeoutMs: 25_000 }),
+    );
     assertSuccess(raw);
     const items = raw.properties ?? (Array.isArray(raw.data) ? raw.data : []);
     const retrievedAt = new Date().toISOString();
@@ -192,32 +218,42 @@ export const propertyDataProvider: ListingProvider = {
   },
 };
 
-export async function fetchRentalEvidence(params: { postcode: string; bedrooms: number | null; propertyType: PropertyType | null }): Promise<RentalEvidence | null> {
+export async function fetchRentalEvidence(params: {
+  postcode: string;
+  bedrooms: number | null;
+  propertyType: PropertyType | null;
+}): Promise<RentalEvidence | null> {
   if (!config().PROPERTYDATA_API_KEY) return null;
   const { url, key } = base();
   const q = new URLSearchParams({ key, postcode: params.postcode });
   if (params.bedrooms != null) q.set('bedrooms', String(Math.min(params.bedrooms, 5)));
   if (params.propertyType === 'flat' || params.propertyType === 'maisonette') q.set('type', 'flat');
   else if (params.propertyType) q.set('type', 'house');
-  return cached('propertydata', `rents:${params.postcode}|${params.bedrooms}|${q.get('type') ?? ''}`, 7 * 86_400, async () => {
-    const raw = RentsResponse.parse(await fetchJson(`${url}/rents?${q}`, { timeoutMs: 20_000 }));
-    assertSuccess(raw);
-    const ll = raw.data?.long_let;
-    if (!ll || ll.average == null) return null;
-    const weekly = !ll.unit || /week/i.test(ll.unit);
-    const toMonthly = (v: number | null | undefined) => (v == null ? null : Math.round(weekly ? (v * 52) / 12 : v));
-    const range = ll['70pc_range'] ?? null;
-    return {
-      source: 'PropertyData (asking rents)',
-      sourceUrl: 'https://propertydata.co.uk/api/documentation/rents',
-      retrievedAt: new Date().toISOString(),
-      scope: `${params.postcode}${params.bedrooms != null ? `, ${params.bedrooms} bed` : ''}${ll.radius ? `, ${ll.radius} mile radius` : ''}`,
-      bedrooms: params.bedrooms,
-      monthlyAverage: toMonthly(ll.average),
-      monthlyRangeLow: toMonthly(range?.[0] ?? null),
-      monthlyRangeHigh: toMonthly(range?.[1] ?? null),
-      sampleSize: ll.points_analysed ?? null,
-      basis: 'asking_rents',
-    } satisfies RentalEvidence;
-  });
+  return cached(
+    'propertydata',
+    `rents:${params.postcode}|${params.bedrooms}|${q.get('type') ?? ''}`,
+    7 * 86_400,
+    async () => {
+      const raw = RentsResponse.parse(await fetchJson(`${url}/rents?${q}`, { timeoutMs: 20_000 }));
+      assertSuccess(raw);
+      const ll = raw.data?.long_let;
+      if (!ll || ll.average == null) return null;
+      const weekly = !ll.unit || /week/i.test(ll.unit);
+      const toMonthly = (v: number | null | undefined) =>
+        v == null ? null : Math.round(weekly ? (v * 52) / 12 : v);
+      const range = ll['70pc_range'] ?? null;
+      return {
+        source: 'PropertyData (asking rents)',
+        sourceUrl: 'https://propertydata.co.uk/api/documentation/rents',
+        retrievedAt: new Date().toISOString(),
+        scope: `${params.postcode}${params.bedrooms != null ? `, ${params.bedrooms} bed` : ''}${ll.radius ? `, ${ll.radius} mile radius` : ''}`,
+        bedrooms: params.bedrooms,
+        monthlyAverage: toMonthly(ll.average),
+        monthlyRangeLow: toMonthly(range?.[0] ?? null),
+        monthlyRangeHigh: toMonthly(range?.[1] ?? null),
+        sampleSize: ll.points_analysed ?? null,
+        basis: 'asking_rents',
+      } satisfies RentalEvidence;
+    },
+  );
 }

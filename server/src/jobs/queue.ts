@@ -14,7 +14,13 @@ export async function enqueue(
 ): Promise<number | null> {
   const rows = await getDb()
     .insert(schema.jobs)
-    .values({ type, payload, dedupeKey: opts.dedupeKey ?? null, runAt: opts.runAt ?? new Date(), maxAttempts: opts.maxAttempts ?? 3 })
+    .values({
+      type,
+      payload,
+      dedupeKey: opts.dedupeKey ?? null,
+      runAt: opts.runAt ?? new Date(),
+      maxAttempts: opts.maxAttempts ?? 3,
+    })
     .onConflictDoNothing()
     .returning({ id: schema.jobs.id });
   return rows[0]?.id ?? null;
@@ -38,13 +44,29 @@ export async function claimNext(workerId: string): Promise<ClaimedJob | null> {
       limit 1
     )
     returning id, type, payload, attempts, max_attempts`);
-  const row = res.rows[0] as { id: string | number; type: JobType; payload: Record<string, unknown>; attempts: number; max_attempts: number } | undefined;
+  const row = res.rows[0] as
+    | {
+        id: string | number;
+        type: JobType;
+        payload: Record<string, unknown>;
+        attempts: number;
+        max_attempts: number;
+      }
+    | undefined;
   if (!row) return null;
-  return { id: Number(row.id), type: row.type, payload: row.payload, attempts: row.attempts, maxAttempts: row.max_attempts };
+  return {
+    id: Number(row.id),
+    type: row.type,
+    payload: row.payload,
+    attempts: row.attempts,
+    maxAttempts: row.max_attempts,
+  };
 }
 
 export async function completeJob(id: number) {
-  await getDb().execute(sql`update jobs set status = 'succeeded', locked_at = null, updated_at = now() where id = ${id}`);
+  await getDb().execute(
+    sql`update jobs set status = 'succeeded', locked_at = null, updated_at = now() where id = ${id}`,
+  );
 }
 
 export async function failJob(job: ClaimedJob, error: string): Promise<'retrying' | 'failed'> {

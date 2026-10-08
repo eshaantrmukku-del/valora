@@ -23,7 +23,13 @@ import { jurisdictionFromCountry } from '../../../shared/finance/tax';
 import type { EvidenceBundle, FactOrigins, PropertyFacts } from '../../../shared/property';
 import type { RankingResult } from '../../../shared/ranking';
 import { aiAvailable, describeAiError } from '../ai/client';
-import { checkGrounding, collectNumbers, generateNarrative, NARRATIVE_PROMPT_VERSION, type Narrative } from '../ai/narrative';
+import {
+  checkGrounding,
+  collectNumbers,
+  generateNarrative,
+  NARRATIVE_PROMPT_VERSION,
+  type Narrative,
+} from '../ai/narrative';
 import { getDb, schema } from '../db/client';
 import { indicativeRefurbRange, summariseComparables, type ComparableSummary } from '../domain/comparables';
 import { rankProperty } from '../domain/ranking';
@@ -63,7 +69,11 @@ export function buildInputs(
 ): { inputs: DealInputs; provenance: ProvenanceMap; refurbBasis: string | null } {
   const inputs: DealInputs = { ...blankInputs(), ...financing.inputs };
   const provenance: ProvenanceMap = { ...financing.provenance };
-  const set = <K extends keyof DealInputs>(k: K, v: DealInputs[K] | null | undefined, p: ProvenanceMap[K]) => {
+  const set = <K extends keyof DealInputs>(
+    k: K,
+    v: DealInputs[K] | null | undefined,
+    p: ProvenanceMap[K],
+  ) => {
     if (v == null) return;
     inputs[k] = v;
     provenance[k] = p;
@@ -74,7 +84,10 @@ export function buildInputs(
   set('groundRentAnnual', facts.groundRentAnnual, 'source');
   set('monthlyRent', evidence.rental?.monthlyAverage ?? null, 'source');
 
-  const scope = criteria.renovation.appetite && criteria.renovation.appetite !== 'none' ? criteria.renovation.appetite : 'moderate';
+  const scope =
+    criteria.renovation.appetite && criteria.renovation.appetite !== 'none'
+      ? criteria.renovation.appetite
+      : 'moderate';
   const refurb = indicativeRefurbRange(facts.floorAreaSqm, scope);
   let refurbBasis: string | null = null;
   if (refurb) {
@@ -86,8 +99,12 @@ export function buildInputs(
     set('refurbCostHigh', criteria.renovation.maxBudget, 'user');
     refurbBasis = 'Range derived from the renovation budget in your brief (60–100%).';
   }
-  const comps = summariseComparables(evidence.sold, { propertyType: facts.propertyType, outcode: facts.outcode });
-  if (comps.median != null && comps.confidence !== 'none') set('resaleValue', Math.round(comps.median), 'default');
+  const comps = summariseComparables(evidence.sold, {
+    propertyType: facts.propertyType,
+    outcode: facts.outcode,
+  });
+  if (comps.median != null && comps.confidence !== 'none')
+    set('resaleValue', Math.round(comps.median), 'default');
 
   for (const [k, v] of Object.entries(overrides) as [keyof DealInputs, unknown][]) {
     if (v === undefined) continue;
@@ -97,7 +114,11 @@ export function buildInputs(
   return { inputs: DealInputsSchema.parse(inputs), provenance, refurbBasis };
 }
 
-export function dueDiligenceChecklist(criteria: BriefCriteria, facts: PropertyFacts, evidence: EvidenceBundle): string[] {
+export function dueDiligenceChecklist(
+  criteria: BriefCriteria,
+  facts: PropertyFacts,
+  evidence: EvidenceBundle,
+): string[] {
   const s = detectSignals([facts.description, ...facts.keyFeatures]);
   const out = [
     'Instruct a conveyancer to check title, boundaries, rights of way and local authority searches.',
@@ -107,29 +128,50 @@ export function dueDiligenceChecklist(criteria: BriefCriteria, facts: PropertyFa
     'Confirm the asking price against recent comparable sales with a local agent; sold-price data here excludes size and condition.',
   ];
   if (facts.tenure === 'leasehold' || facts.propertyType === 'flat' || facts.propertyType === 'maisonette')
-    out.push('Obtain the lease: remaining term, service charge history, ground rent terms and any restrictions on letting or alterations.');
-  if (facts.tenure == null || facts.tenure === 'unknown') out.push('Confirm the tenure (freehold or leasehold) with the agent.');
+    out.push(
+      'Obtain the lease: remaining term, service charge history, ground rent terms and any restrictions on letting or alterations.',
+    );
+  if (facts.tenure == null || facts.tenure === 'unknown')
+    out.push('Confirm the tenure (freehold or leasehold) with the agent.');
   if (criteria.objective === 'long_term_rental' || criteria.objectiveWeights.cashFlow > 0) {
     out.push('Check achieved (not asking) rents with two local letting agents.');
     out.push('Check whether the council runs selective or additional landlord licensing for this street.');
-    out.push('Confirm the EPC rating meets the minimum standard for letting, and the cost of upgrades if not.');
-    out.push('Check your lender’s buy-to-let rental cover (stress-test) requirements against the expected rent.');
+    out.push(
+      'Confirm the EPC rating meets the minimum standard for letting, and the cost of upgrades if not.',
+    );
+    out.push(
+      'Check your lender’s buy-to-let rental cover (stress-test) requirements against the expected rent.',
+    );
   }
-  if (criteria.objective === 'renovation_value_add' || criteria.objective === 'renovation_resale' || criteria.development.extensionInterest) {
+  if (
+    criteria.objective === 'renovation_value_add' ||
+    criteria.objective === 'renovation_resale' ||
+    criteria.development.extensionInterest
+  ) {
     out.push('Get at least two itemised builder quotes before relying on the refurbishment range.');
     out.push('Search the local planning portal for the property’s planning history and nearby decisions.');
   }
   if (criteria.development.extensionInterest || criteria.development.loftConversionInterest) {
-    out.push('Ask an architect or planning consultant whether the extension could be permitted development or needs full planning permission; check for Article 4 directions.');
+    out.push(
+      'Ask an architect or planning consultant whether the extension could be permitted development or needs full planning permission; check for Article 4 directions.',
+    );
     out.push('Budget for Building Regulations approval and, if relevant, Party Wall agreements.');
   }
   if ((evidence.planningConstraints ?? []).some((p) => /conservation|listed/i.test(p.dataset)))
-    out.push('The location has a conservation or listed-building designation: alterations may need additional consent.');
-  if (hasSignal(s, 'cash_buyers_only')) out.push('“Cash buyers only” often signals a mortgageability issue — establish why before offering.');
+    out.push(
+      'The location has a conservation or listed-building designation: alterations may need additional consent.',
+    );
+  if (hasSignal(s, 'cash_buyers_only'))
+    out.push('“Cash buyers only” often signals a mortgageability issue — establish why before offering.');
   if (hasSignal(s, 'flood_risk')) out.push('Obtain a flood risk report and buildings insurance quote.');
-  if (hasSignal(s, 'tenanted')) out.push('Obtain the tenancy agreement, deposit protection certificate and rent payment history.');
-  if (hasSignal(s, 'auction')) out.push('Read the auction legal pack before bidding; completion timescales and fees are fixed.');
-  if (criteria.objective === 'renovation_resale') out.push('Ask a local estate agent for a written view of the after-works value, citing renovated comparables.');
+  if (hasSignal(s, 'tenanted'))
+    out.push('Obtain the tenancy agreement, deposit protection certificate and rent payment history.');
+  if (hasSignal(s, 'auction'))
+    out.push('Read the auction legal pack before bidding; completion timescales and fees are fixed.');
+  if (criteria.objective === 'renovation_resale')
+    out.push(
+      'Ask a local estate agent for a written view of the after-works value, citing renovated comparables.',
+    );
   return out;
 }
 
@@ -141,7 +183,10 @@ export function buildDeterministicReport(
   refurbBasis: string | null,
   ranking: RankingResult,
 ): DeterministicReport {
-  const comps = summariseComparables(evidence.sold, { propertyType: facts.propertyType, outcode: facts.outcode });
+  const comps = summariseComparables(evidence.sold, {
+    propertyType: facts.propertyType,
+    outcode: facts.outcode,
+  });
   const { used, ...compRest } = comps;
   const financials = calculateDeal(inputs);
   const missing = [...ranking.missing];
@@ -165,7 +210,12 @@ async function evidenceFor(propertyId: string, facts: PropertyFacts, origins: Fa
   return { evidence: enriched.evidence, facts: enriched.facts, origins: enriched.origins };
 }
 
-export async function createAnalysis(userId: string, propertyId: string, briefId: string | null, overrides: Partial<DealInputs> = {}) {
+export async function createAnalysis(
+  userId: string,
+  propertyId: string,
+  briefId: string | null,
+  overrides: Partial<DealInputs> = {},
+) {
   const db = getDb();
   const property = await getAccessibleProperty(userId, propertyId);
   let criteria: BriefCriteria = emptyCriteria('general_screening');
@@ -211,7 +261,12 @@ export async function createAnalysis(userId: string, propertyId: string, briefId
       promptVersion: ai ? NARRATIVE_PROMPT_VERSION : null,
     })
     .returning();
-  if (ai) await enqueue('analysis.narrative', { analysisId: row!.id }, { dedupeKey: `narrative:${row!.id}`, maxAttempts: 2 });
+  if (ai)
+    await enqueue(
+      'analysis.narrative',
+      { analysisId: row!.id },
+      { dedupeKey: `narrative:${row!.id}`, maxAttempts: 2 },
+    );
   return row!;
 }
 
@@ -225,18 +280,41 @@ export async function getOwnedAnalysis(userId: string, id: string) {
 }
 
 /** Recalculate with edited assumptions. Facts and evidence stay as snapshotted. */
-export async function recalculateAnalysis(userId: string, id: string, inputs: DealInputs, provenance: ProvenanceMap) {
+export async function recalculateAnalysis(
+  userId: string,
+  id: string,
+  inputs: DealInputs,
+  provenance: ProvenanceMap,
+) {
   const row = await getOwnedAnalysis(userId, id);
-  const ranking = rankProperty({ criteria: row.criteriaSnapshot, facts: row.factsSnapshot, evidence: row.evidenceSnapshot, financing: inputs });
+  const ranking = rankProperty({
+    criteria: row.criteriaSnapshot,
+    facts: row.factsSnapshot,
+    evidence: row.evidenceSnapshot,
+    financing: inputs,
+  });
   const prev = row.report as AnalysisReport;
   const report: AnalysisReport = {
     ...prev,
-    deterministic: buildDeterministicReport(row.criteriaSnapshot, row.factsSnapshot, row.evidenceSnapshot, inputs, prev.deterministic.refurbishmentBasis, ranking),
+    deterministic: buildDeterministicReport(
+      row.criteriaSnapshot,
+      row.factsSnapshot,
+      row.evidenceSnapshot,
+      inputs,
+      prev.deterministic.refurbishmentBasis,
+      ranking,
+    ),
     narrativeStale: prev.narrative != null,
   };
   const [updated] = await getDb()
     .update(schema.analyses)
-    .set({ inputs, inputProvenance: { ...row.inputProvenance, ...provenance }, ranking, report, updatedAt: new Date() })
+    .set({
+      inputs,
+      inputProvenance: { ...row.inputProvenance, ...provenance },
+      ranking,
+      report,
+      updatedAt: new Date(),
+    })
     .where(eq(schema.analyses.id, id))
     .returning();
   return updated!;
@@ -245,8 +323,15 @@ export async function recalculateAnalysis(userId: string, id: string, inputs: De
 export async function requestNarrative(userId: string, id: string) {
   const row = await getOwnedAnalysis(userId, id);
   if (!aiAvailable()) return row;
-  await getDb().update(schema.analyses).set({ narrativeStatus: 'pending', narrativeError: null }).where(eq(schema.analyses.id, id));
-  await enqueue('analysis.narrative', { analysisId: row.id }, { dedupeKey: `narrative:${row.id}`, maxAttempts: 2 });
+  await getDb()
+    .update(schema.analyses)
+    .set({ narrativeStatus: 'pending', narrativeError: null })
+    .where(eq(schema.analyses.id, id));
+  await enqueue(
+    'analysis.narrative',
+    { analysisId: row.id },
+    { dedupeKey: `narrative:${row.id}`, maxAttempts: 2 },
+  );
   return getOwnedAnalysis(userId, id);
 }
 
@@ -258,7 +343,11 @@ export async function generateAnalysisNarrative(analysisId: string) {
   const det = report.deterministic;
   const { description, keyFeatures, images: _images, ...factsForModel } = row.factsSnapshot;
   const input = {
-    strategy: { brief: row.briefName, objective: row.criteriaSnapshot.objective, criteria: row.criteriaSnapshot },
+    strategy: {
+      brief: row.briefName,
+      objective: row.criteriaSnapshot.objective,
+      criteria: row.criteriaSnapshot,
+    },
     facts: { ...factsForModel, keyFeatures, origins: row.factOriginsSnapshot },
     listingText: description,
     evidence: {
@@ -270,7 +359,11 @@ export async function generateAnalysisNarrative(analysisId: string) {
     ranking: row.ranking,
     financials: { inputs: row.inputs, provenance: row.inputProvenance, result: det.financials },
     scenarios: det.scenarios,
-    refurbishment: { basis: det.refurbishmentBasis, low: row.inputs.refurbCostLow, high: row.inputs.refurbCostHigh },
+    refurbishment: {
+      basis: det.refurbishmentBasis,
+      low: row.inputs.refurbCostLow,
+      high: row.inputs.refurbCostHigh,
+    },
     checklist: det.dueDiligence,
   };
   try {
@@ -278,7 +371,13 @@ export async function generateAnalysisNarrative(analysisId: string) {
     const warnings = checkGrounding(data, collectNumbers(input));
     await db
       .update(schema.analyses)
-      .set({ report: { ...report, narrative: data, groundingWarnings: warnings, narrativeStale: false }, narrativeStatus: 'generated', narrativeError: null, model, updatedAt: new Date() })
+      .set({
+        report: { ...report, narrative: data, groundingWarnings: warnings, narrativeStale: false },
+        narrativeStatus: 'generated',
+        narrativeError: null,
+        model,
+        updatedAt: new Date(),
+      })
       .where(eq(schema.analyses.id, analysisId));
   } catch (err) {
     await markNarrativeFailed(analysisId, describeAiError(err));
@@ -286,5 +385,8 @@ export async function generateAnalysisNarrative(analysisId: string) {
 }
 
 export async function markNarrativeFailed(analysisId: string, message: string) {
-  await getDb().update(schema.analyses).set({ narrativeStatus: 'failed', narrativeError: message.slice(0, 500) }).where(eq(schema.analyses.id, analysisId));
+  await getDb()
+    .update(schema.analyses)
+    .set({ narrativeStatus: 'failed', narrativeError: message.slice(0, 500) })
+    .where(eq(schema.analyses.id, analysisId));
 }

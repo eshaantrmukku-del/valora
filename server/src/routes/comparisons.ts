@@ -31,21 +31,47 @@ export async function comparisonRoutes(app: FastifyInstance) {
   app.get('/api/comparisons', async (req) => {
     const me = requireUser(req);
     const rows = await getDb()
-      .select({ c: schema.comparisons, count: sql<number>`(select count(*)::int from comparison_items ci where ci.comparison_id = ${schema.comparisons.id})` })
+      .select({
+        c: schema.comparisons,
+        count: sql<number>`(select count(*)::int from comparison_items ci where ci.comparison_id = ${schema.comparisons.id})`,
+      })
       .from(schema.comparisons)
       .where(eq(schema.comparisons.userId, me.id))
       .orderBy(desc(schema.comparisons.updatedAt));
-    return { comparisons: rows.map(({ c, count }) => ({ id: c.id, name: c.name, briefId: c.briefId, itemCount: count, updatedAt: c.updatedAt.toISOString() })) };
+    return {
+      comparisons: rows.map(({ c, count }) => ({
+        id: c.id,
+        name: c.name,
+        briefId: c.briefId,
+        itemCount: count,
+        updatedAt: c.updatedAt.toISOString(),
+      })),
+    };
   });
 
   app.post('/api/comparisons', async (req) => {
     const me = requireUser(req);
-    const body = parse(z.object({ name: z.string().trim().min(1).max(120), briefId: z.string().uuid().nullable(), propertyIds: z.array(z.string().uuid()).max(6).default([]) }), req.body);
+    const body = parse(
+      z.object({
+        name: z.string().trim().min(1).max(120),
+        briefId: z.string().uuid().nullable(),
+        propertyIds: z.array(z.string().uuid()).max(6).default([]),
+      }),
+      req.body,
+    );
     if (body.briefId) await getOwnedBrief(me.id, body.briefId);
     for (const pid of body.propertyIds) await getAccessibleProperty(me.id, pid);
     const db = getDb();
-    const [c] = await db.insert(schema.comparisons).values({ userId: me.id, name: body.name, briefId: body.briefId }).returning();
-    if (body.propertyIds.length) await db.insert(schema.comparisonItems).values(body.propertyIds.map((propertyId, position) => ({ comparisonId: c!.id, propertyId, position })));
+    const [c] = await db
+      .insert(schema.comparisons)
+      .values({ userId: me.id, name: body.name, briefId: body.briefId })
+      .returning();
+    if (body.propertyIds.length)
+      await db
+        .insert(schema.comparisonItems)
+        .values(
+          body.propertyIds.map((propertyId, position) => ({ comparisonId: c!.id, propertyId, position })),
+        );
     return { comparison: { id: c!.id } };
   });
 
@@ -53,9 +79,18 @@ export async function comparisonRoutes(app: FastifyInstance) {
     const me = requireUser(req);
     const { id } = parse(IdParam, req.params);
     await getOwnedComparison(me.id, id);
-    const body = parse(z.object({ name: z.string().trim().min(1).max(120).optional(), briefId: z.string().uuid().nullable().optional() }), req.body);
+    const body = parse(
+      z.object({
+        name: z.string().trim().min(1).max(120).optional(),
+        briefId: z.string().uuid().nullable().optional(),
+      }),
+      req.body,
+    );
     if (body.briefId) await getOwnedBrief(me.id, body.briefId);
-    await getDb().update(schema.comparisons).set({ ...body, updatedAt: new Date() }).where(eq(schema.comparisons.id, id));
+    await getDb()
+      .update(schema.comparisons)
+      .set({ ...body, updatedAt: new Date() })
+      .where(eq(schema.comparisons.id, id));
     return { ok: true };
   });
 
@@ -66,18 +101,31 @@ export async function comparisonRoutes(app: FastifyInstance) {
     const { propertyId } = parse(z.object({ propertyId: z.string().uuid() }), req.body);
     await getAccessibleProperty(me.id, propertyId);
     const db = getDb();
-    const [{ n } = { n: 0 }] = await db.select({ n: sql<number>`count(*)::int` }).from(schema.comparisonItems).where(eq(schema.comparisonItems.comparisonId, id));
+    const [{ n } = { n: 0 }] = await db
+      .select({ n: sql<number>`count(*)::int` })
+      .from(schema.comparisonItems)
+      .where(eq(schema.comparisonItems.comparisonId, id));
     if (n >= 6) throw new AppError('validation_failed', 'A comparison can hold up to 6 properties.');
-    await db.insert(schema.comparisonItems).values({ comparisonId: id, propertyId, position: n }).onConflictDoNothing();
+    await db
+      .insert(schema.comparisonItems)
+      .values({ comparisonId: id, propertyId, position: n })
+      .onConflictDoNothing();
     await db.update(schema.comparisons).set({ updatedAt: new Date() }).where(eq(schema.comparisons.id, id));
     return { ok: true };
   });
 
   app.delete('/api/comparisons/:id/items/:propertyId', async (req) => {
     const me = requireUser(req);
-    const { id, propertyId } = parse(z.object({ id: z.string().uuid(), propertyId: z.string().uuid() }), req.params);
+    const { id, propertyId } = parse(
+      z.object({ id: z.string().uuid(), propertyId: z.string().uuid() }),
+      req.params,
+    );
     await getOwnedComparison(me.id, id);
-    await getDb().delete(schema.comparisonItems).where(and(eq(schema.comparisonItems.comparisonId, id), eq(schema.comparisonItems.propertyId, propertyId)));
+    await getDb()
+      .delete(schema.comparisonItems)
+      .where(
+        and(eq(schema.comparisonItems.comparisonId, id), eq(schema.comparisonItems.propertyId, propertyId)),
+      );
     return { ok: true };
   });
 
@@ -120,7 +168,13 @@ export async function comparisonRoutes(app: FastifyInstance) {
       columns.push({ propertyId: p.id, facts, evidence, inputs, provenance, ranking, report });
     }
     return {
-      comparison: { id: c.id, name: c.name, briefId: c.briefId, briefName: brief?.name ?? null, objective: criteria.objective },
+      comparison: {
+        id: c.id,
+        name: c.name,
+        briefId: c.briefId,
+        briefName: brief?.name ?? null,
+        objective: criteria.objective,
+      },
       assumptions: { inputs: financing.inputs, provenance: financing.provenance },
       columns,
     };

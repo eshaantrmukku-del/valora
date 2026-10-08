@@ -2,7 +2,12 @@
 import { randomBytes, scrypt as scryptCb, timingSafeEqual, createHash } from 'node:crypto';
 import { promisify } from 'node:util';
 
-const scrypt = promisify(scryptCb) as (pw: string, salt: Buffer, keylen: number, opts: object) => Promise<Buffer>;
+const scrypt = promisify(scryptCb) as (
+  pw: string,
+  salt: Buffer,
+  keylen: number,
+  opts: object,
+) => Promise<Buffer>;
 const N = 16384;
 const R = 8;
 const P = 1;

@@ -40,7 +40,9 @@ const EnvSchema = z.object({
   PROPERTYDATA_API_KEY: z.string().optional(),
   PROPERTYDATA_BASE_URL: z.string().url().default('https://api.propertydata.co.uk'),
   /** Comma-separated PropertyData sourcing list IDs to search. */
-  PROPERTYDATA_LISTS: z.string().default('unmodernised-properties,reduced-properties,repossessed-properties,quick-sale-properties'),
+  PROPERTYDATA_LISTS: z
+    .string()
+    .default('unmodernised-properties,reduced-properties,repossessed-properties,quick-sale-properties'),
   EPC_API_EMAIL: z.string().optional(),
   EPC_API_KEY: z.string().optional(),
   ENABLE_LAND_REGISTRY: flag(true),
@@ -50,6 +52,8 @@ const EnvSchema = z.object({
   ENABLE_FIXTURE_PROVIDER: bool,
   /** Test-only deterministic AI stub. Refused in production. */
   ENABLE_FAKE_AI: bool,
+  /** Test-only: disable rate limiting. Refused in production. */
+  DISABLE_RATE_LIMIT: bool,
 
   // ---- Email ----
   RESEND_API_KEY: z.string().optional(),
@@ -71,8 +75,10 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   }
   const c = parsed.data;
   const isProduction = c.NODE_ENV === 'production';
-  if (isProduction && (c.ENABLE_FIXTURE_PROVIDER || c.ENABLE_FAKE_AI)) {
-    throw new Error('ENABLE_FIXTURE_PROVIDER and ENABLE_FAKE_AI must never be enabled in production.');
+  if (isProduction && (c.ENABLE_FIXTURE_PROVIDER || c.ENABLE_FAKE_AI || c.DISABLE_RATE_LIMIT)) {
+    throw new Error(
+      'ENABLE_FIXTURE_PROVIDER, ENABLE_FAKE_AI and DISABLE_RATE_LIMIT must never be enabled in production.',
+    );
   }
   return { ...c, isProduction, isTest: c.NODE_ENV === 'test' };
 }

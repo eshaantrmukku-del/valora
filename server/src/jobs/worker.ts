@@ -50,7 +50,10 @@ async function syncMonitorStatus(runId: string) {
   const db = getDb();
   const [run] = await db.select().from(schema.searchRuns).where(eq(schema.searchRuns.id, runId));
   if (!run || run.trigger !== 'monitor' || !run.briefId || run.status !== 'failed') return;
-  await db.update(schema.monitors).set({ lastStatus: 'failed', lastError: run.error }).where(eq(schema.monitors.briefId, run.briefId));
+  await db
+    .update(schema.monitors)
+    .set({ lastStatus: 'failed', lastError: run.error })
+    .where(eq(schema.monitors.briefId, run.briefId));
 }
 
 export interface WorkerHandle {
@@ -59,7 +62,10 @@ export interface WorkerHandle {
   drain(): Promise<number>;
 }
 
-export function startWorker(log: Pick<Logger, 'info' | 'error' | 'warn'>, opts: { loop?: boolean } = {}): WorkerHandle {
+export function startWorker(
+  log: Pick<Logger, 'info' | 'error' | 'warn'>,
+  opts: { loop?: boolean } = {},
+): WorkerHandle {
   const id = `worker-${randomUUID().slice(0, 8)}`;
   let stopped = false;
   let lastSchedule = 0;
@@ -75,7 +81,10 @@ export function startWorker(log: Pick<Logger, 'info' | 'error' | 'warn'>, opts: 
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       const outcome = await failJob(job, message);
-      log.error({ jobId: job.id, type: job.type, attempt: job.attempts, outcome, err: message }, 'job failed');
+      log.error(
+        { jobId: job.id, type: job.type, attempt: job.attempts, outcome, err: message },
+        'job failed',
+      );
       if (outcome === 'failed') await onFinalFailure(job, message);
     }
     return true;

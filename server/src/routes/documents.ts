@@ -24,7 +24,15 @@ export async function documentRoutes(app: FastifyInstance) {
   app.get('/api/documents', async (req) => {
     const me = requireUser(req);
     const rows = await getDb()
-      .select({ id: schema.documents.id, filename: schema.documents.filename, status: schema.documents.status, error: schema.documents.error, propertyId: schema.documents.propertyId, sizeBytes: schema.documents.sizeBytes, createdAt: schema.documents.createdAt })
+      .select({
+        id: schema.documents.id,
+        filename: schema.documents.filename,
+        status: schema.documents.status,
+        error: schema.documents.error,
+        propertyId: schema.documents.propertyId,
+        sizeBytes: schema.documents.sizeBytes,
+        createdAt: schema.documents.createdAt,
+      })
       .from(schema.documents)
       .where(eq(schema.documents.userId, me.id))
       .orderBy(desc(schema.documents.createdAt))
@@ -36,7 +44,17 @@ export async function documentRoutes(app: FastifyInstance) {
     const me = requireUser(req);
     const { id } = parse(IdParam, req.params);
     const d = await getOwnedDocument(me.id, id);
-    return { document: { id: d.id, filename: d.filename, status: d.status, error: d.error, propertyId: d.propertyId, extraction: d.extraction, createdAt: d.createdAt.toISOString() } };
+    return {
+      document: {
+        id: d.id,
+        filename: d.filename,
+        status: d.status,
+        error: d.error,
+        propertyId: d.propertyId,
+        extraction: d.extraction,
+        createdAt: d.createdAt.toISOString(),
+      },
+    };
   });
 
   /** Create a private property from a processed document's verified extraction. */
@@ -44,11 +62,15 @@ export async function documentRoutes(app: FastifyInstance) {
     const me = requireUser(req);
     const { id } = parse(IdParam, req.params);
     const d = await getOwnedDocument(me.id, id);
-    if (d.status !== 'extracted' || !d.extraction) throw new AppError('bad_request', 'The document has not been processed yet.');
+    if (d.status !== 'extracted' || !d.extraction)
+      throw new AppError('bad_request', 'The document has not been processed yet.');
     if (d.propertyId) return { property: { id: d.propertyId } };
     const ex = d.extraction as { facts: Partial<PropertyFacts>; origins: FactOrigins; quotes: Extraction };
     const p = await createPrivateProperty(me.id, ex.facts, ex.origins, 'document');
-    await getDb().update(schema.documents).set({ propertyId: p.id }).where(and(eq(schema.documents.id, id), eq(schema.documents.userId, me.id)));
+    await getDb()
+      .update(schema.documents)
+      .set({ propertyId: p.id })
+      .where(and(eq(schema.documents.id, id), eq(schema.documents.userId, me.id)));
     return { property: { id: p.id } };
   });
 
@@ -56,7 +78,9 @@ export async function documentRoutes(app: FastifyInstance) {
     const me = requireUser(req);
     const { id } = parse(IdParam, req.params);
     await getOwnedDocument(me.id, id);
-    await getDb().delete(schema.documents).where(and(eq(schema.documents.id, id), eq(schema.documents.userId, me.id)));
+    await getDb()
+      .delete(schema.documents)
+      .where(and(eq(schema.documents.id, id), eq(schema.documents.userId, me.id)));
     return { ok: true };
   });
 }

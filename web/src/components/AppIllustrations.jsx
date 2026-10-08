@@ -112,7 +112,14 @@ export function IlluIntel({ className = 'app-illu' }) {
     <svg className={className} viewBox="0 0 280 180" aria-hidden="true">
       <ellipse cx="140" cy="158" rx="90" ry="10" fill="#ccfbf1" />
       <rect x="60" y="44" width="160" height="100" rx="14" fill="#0f766e" />
-      <path d="M80 120 L110 88 L130 104 L160 70 L200 110" fill="none" stroke="#5eead4" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M80 120 L110 88 L130 104 L160 70 L200 110"
+        fill="none"
+        stroke="#5eead4"
+        strokeWidth="5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
       <circle cx="110" cy="88" r="6" fill="#fcd34d" />
       <circle cx="160" cy="70" r="6" fill="#fb7185" />
       <rect x="78" y="54" width="40" height="8" rx="4" fill="#99f6e4" opacity="0.7" />
@@ -141,12 +148,24 @@ export function IlluOverview({ className = 'app-illu' }) {
 /** Compact coloured glyphs for nav tabs */
 const NAV = {
   analyse: { bg: '#dbeafe', fg: '#1d4ed8', path: 'M7 18V9l5-4 5 4v9H7zm3-2h4v-5h-4v5z' },
-  discover: { bg: '#dcfce7', fg: '#15803d', path: 'M11 4a7 7 0 105.2 11.8l3 3 1.4-1.4-3-3A7 7 0 0011 4zm0 2a5 5 0 110 10 5 5 0 010-10z' },
+  discover: {
+    bg: '#dcfce7',
+    fg: '#15803d',
+    path: 'M11 4a7 7 0 105.2 11.8l3 3 1.4-1.4-3-3A7 7 0 0011 4zm0 2a5 5 0 110 10 5 5 0 010-10z',
+  },
   compare: { bg: '#e0e7ff', fg: '#4338ca', path: 'M5 5h6v14H5V5zm8 4h6v10h-6V9z' },
   portfolio: { bg: '#ffedd5', fg: '#c2410c', path: 'M4 8h16v10H4V8zm2-3h4l2 2h8v2H4V5h2z' },
   intel: { bg: '#ccfbf1', fg: '#0f766e', path: 'M4 17l5-6 4 3 5-7 2 1.5-6.5 9-4-3-3.5 4.2L4 17z' },
-  tools: { bg: '#fce7f3', fg: '#be185d', path: 'M14.7 6.3a4 4 0 00-5.4 5.4L4 17l3 3 5.3-5.3a4 4 0 005.4-5.4l-2.5 2.5-2.5-2.5 2-2z' },
-  dashboard: { bg: '#e0f2fe', fg: '#0369a1', path: 'M4 4h7v7H4V4zm9 0h7v5h-7V4zM4 13h7v7H4v-7zm9 3h7v4h-7v-4z' },
+  tools: {
+    bg: '#fce7f3',
+    fg: '#be185d',
+    path: 'M14.7 6.3a4 4 0 00-5.4 5.4L4 17l3 3 5.3-5.3a4 4 0 005.4-5.4l-2.5 2.5-2.5-2.5 2-2z',
+  },
+  dashboard: {
+    bg: '#e0f2fe',
+    fg: '#0369a1',
+    path: 'M4 4h7v7H4V4zm9 0h7v5h-7V4zM4 13h7v7H4v-7zm9 3h7v4h-7v-4z',
+  },
   assistant: { bg: '#ede9fe', fg: '#6d28d9', path: 'M4 5h16v11H9l-5 4V5zm4 4v2h8V9H8z' },
 };
 

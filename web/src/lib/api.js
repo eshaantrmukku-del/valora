@@ -24,10 +24,13 @@ export async function api(path, { method = 'GET', body, form, signal } = {}) {
     res = await fetch(path, { method, headers, body: payload, credentials: 'same-origin', signal });
   } catch (err) {
     if (err?.name === 'AbortError') throw err;
-    throw new ApiError('Can’t reach the Valora server. Check your connection and try again.', { status: 0, code: 'network' });
+    throw new ApiError('Can’t reach the Valora server. Check your connection and try again.', {
+      status: 0,
+      code: 'network',
+    });
   }
   const text = await res.text();
-  let data = null;
+  let data;
   try {
     data = text ? JSON.parse(text) : null;
   } catch {
@@ -35,7 +38,11 @@ export async function api(path, { method = 'GET', body, form, signal } = {}) {
   }
   if (!res.ok) {
     const e = data?.error;
-    throw new ApiError(e?.message || `Request failed (${res.status})`, { status: res.status, code: e?.code, details: e?.details });
+    throw new ApiError(e?.message || `Request failed (${res.status})`, {
+      status: res.status,
+      code: e?.code,
+      details: e?.details,
+    });
   }
   return data;
 }

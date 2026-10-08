@@ -69,7 +69,7 @@ function scoreTone(score) {
 function winnerSide(a, b, better) {
   if (a == null || b == null || a === b || typeof a !== 'number' || typeof b !== 'number') return null;
   if (better === 'none') return null;
-  return better === 'higher' ? (a > b ? 'a' : 'b') : (a < b ? 'a' : 'b');
+  return better === 'higher' ? (a > b ? 'a' : 'b') : a < b ? 'a' : 'b';
 }
 
 function optionLabel(p) {
@@ -143,17 +143,18 @@ function PropertySlot({ side, label, property, options, value, onChange, onOpen,
             </div>
           )}
         </div>
-        {isBmv && (
-          <div className="cmp-slot-flag">Below comparable sold median (Land Registry)</div>
-        )}
+        {isBmv && <div className="cmp-slot-flag">Below comparable sold median (Land Registry)</div>}
         {conditionOf(property) && conditionOf(property) !== 'Unknown' && (
-          <div className="cmp-slot-flag cmp-slot-flag--soft">
-            Condition: {conditionOf(property)}
-          </div>
+          <div className="cmp-slot-flag cmp-slot-flag--soft">Condition: {conditionOf(property)}</div>
         )}
       </div>
 
-      <button type="button" className="app-btn app-btn--ghost cmp-slot-open" onClick={onOpen} disabled={!property}>
+      <button
+        type="button"
+        className="app-btn app-btn--ghost cmp-slot-open"
+        onClick={onOpen}
+        disabled={!property}
+      >
         Analyse with this brief
       </button>
     </article>
@@ -188,8 +189,14 @@ function MetricRow({ label, a, b, format = (v) => v, better = 'higher', hint }) 
         {cell('a', av)}
         {bothNum && better !== 'none' ? (
           <div className="cmp-row-bars" aria-hidden="true">
-            <div className="cmp-row-bar cmp-row-bar--a" style={{ width: `${Math.round((Math.abs(av) / maxAbs) * 100)}%` }} />
-            <div className="cmp-row-bar cmp-row-bar--b" style={{ width: `${Math.round((Math.abs(bv) / maxAbs) * 100)}%` }} />
+            <div
+              className="cmp-row-bar cmp-row-bar--a"
+              style={{ width: `${Math.round((Math.abs(av) / maxAbs) * 100)}%` }}
+            />
+            <div
+              className="cmp-row-bar cmp-row-bar--b"
+              style={{ width: `${Math.round((Math.abs(bv) / maxAbs) * 100)}%` }}
+            />
           </div>
         ) : (
           <span className="cmp-row-vs">vs</span>
@@ -217,26 +224,40 @@ export default function Compare() {
 
   const options = useMemo(() => {
     const map = new Map();
-    for (const s of saved.data?.saved || []) map.set(s.propertyId, { id: s.propertyId, name: s.facts.address || s.facts.postcode || 'Untitled property', price: s.facts.askingPrice });
-    for (const a of analyses.data?.analyses || []) if (!map.has(a.propertyId)) map.set(a.propertyId, { id: a.propertyId, name: a.address || a.postcode || 'Untitled property', price: a.askingPrice });
+    for (const s of saved.data?.saved || [])
+      map.set(s.propertyId, {
+        id: s.propertyId,
+        name: s.facts.address || s.facts.postcode || 'Untitled property',
+        price: s.facts.askingPrice,
+      });
+    for (const a of analyses.data?.analyses || [])
+      if (!map.has(a.propertyId))
+        map.set(a.propertyId, {
+          id: a.propertyId,
+          name: a.address || a.postcode || 'Untitled property',
+          price: a.askingPrice,
+        });
     return [...map.values()];
   }, [saved.data, analyses.data]);
 
-  const load = useCallback(async (id) => {
-    setBusy(true);
-    try {
-      const r = await api(`/api/comparisons/${id}`);
-      setComputed(r);
-      const ids = r.columns.map((c) => c.propertyId);
-      setLeftId(ids[0] || '');
-      setRightId(ids[1] || '');
-      setBriefId(r.comparison.briefId || '');
-    } catch (err) {
-      showToast('Could not load comparison', err.message);
-    } finally {
-      setBusy(false);
-    }
-  }, [showToast]);
+  const load = useCallback(
+    async (id) => {
+      setBusy(true);
+      try {
+        const r = await api(`/api/comparisons/${id}`);
+        setComputed(r);
+        const ids = r.columns.map((c) => c.propertyId);
+        setLeftId(ids[0] || '');
+        setRightId(ids[1] || '');
+        setBriefId(r.comparison.briefId || '');
+      } catch (err) {
+        showToast('Could not load comparison', err.message);
+      } finally {
+        setBusy(false);
+      }
+    },
+    [showToast],
+  );
 
   // Use the most recent comparison; create one when the first properties are chosen.
   useEffect(() => {
@@ -248,31 +269,40 @@ export default function Compare() {
     }
   }, [comparisons.data, comparisonId, load]);
 
-  const setPair = useCallback(async (a, b, brief) => {
-    const ids = [a, b].filter(Boolean).filter((x, i, arr) => arr.indexOf(x) === i);
-    setLeftId(a || '');
-    setRightId(b || '');
-    setBusy(true);
-    try {
-      let id = comparisonId;
-      if (!id) {
-        const r = await api('/api/comparisons', { method: 'POST', body: { name: 'My comparison', briefId: brief || null, propertyIds: ids } });
-        id = r.comparison.id;
-        setComparisonId(id);
-      } else {
-        await api(`/api/comparisons/${id}`, { method: 'PATCH', body: { briefId: brief || null } });
-        const current = computed?.columns.map((c) => c.propertyId) || [];
-        for (const pid of current) if (!ids.includes(pid)) await api(`/api/comparisons/${id}/items/${pid}`, { method: 'DELETE' });
-        for (const pid of ids) if (!current.includes(pid)) await api(`/api/comparisons/${id}/items`, { method: 'POST', body: { propertyId: pid } });
+  const setPair = useCallback(
+    async (a, b, brief) => {
+      const ids = [a, b].filter(Boolean).filter((x, i, arr) => arr.indexOf(x) === i);
+      setLeftId(a || '');
+      setRightId(b || '');
+      setBusy(true);
+      try {
+        let id = comparisonId;
+        if (!id) {
+          const r = await api('/api/comparisons', {
+            method: 'POST',
+            body: { name: 'My comparison', briefId: brief || null, propertyIds: ids },
+          });
+          id = r.comparison.id;
+          setComparisonId(id);
+        } else {
+          await api(`/api/comparisons/${id}`, { method: 'PATCH', body: { briefId: brief || null } });
+          const current = computed?.columns.map((c) => c.propertyId) || [];
+          for (const pid of current)
+            if (!ids.includes(pid)) await api(`/api/comparisons/${id}/items/${pid}`, { method: 'DELETE' });
+          for (const pid of ids)
+            if (!current.includes(pid))
+              await api(`/api/comparisons/${id}/items`, { method: 'POST', body: { propertyId: pid } });
+        }
+        const r = await api(`/api/comparisons/${id}`);
+        setComputed(r);
+      } catch (err) {
+        showToast('Could not update comparison', err.message);
+      } finally {
+        setBusy(false);
       }
-      const r = await api(`/api/comparisons/${id}`);
-      setComputed(r);
-    } catch (err) {
-      showToast('Could not update comparison', err.message);
-    } finally {
-      setBusy(false);
-    }
-  }, [comparisonId, computed, showToast]);
+    },
+    [comparisonId, computed, showToast],
+  );
 
   // ?add=<propertyId> from Discover / Analyse
   const addParam = params.get('add');
@@ -283,18 +313,33 @@ export default function Compare() {
     const b = a === addParam ? (rightId && rightId !== addParam ? rightId : '') : addParam;
     setParams({});
     setPair(a, b, params.get('brief') || briefId);
-  }, [addParam, comparisons.data, comparisonId, computed, busy, leftId, rightId, briefId, params, setParams, setPair]);
+  }, [
+    addParam,
+    comparisons.data,
+    comparisonId,
+    computed,
+    busy,
+    leftId,
+    rightId,
+    briefId,
+    params,
+    setParams,
+    setPair,
+  ]);
 
   const view = useMemo(() => {
     const m = new Map();
-    for (const c of computed?.columns || []) m.set(c.propertyId, columnToView(c, computed.comparison.briefName, computed.comparison.objective));
+    for (const c of computed?.columns || [])
+      m.set(c.propertyId, columnToView(c, computed.comparison.briefName, computed.comparison.objective));
     return m;
   }, [computed]);
   const left = view.get(leftId) || null;
   const right = view.get(rightId) || null;
   const same = left && right && left.id === right.id;
   const allOptions = useMemo(() => {
-    const extra = [...view.values()].filter((v) => !options.some((o) => o.id === v.id)).map((v) => ({ id: v.id, name: v.name, price: v.price }));
+    const extra = [...view.values()]
+      .filter((v) => !options.some((o) => o.id === v.id))
+      .map((v) => ({ id: v.id, name: v.name, price: v.price }));
     return [...options, ...extra];
   }, [options, view]);
 
@@ -320,19 +365,42 @@ export default function Compare() {
       if (left.cashFlow > right.cashFlow + 25) aWins.push('cash flow');
       if (right.cashFlow > left.cashFlow + 25) bWins.push('cash flow');
     }
-    const caveat = Math.min(left.confidence, right.confidence) < 60 ? ' Some figures rest on incomplete data — check the missing-information counts below.' : '';
-    if (!aWins.length && !bWins.length) return { tone: 'neutral', text: `Closely matched — dig into condition, tenure and street-level comparables.${caveat}` };
-    if (aWins.length > bWins.length) return { tone: 'a', text: `Property A leads on ${aWins.join(', ')}.${caveat}` };
-    if (bWins.length > aWins.length) return { tone: 'b', text: `Property B leads on ${bWins.join(', ')}.${caveat}` };
-    return { tone: 'neutral', text: `Split decision — A stronger on ${aWins.join(', ')}; B on ${bWins.join(', ')}.${caveat}` };
+    const caveat =
+      Math.min(left.confidence, right.confidence) < 60
+        ? ' Some figures rest on incomplete data — check the missing-information counts below.'
+        : '';
+    if (!aWins.length && !bWins.length)
+      return {
+        tone: 'neutral',
+        text: `Closely matched — dig into condition, tenure and street-level comparables.${caveat}`,
+      };
+    if (aWins.length > bWins.length)
+      return { tone: 'a', text: `Property A leads on ${aWins.join(', ')}.${caveat}` };
+    if (bWins.length > aWins.length)
+      return { tone: 'b', text: `Property B leads on ${bWins.join(', ')}.${caveat}` };
+    return {
+      tone: 'neutral',
+      text: `Split decision — A stronger on ${aWins.join(', ')}; B on ${bWins.join(', ')}.${caveat}`,
+    };
   }, [left, right, same, deltas]);
 
   const swap = () => setPair(rightId, leftId, briefId);
 
   if (!saved.loading && !analyses.loading && allOptions.length < 1) {
     return (
-      <AppPage eyebrow="Decision desk" title="Compare" subtitle="Put two properties side by side under the same strategy and assumptions." art={<IlluCompare className="app-illu app-illu--header" />}>
-        <AppEmpty art={<IlluCompare className="app-illu app-illu--empty" />} title="Nothing to compare yet" description="Save or analyse a couple of properties first — they’ll appear here for a side-by-side." actionTo="/discover" actionLabel="Discover properties" />
+      <AppPage
+        eyebrow="Decision desk"
+        title="Compare"
+        subtitle="Put two properties side by side under the same strategy and assumptions."
+        art={<IlluCompare className="app-illu app-illu--header" />}
+      >
+        <AppEmpty
+          art={<IlluCompare className="app-illu app-illu--empty" />}
+          title="Nothing to compare yet"
+          description="Save or analyse a couple of properties first — they’ll appear here for a side-by-side."
+          actionTo="/discover"
+          actionLabel="Discover properties"
+        />
       </AppPage>
     );
   }
@@ -343,34 +411,114 @@ export default function Compare() {
       title="Compare"
       subtitle="Both properties are evaluated with the same brief and the same financing assumptions. Valora highlights the better figure on each line — then you decide."
       art={<IlluCompare className="app-illu app-illu--header" />}
-      actions={(
+      actions={
         <>
-          <select className="app-search-input" style={{ minHeight: 'auto', maxWidth: 260 }} value={briefId} aria-label="Strategy for comparison" onChange={(e) => { setBriefId(e.target.value); setPair(leftId, rightId, e.target.value); }}>
+          <select
+            className="app-search-input"
+            style={{ minHeight: 'auto', maxWidth: 260 }}
+            value={briefId}
+            aria-label="Strategy for comparison"
+            onChange={(e) => {
+              setBriefId(e.target.value);
+              setPair(leftId, rightId, e.target.value);
+            }}
+          >
             <option value="">General screening</option>
-            {(briefs.data?.briefs || []).map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+            {(briefs.data?.briefs || []).map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.name}
+              </option>
+            ))}
           </select>
-          <button type="button" className="app-btn app-btn--ghost" onClick={swap} disabled={!leftId || !rightId || busy}>Swap A ↔ B</button>
-          <Link to="/analyse" viewTransition className="app-btn app-btn--primary">Analyse another</Link>
+          <button
+            type="button"
+            className="app-btn app-btn--ghost"
+            onClick={swap}
+            disabled={!leftId || !rightId || busy}
+          >
+            Swap A ↔ B
+          </button>
+          <Link to="/analyse" viewTransition className="app-btn app-btn--primary">
+            Analyse another
+          </Link>
         </>
-      )}
+      }
     >
       <div className="cmp">
-        {busy && <div className="notice-banner" role="status">Calculating with shared assumptions…</div>}
+        {busy && (
+          <div className="notice-banner" role="status">
+            Calculating with shared assumptions…
+          </div>
+        )}
         {deltas && !same && (
           <div className="app-stat-grid">
-            <AppStat accent={deltas.score >= 0 ? 'green' : 'amber'} label="Match gap" value={`${deltas.score > 0 ? '+' : ''}${deltas.score}`} hint={deltas.score === 0 ? 'Tied' : deltas.score > 0 ? 'A ahead' : 'B ahead'} icon="◎" />
-            <AppStat accent="teal" label="Yield gap" value={deltas.yield == null ? '—' : `${deltas.yield > 0 ? '+' : ''}${deltas.yield.toFixed(1)}%`} hint={deltas.yield == null ? 'Needs rental evidence' : deltas.yield > 0 ? 'A ahead' : deltas.yield < 0 ? 'B ahead' : 'Tied'} icon="%" />
-            <AppStat accent="blue" label="Price gap" value={deltas.price == null ? '—' : `${deltas.price > 0 ? '+' : ''}${money(deltas.price)}`} hint={deltas.price == null ? 'Price unknown' : deltas.price < 0 ? 'A cheaper' : deltas.price > 0 ? 'B cheaper' : 'Same ask'} icon="£" />
+            <AppStat
+              accent={deltas.score >= 0 ? 'green' : 'amber'}
+              label="Match gap"
+              value={`${deltas.score > 0 ? '+' : ''}${deltas.score}`}
+              hint={deltas.score === 0 ? 'Tied' : deltas.score > 0 ? 'A ahead' : 'B ahead'}
+              icon="◎"
+            />
+            <AppStat
+              accent="teal"
+              label="Yield gap"
+              value={deltas.yield == null ? '—' : `${deltas.yield > 0 ? '+' : ''}${deltas.yield.toFixed(1)}%`}
+              hint={
+                deltas.yield == null
+                  ? 'Needs rental evidence'
+                  : deltas.yield > 0
+                    ? 'A ahead'
+                    : deltas.yield < 0
+                      ? 'B ahead'
+                      : 'Tied'
+              }
+              icon="%"
+            />
+            <AppStat
+              accent="blue"
+              label="Price gap"
+              value={deltas.price == null ? '—' : `${deltas.price > 0 ? '+' : ''}${money(deltas.price)}`}
+              hint={
+                deltas.price == null
+                  ? 'Price unknown'
+                  : deltas.price < 0
+                    ? 'A cheaper'
+                    : deltas.price > 0
+                      ? 'B cheaper'
+                      : 'Same ask'
+              }
+              icon="£"
+            />
           </div>
         )}
 
         <div className="cmp-arena">
-          <PropertySlot side="a" label="Property A" property={left} options={allOptions} value={leftId} onChange={(id) => setPair(id, rightId, briefId)} disabledIds={new Set([rightId])} onOpen={() => left && analyseProperty(left.id, briefId || null)} />
+          <PropertySlot
+            side="a"
+            label="Property A"
+            property={left}
+            options={allOptions}
+            value={leftId}
+            onChange={(id) => setPair(id, rightId, briefId)}
+            disabledIds={new Set([rightId])}
+            onOpen={() => left && analyseProperty(left.id, briefId || null)}
+          />
           <div className="cmp-arena-mid">
-            <button type="button" className="cmp-swap" onClick={swap} aria-label="Swap properties">↔</button>
+            <button type="button" className="cmp-swap" onClick={swap} aria-label="Swap properties">
+              ↔
+            </button>
             <span className="cmp-vs">VS</span>
           </div>
-          <PropertySlot side="b" label="Property B" property={right} options={allOptions} value={rightId} onChange={(id) => setPair(leftId, id, briefId)} disabledIds={new Set([leftId])} onOpen={() => right && analyseProperty(right.id, briefId || null)} />
+          <PropertySlot
+            side="b"
+            label="Property B"
+            property={right}
+            options={allOptions}
+            value={rightId}
+            onChange={(id) => setPair(leftId, id, briefId)}
+            disabledIds={new Set([leftId])}
+            onOpen={() => right && analyseProperty(right.id, briefId || null)}
+          />
         </div>
 
         {verdict && (
@@ -381,55 +529,163 @@ export default function Compare() {
         )}
 
         <div className="app-panel">
-          <div className="app-panel-head"><div className="app-panel-title">Deal quality</div></div>
+          <div className="app-panel-head">
+            <div className="app-panel-title">Deal quality</div>
+          </div>
           <div className="app-panel-body cmp-rows">
             <MetricRow label="Strategy match" a={left?.score} b={right?.score} hint="/100" />
-            <MetricRow label="Data confidence" a={left?.confidence} b={right?.confidence} format={(v) => `${v}%`} hint="Share of criteria assessable" />
-            <MetricRow label="Asking price" a={left?.price} b={right?.price} format={money} better="lower" hint="Lower entry wins" />
-            <MetricRow label="Vs sold median" a={discountOf(left)} b={discountOf(right)} format={(v) => `${v > 0 ? '+' : ''}${v}%`} better="lower" hint="Land Registry" />
-            <MetricRow label="Comparable median" a={left?.compMedian} b={right?.compMedian} format={money} better="none" hint="Not like-for-like across areas" />
+            <MetricRow
+              label="Data confidence"
+              a={left?.confidence}
+              b={right?.confidence}
+              format={(v) => `${v}%`}
+              hint="Share of criteria assessable"
+            />
+            <MetricRow
+              label="Asking price"
+              a={left?.price}
+              b={right?.price}
+              format={money}
+              better="lower"
+              hint="Lower entry wins"
+            />
+            <MetricRow
+              label="Vs sold median"
+              a={discountOf(left)}
+              b={discountOf(right)}
+              format={(v) => `${v > 0 ? '+' : ''}${v}%`}
+              better="lower"
+              hint="Land Registry"
+            />
+            <MetricRow
+              label="Comparable median"
+              a={left?.compMedian}
+              b={right?.compMedian}
+              format={money}
+              better="none"
+              hint="Not like-for-like across areas"
+            />
           </div>
         </div>
 
         <div className="app-panel">
-          <div className="app-panel-head"><div className="app-panel-title">Income &amp; cash</div></div>
+          <div className="app-panel-head">
+            <div className="app-panel-title">Income &amp; cash</div>
+          </div>
           <div className="app-panel-body cmp-rows">
             <MetricRow label="Gross yield" a={yieldOf(left)} b={yieldOf(right)} format={(v) => `${v}%`} />
-            <MetricRow label="Net yield" a={left?.netYieldPct} b={right?.netYieldPct} format={(v) => `${v}%`} />
-            <MetricRow label="Rental evidence / month" a={rentOf(left)} b={rentOf(right)} format={money} hint="Asking rents" />
-            <MetricRow label="Monthly cash flow" a={cashFlowOf(left)} b={cashFlowOf(right)} format={(v) => `${v > 0 ? '+' : ''}${money(v)}`} />
-            <MetricRow label="Resale net profit (est.)" a={left?.flipProfit} b={right?.flipProfit} format={money} hint="Assumption-heavy" />
+            <MetricRow
+              label="Net yield"
+              a={left?.netYieldPct}
+              b={right?.netYieldPct}
+              format={(v) => `${v}%`}
+            />
+            <MetricRow
+              label="Rental evidence / month"
+              a={rentOf(left)}
+              b={rentOf(right)}
+              format={money}
+              hint="Asking rents"
+            />
+            <MetricRow
+              label="Monthly cash flow"
+              a={cashFlowOf(left)}
+              b={cashFlowOf(right)}
+              format={(v) => `${v > 0 ? '+' : ''}${money(v)}`}
+            />
+            <MetricRow
+              label="Resale net profit (est.)"
+              a={left?.flipProfit}
+              b={right?.flipProfit}
+              format={money}
+              hint="Assumption-heavy"
+            />
           </div>
         </div>
 
         <div className="app-panel">
-          <div className="app-panel-head"><div className="app-panel-title">Property &amp; works</div></div>
+          <div className="app-panel-head">
+            <div className="app-panel-title">Property &amp; works</div>
+          </div>
           <div className="app-panel-body cmp-rows">
-            <MetricRow label="Bedrooms" a={bedsOf(left)} b={bedsOf(right)} format={(v) => (v === 0 ? 'Studio' : String(v))} />
+            <MetricRow
+              label="Bedrooms"
+              a={bedsOf(left)}
+              b={bedsOf(right)}
+              format={(v) => (v === 0 ? 'Studio' : String(v))}
+            />
             <MetricRow label="Property type" a={left?.propertyType} b={right?.propertyType} better="none" />
             <MetricRow label="Condition signal" a={conditionOf(left)} b={conditionOf(right)} better="none" />
-            <MetricRow label="Works estimate (mid)" a={worksOf(left)} b={worksOf(right)} format={money} better="lower" hint="Planning assumption" />
-            <MetricRow label="Missing information" a={left?.missingCount} b={right?.missingCount} better="lower" hint="Items to check" />
+            <MetricRow
+              label="Works estimate (mid)"
+              a={worksOf(left)}
+              b={worksOf(right)}
+              format={money}
+              better="lower"
+              hint="Planning assumption"
+            />
+            <MetricRow
+              label="Missing information"
+              a={left?.missingCount}
+              b={right?.missingCount}
+              better="lower"
+              hint="Items to check"
+            />
           </div>
         </div>
 
         {(left?.risks?.length > 0 || right?.risks?.length > 0) && (
           <div className="app-panel">
-            <div className="app-panel-head"><div className="app-panel-title">Main concerns</div></div>
-            <div className="app-panel-body" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16, fontSize: 13 }}>
-              <div><strong>A</strong><ul style={{ paddingLeft: 18 }}>{(left?.risks || []).map((r) => <li key={r}>{r}</li>)}{!left?.risks?.length && <li>None flagged</li>}</ul></div>
-              <div><strong>B</strong><ul style={{ paddingLeft: 18 }}>{(right?.risks || []).map((r) => <li key={r}>{r}</li>)}{!right?.risks?.length && <li>None flagged</li>}</ul></div>
+            <div className="app-panel-head">
+              <div className="app-panel-title">Main concerns</div>
+            </div>
+            <div
+              className="app-panel-body"
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+                gap: 16,
+                fontSize: 13,
+              }}
+            >
+              <div>
+                <strong>A</strong>
+                <ul style={{ paddingLeft: 18 }}>
+                  {(left?.risks || []).map((r) => (
+                    <li key={r}>{r}</li>
+                  ))}
+                  {!left?.risks?.length && <li>None flagged</li>}
+                </ul>
+              </div>
+              <div>
+                <strong>B</strong>
+                <ul style={{ paddingLeft: 18 }}>
+                  {(right?.risks || []).map((r) => (
+                    <li key={r}>{r}</li>
+                  ))}
+                  {!right?.risks?.length && <li>None flagged</li>}
+                </ul>
+              </div>
             </div>
           </div>
         )}
 
         {computed && (
           <p className="cmp-hint">
-            Shared assumptions: deposit {computed.assumptions.inputs.depositPct}% · rate {computed.assumptions.inputs.interestRatePct}% · {computed.assumptions.inputs.interestOnly ? 'interest-only' : 'repayment'} · change them in <Link to="/settings">Settings</Link>.
+            Shared assumptions: deposit {computed.assumptions.inputs.depositPct}% · rate{' '}
+            {computed.assumptions.inputs.interestRatePct}% ·{' '}
+            {computed.assumptions.inputs.interestOnly ? 'interest-only' : 'repayment'} · change them in{' '}
+            <Link to="/settings">Settings</Link>.
           </p>
         )}
         {allOptions.length === 1 && (
-          <p className="cmp-hint">Only one property available — <button type="button" className="app-btn app-btn--ghost" onClick={() => navigate('/discover')}>discover more</button> to compare.</p>
+          <p className="cmp-hint">
+            Only one property available —{' '}
+            <button type="button" className="app-btn app-btn--ghost" onClick={() => navigate('/discover')}>
+              discover more
+            </button>{' '}
+            to compare.
+          </p>
         )}
       </div>
     </AppPage>

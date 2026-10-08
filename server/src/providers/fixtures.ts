@@ -27,14 +27,107 @@ interface Fixture {
 }
 
 const FIXTURES: Fixture[] = [
-  { id: 'fx-001', address: '1 Fixture Lane, Testville', postcode: 'ZZ99 1AA', type: 'semi_detached', beds: 3, baths: 1, price: 285_000, sqm: 92, tenure: 'freehold', description: 'TEST FIXTURE. Three bedroom semi-detached house in need of modernisation throughout, set on a generous plot with scope to extend to the rear (STPP). No onward chain.' },
-  { id: 'fx-002', address: '14 Sample Road, Testville', postcode: 'ZZ99 1AB', type: 'detached', beds: 4, baths: 2, price: 465_000, sqm: 140, tenure: 'freehold', description: 'TEST FIXTURE. Detached family home, recently refurbished throughout and offered in walk-in condition. Large rear garden and driveway parking.' },
-  { id: 'fx-003', address: '7 Example Terrace, Testville', postcode: 'ZZ99 1AD', type: 'terraced', beds: 3, baths: 1, price: 189_000, sqm: 78, tenure: 'freehold', description: 'TEST FIXTURE. Mid-terrace house currently tenanted. Dated kitchen and bathroom. Rear yard.' },
-  { id: 'fx-004', address: 'Flat 3, 22 Mock Court, Testville', postcode: 'ZZ99 2AA', type: 'flat', beds: 2, baths: 1, price: 145_000, sqm: 61, tenure: 'leasehold', description: 'TEST FIXTURE. Second-floor two bedroom apartment with allocated parking. Service charge applies.' },
-  { id: 'fx-005', address: '3 Placeholder Close, Testville', postcode: 'ZZ99 2AB', type: 'bungalow', beds: 3, baths: 1, price: 320_000, sqm: null, tenure: 'freehold', description: 'TEST FIXTURE. Detached bungalow requiring full renovation, on a corner plot. Cash buyers only.' },
-  { id: 'fx-006', address: '41 Dummy Street, Testville', postcode: 'ZZ99 3AA', type: 'semi_detached', beds: 3, baths: 1, price: 610_000, sqm: 120, tenure: 'freehold', description: 'TEST FIXTURE. Extended semi-detached house in excellent condition.' },
-  { id: 'fx-007', address: '9 Specimen Way, Testville', postcode: 'ZZ99 3AB', type: 'end_of_terrace', beds: 3, baths: 1, price: 230_000, sqm: 85, tenure: 'freehold', description: 'TEST FIXTURE. End of terrace house requiring updating, with a good sized garden and potential for a loft conversion.' },
-  { id: 'fx-008', address: '2 Unknown Row, Testville', postcode: 'ZZ99 3AD', type: 'terraced', beds: 2, baths: 1, price: 159_000, sqm: null, tenure: null, description: '' },
+  {
+    id: 'fx-001',
+    address: '1 Fixture Lane, Testville',
+    postcode: 'ZZ99 1AA',
+    type: 'semi_detached',
+    beds: 3,
+    baths: 1,
+    price: 285_000,
+    sqm: 92,
+    tenure: 'freehold',
+    description:
+      'TEST FIXTURE. Three bedroom semi-detached house in need of modernisation throughout, set on a generous plot with scope to extend to the rear (STPP). No onward chain.',
+  },
+  {
+    id: 'fx-002',
+    address: '14 Sample Road, Testville',
+    postcode: 'ZZ99 1AB',
+    type: 'detached',
+    beds: 4,
+    baths: 2,
+    price: 465_000,
+    sqm: 140,
+    tenure: 'freehold',
+    description:
+      'TEST FIXTURE. Detached family home, recently refurbished throughout and offered in walk-in condition. Large rear garden and driveway parking.',
+  },
+  {
+    id: 'fx-003',
+    address: '7 Example Terrace, Testville',
+    postcode: 'ZZ99 1AD',
+    type: 'terraced',
+    beds: 3,
+    baths: 1,
+    price: 189_000,
+    sqm: 78,
+    tenure: 'freehold',
+    description: 'TEST FIXTURE. Mid-terrace house currently tenanted. Dated kitchen and bathroom. Rear yard.',
+  },
+  {
+    id: 'fx-004',
+    address: 'Flat 3, 22 Mock Court, Testville',
+    postcode: 'ZZ99 2AA',
+    type: 'flat',
+    beds: 2,
+    baths: 1,
+    price: 145_000,
+    sqm: 61,
+    tenure: 'leasehold',
+    description:
+      'TEST FIXTURE. Second-floor two bedroom apartment with allocated parking. Service charge applies.',
+  },
+  {
+    id: 'fx-005',
+    address: '3 Placeholder Close, Testville',
+    postcode: 'ZZ99 2AB',
+    type: 'bungalow',
+    beds: 3,
+    baths: 1,
+    price: 320_000,
+    sqm: null,
+    tenure: 'freehold',
+    description:
+      'TEST FIXTURE. Detached bungalow requiring full renovation, on a corner plot. Cash buyers only.',
+  },
+  {
+    id: 'fx-006',
+    address: '41 Dummy Street, Testville',
+    postcode: 'ZZ99 3AA',
+    type: 'semi_detached',
+    beds: 3,
+    baths: 1,
+    price: 610_000,
+    sqm: 120,
+    tenure: 'freehold',
+    description: 'TEST FIXTURE. Extended semi-detached house in excellent condition.',
+  },
+  {
+    id: 'fx-007',
+    address: '9 Specimen Way, Testville',
+    postcode: 'ZZ99 3AB',
+    type: 'end_of_terrace',
+    beds: 3,
+    baths: 1,
+    price: 230_000,
+    sqm: 85,
+    tenure: 'freehold',
+    description:
+      'TEST FIXTURE. End of terrace house requiring updating, with a good sized garden and potential for a loft conversion.',
+  },
+  {
+    id: 'fx-008',
+    address: '2 Unknown Row, Testville',
+    postcode: 'ZZ99 3AD',
+    type: 'terraced',
+    beds: 2,
+    baths: 1,
+    price: 159_000,
+    sqm: null,
+    tenure: null,
+    description: '',
+  },
 ];
 
 export function fixturesEnabled(): boolean {
@@ -61,7 +154,16 @@ export function fixtureInfo(): ProviderInfo {
 export function fixtureGeocode(query: string): GeoPoint | null {
   if (!fixturesEnabled()) return null;
   if (!/^(testville|zz99(\s*\d[a-z]{2})?)$/i.test(query.trim())) return null;
-  return { label: 'Testville', postcode: null, outcode: 'ZZ99', latitude: 0, longitude: 0, country: 'England', district: 'Testville', kind: 'place' };
+  return {
+    label: 'Testville',
+    postcode: null,
+    outcode: 'ZZ99',
+    latitude: 0,
+    longitude: 0,
+    country: 'England',
+    district: 'Testville',
+    kind: 'place',
+  };
 }
 
 export const fixtureProvider: ListingProvider = {
@@ -69,7 +171,10 @@ export const fixtureProvider: ListingProvider = {
   async search(q: ListingQuery): Promise<ProviderListing[]> {
     if (q.centre.outcode !== 'ZZ99') return [];
     const retrievedAt = new Date().toISOString();
-    return FIXTURES.filter((f) => (q.maxPrice == null || f.price <= q.maxPrice * 1.0) && (q.minPrice == null || f.price >= q.minPrice))
+    return FIXTURES.filter(
+      (f) =>
+        (q.maxPrice == null || f.price <= q.maxPrice * 1.0) && (q.minPrice == null || f.price >= q.minPrice),
+    )
       .slice(0, q.limit)
       .map((f) => {
         const facts: Partial<PropertyFacts> = {
@@ -91,8 +196,16 @@ export const fixtureProvider: ListingProvider = {
         };
         const origin = { source: 'listing' as const, label: FIXTURE_LABEL, url: null, retrievedAt };
         const factOrigins: FactOrigins = {};
-        for (const [k, v] of Object.entries(facts)) if (v != null) (factOrigins as Record<string, unknown>)[k] = origin;
-        return { provider: 'fixtures', providerListingId: f.id, url: null, facts, factOrigins, raw: { fixture: true, ...f } };
+        for (const [k, v] of Object.entries(facts))
+          if (v != null) (factOrigins as Record<string, unknown>)[k] = origin;
+        return {
+          provider: 'fixtures',
+          providerListingId: f.id,
+          url: null,
+          facts,
+          factOrigins,
+          raw: { fixture: true, ...f },
+        };
       });
   },
 };

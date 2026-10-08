@@ -38,7 +38,10 @@ export function factLine(f) {
 }
 
 export function propertyTitle(f) {
-  return f.address || (f.postcode ? `Property in ${f.postcode}` : f.outcode ? `Property in ${f.outcode}` : 'Untitled property');
+  return (
+    f.address ||
+    (f.postcode ? `Property in ${f.postcode}` : f.outcode ? `Property in ${f.outcode}` : 'Untitled property')
+  );
 }
 
 export function analysisToLegacy(a) {
@@ -55,7 +58,9 @@ export function analysisToLegacy(a) {
   const rentalEv = a.evidence.rental;
   const discount = r.metrics.discountToComparablesPct;
 
-  const sampleAvg = comps.sample?.length ? comps.sample.reduce((s, c) => s + c.price, 0) / comps.sample.length : null;
+  const sampleAvg = comps.sample?.length
+    ? comps.sample.reduce((s, c) => s + c.price, 0) / comps.sample.length
+    : null;
 
   const missingInputs = [...new Set([...(fin.missing?.rental || []), ...(fin.missing?.flip || [])])];
 
@@ -77,7 +82,10 @@ export function analysisToLegacy(a) {
     location: f.district || f.outcode || f.postcode || '—',
     postcode: f.postcode || f.outcode,
     price: f.askingPrice,
-    priceLabel: f.askingPrice != null ? `${f.priceQualifier ? `${f.priceQualifier} ` : ''}${gbp(f.askingPrice)}` : 'Price unknown',
+    priceLabel:
+      f.askingPrice != null
+        ? `${f.priceQualifier ? `${f.priceQualifier} ` : ''}${gbp(f.askingPrice)}`
+        : 'Price unknown',
     hasLiveData: listingOrigin?.source === 'listing',
     sourcePortal: listingOrigin ? listingOrigin.label : 'Your details',
     sourceUrl: f.listingUrl,
@@ -114,20 +122,28 @@ export function analysisToLegacy(a) {
           yieldLine: narrative.investmentThesis,
           strategyLine: narrative.financingCommentary,
           valueLine: narrative.comparableCommentary,
-          conditionLine: narrative.renovationCommentary || narrative.rentalCommentary || narrative.resaleCommentary,
+          conditionLine:
+            narrative.renovationCommentary || narrative.rentalCommentary || narrative.resaleCommentary,
           prefsLine: `${narrative.overall.verdict.replace(/_/g, ' ')} — ${narrative.overall.rationale}`,
         }
       : null,
     scoreBreakdown: r.components.map((c) => ({
       label: `${c.label} ×${c.weight} · ${c.score == null ? 'unknown' : `${c.score}/100`}`,
       text: c.explanation,
-      impact: c.score == null ? 'neutral' : c.score >= 70 ? 'positive' : c.score <= 35 ? 'negative' : 'neutral',
+      impact:
+        c.score == null ? 'neutral' : c.score >= 70 ? 'positive' : c.score <= 35 ? 'negative' : 'neutral',
       evidence: c.evidence,
     })),
     metrics: {
       land: gbp(f.askingPrice),
-      build: fin.refurbishment.low != null ? `${gbp(fin.refurbishment.low)}–${gbp(fin.refurbishment.high)}` : 'Not estimated',
-      total: strategyKey === 'flip' ? gbp(fin.flip?.totalCosts) : gbp(fin.rental?.cashInvested ?? fin.acquisition?.totalAcquisitionCost),
+      build:
+        fin.refurbishment.low != null
+          ? `${gbp(fin.refurbishment.low)}–${gbp(fin.refurbishment.high)}`
+          : 'Not estimated',
+      total:
+        strategyKey === 'flip'
+          ? gbp(fin.flip?.totalCosts)
+          : gbp(fin.rental?.cashInvested ?? fin.acquisition?.totalAcquisitionCost),
       returnLabel: strategyKey === 'flip' ? 'Net profit (est.)' : 'Gross yield',
       return: strategyKey === 'flip' ? gbp(fin.flip?.netProfit) : pct(fin.rental?.grossYieldPct),
     },
@@ -158,10 +174,18 @@ export function analysisToLegacy(a) {
     warnings: fin.warnings,
     undervalued:
       discount == null
-        ? { tone: 'unknown', title: 'Price check', desc: 'Not enough comparable sold prices to compare the asking price.', badge: 'No comparison' }
+        ? {
+            tone: 'unknown',
+            title: 'Price check',
+            desc: 'Not enough comparable sold prices to compare the asking price.',
+            badge: 'No comparison',
+          }
         : {
             tone: discount >= 5 ? 'good' : discount <= -5 ? 'bad' : 'neutral',
-            title: discount >= 0 ? `${pct(discount)} below comparable median` : `${pct(-discount)} above comparable median`,
+            title:
+              discount >= 0
+                ? `${pct(discount)} below comparable median`
+                : `${pct(-discount)} above comparable median`,
             desc: `Median of ${comps.count} Land Registry sales (${comps.confidence} confidence). Sold records exclude size and condition.`,
             badge: comps.confidence,
           },
@@ -180,13 +204,22 @@ export function analysisToLegacy(a) {
     condition: {
       verdict: signalsComponent
         ? {
-            tone: signalsComponent.score == null ? 'unknown' : signalsComponent.score >= 70 ? 'good' : 'neutral',
-            label: signalsComponent.score == null ? 'Condition unknown' : `Improvement opportunity ${signalsComponent.score}/100`,
+            tone:
+              signalsComponent.score == null ? 'unknown' : signalsComponent.score >= 70 ? 'good' : 'neutral',
+            label:
+              signalsComponent.score == null
+                ? 'Condition unknown'
+                : `Improvement opportunity ${signalsComponent.score}/100`,
             summary: signalsComponent.explanation,
             evidence: signalsComponent.evidence.map((e) => e.text),
           }
         : null,
-      overall: signalsComponent?.score == null ? 'Unknown' : signalsComponent.score >= 70 ? 'Needs work (per listing)' : 'No clear works signal',
+      overall:
+        signalsComponent?.score == null
+          ? 'Unknown'
+          : signalsComponent.score >= 70
+            ? 'Needs work (per listing)'
+            : 'No clear works signal',
       refurbLow: fin.refurbishment.low,
       refurbHigh: fin.refurbishment.high,
       signals: [],
@@ -197,7 +230,12 @@ export function analysisToLegacy(a) {
     pros: narrative ? narrative.attractions.map((x) => x.text) : r.highlights,
     cons: narrative ? narrative.disadvantages.map((x) => x.text) : r.concerns,
     risks: [
-      ...(narrative ? narrative.risks.map((x) => ({ type: x.severity === 'high' ? 'risk' : x.severity === 'medium' ? 'warn' : 'info', text: x.text })) : []),
+      ...(narrative
+        ? narrative.risks.map((x) => ({
+            type: x.severity === 'high' ? 'risk' : x.severity === 'medium' ? 'warn' : 'info',
+            text: x.text,
+          }))
+        : []),
       ...r.concerns.map((t) => ({ type: 'warn', text: t })),
     ],
     missing: det.missingInformation,
@@ -213,11 +251,15 @@ export function analysisToLegacy(a) {
           netYield: pct(fin.rental?.netYieldPct),
         }
       : null,
-    rentEstimate: rentalEv ? { confidence: rentalEv.basis.replace(/_/g, ' '), source: `${rentalEv.source} — ${rentalEv.scope}` } : null,
+    rentEstimate: rentalEv
+      ? { confidence: rentalEv.basis.replace(/_/g, ' '), source: `${rentalEv.source} — ${rentalEv.scope}` }
+      : null,
     planning: a.evidence.planningConstraints,
     unavailable: a.evidence.unavailable,
     provenance: {
-      listing: listingOrigin ? `${listingOrigin.label}${listingOrigin.retrievedAt ? ` · ${new Date(listingOrigin.retrievedAt).toLocaleDateString('en-GB')}` : ''}` : 'Your input',
+      listing: listingOrigin
+        ? `${listingOrigin.label}${listingOrigin.retrievedAt ? ` · ${new Date(listingOrigin.retrievedAt).toLocaleDateString('en-GB')}` : ''}`
+        : 'Your input',
       soldPrices: a.evidence.sold ? `${a.evidence.sold.source} · ${a.evidence.sold.scope}` : 'Unavailable',
       geo: origins.district ? origins.district.label : f.district ? 'Supplied' : 'Unavailable',
       rent: rentalEv ? `${rentalEv.source} (${rentalEv.basis.replace(/_/g, ' ')})` : 'No rental evidence',
@@ -225,7 +267,11 @@ export function analysisToLegacy(a) {
       financials: 'Valora deterministic engine — assumptions labelled below',
       score: `Strategy-weighted match (${OBJECTIVE_LABELS[objective]}), not a probability of success`,
     },
-    factOrigins: Object.entries(origins).map(([k, o]) => ({ field: k, source: SOURCE_LABELS[o.source] || o.source, label: o.label })),
+    factOrigins: Object.entries(origins).map(([k, o]) => ({
+      field: k,
+      source: SOURCE_LABELS[o.source] || o.source,
+      label: o.label,
+    })),
     inputs: a.inputs,
     inputProvenance: a.inputProvenance,
   };

@@ -23,17 +23,23 @@ export default function ValoraNav() {
           </Link>
 
           <div className="vx-nav-links">
-            {LINKS.map((l) => (
+            {LINKS.map((l) =>
               l.internal ? (
-                <Link key={l.label} to={l.href} viewTransition className="vx-nav-link is-active" onClick={() => setOpen(false)}>
+                <Link
+                  key={l.label}
+                  to={l.href}
+                  viewTransition
+                  className="vx-nav-link is-active"
+                  onClick={() => setOpen(false)}
+                >
                   {l.label}
                 </Link>
               ) : (
                 <a key={l.label} href={l.href} className="vx-nav-link" onClick={() => setOpen(false)}>
                   {l.label}
                 </a>
-              )
-            ))}
+              ),
+            )}
           </div>
 
           {isAuthenticated ? (
@@ -41,7 +47,14 @@ export default function ValoraNav() {
               <Link to="/dashboard" viewTransition className="vx-nav-cta" onClick={() => setOpen(false)}>
                 Open workspace
               </Link>
-              <button type="button" className="vx-signin" onClick={() => { logout(); setOpen(false); }}>
+              <button
+                type="button"
+                className="vx-signin"
+                onClick={() => {
+                  logout();
+                  setOpen(false);
+                }}
+              >
                 Sign out
               </button>
             </div>
@@ -49,7 +62,12 @@ export default function ValoraNav() {
             <Link to="/login" viewTransition className="vx-signin" onClick={() => setOpen(false)}>
               <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                 <circle cx="8" cy="5.5" r="2.5" stroke="currentColor" strokeWidth="1.4" />
-                <path d="M3 13.5c.7-2.3 2.5-3.5 5-3.5s4.3 1.2 5 3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+                <path
+                  d="M3 13.5c.7-2.3 2.5-3.5 5-3.5s4.3 1.2 5 3.5"
+                  stroke="currentColor"
+                  strokeWidth="1.4"
+                  strokeLinecap="round"
+                />
               </svg>
               Sign in
             </Link>
@@ -63,24 +81,40 @@ export default function ValoraNav() {
 
       {open && (
         <div className="vx-drawer">
-          {LINKS.map((l) => (
+          {LINKS.map((l) =>
             l.internal ? (
-              <Link key={l.label} to={l.href} viewTransition onClick={() => setOpen(false)}>{l.label}</Link>
+              <Link key={l.label} to={l.href} viewTransition onClick={() => setOpen(false)}>
+                {l.label}
+              </Link>
             ) : (
-              <a key={l.label} href={l.href} onClick={() => setOpen(false)}>{l.label}</a>
-            )
-          ))}
+              <a key={l.label} href={l.href} onClick={() => setOpen(false)}>
+                {l.label}
+              </a>
+            ),
+          )}
           {isAuthenticated ? (
             <>
               <Link to="/dashboard" viewTransition onClick={() => setOpen(false)}>
                 Workspace{user?.firstName ? ` · ${user.firstName}` : ''}
               </Link>
-              <button type="button" onClick={() => { logout(); setOpen(false); }}>Sign out</button>
+              <button
+                type="button"
+                onClick={() => {
+                  logout();
+                  setOpen(false);
+                }}
+              >
+                Sign out
+              </button>
             </>
           ) : (
             <>
-              <Link to="/login" viewTransition onClick={() => setOpen(false)}>Sign in</Link>
-              <Link to="/signup" viewTransition onClick={() => setOpen(false)}>Create account</Link>
+              <Link to="/login" viewTransition onClick={() => setOpen(false)}>
+                Sign in
+              </Link>
+              <Link to="/signup" viewTransition onClick={() => setOpen(false)}>
+                Create account
+              </Link>
             </>
           )}
         </div>

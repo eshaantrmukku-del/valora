@@ -27,7 +27,11 @@ export default function AppPage({ title, subtitle, actions, children, aside, eye
 export function AppStat({ label, value, hint, accent = 'blue', icon }) {
   return (
     <div className={`app-stat app-stat--${accent}`}>
-      {icon && <div className="app-stat-icon" aria-hidden="true">{icon}</div>}
+      {icon && (
+        <div className="app-stat-icon" aria-hidden="true">
+          {icon}
+        </div>
+      )}
       <div className="app-stat-label">{label}</div>
       <div className="app-stat-value">{value}</div>
       {hint && <div className="app-stat-hint">{hint}</div>}
@@ -45,14 +49,20 @@ export function AppCard({ title, meta, children, onClick, score, active, icon, t
     >
       <div className="app-card-head">
         <div className="app-card-head-main">
-          {icon && <div className="app-card-icon" aria-hidden="true">{icon}</div>}
+          {icon && (
+            <div className="app-card-icon" aria-hidden="true">
+              {icon}
+            </div>
+          )}
           <div>
             <div className="app-card-title">{title}</div>
             {meta && <div className="app-card-meta">{meta}</div>}
           </div>
         </div>
         {score != null && (
-          <div className={`app-card-score${score >= 80 ? ' high' : score >= 65 ? ' mid' : ' low'}`}>{score}</div>
+          <div className={`app-card-score${score >= 80 ? ' high' : score >= 65 ? ' mid' : ' low'}`}>
+            {score}
+          </div>
         )}
       </div>
       {children && <div className="app-card-body">{children}</div>}
@@ -62,9 +72,13 @@ export function AppCard({ title, meta, children, onClick, score, active, icon, t
 
 export function AppEmpty({ title, description, actionLabel, actionTo, onAction, art }) {
   const action = actionTo ? (
-    <Link to={actionTo} viewTransition className="app-empty-action">{actionLabel}</Link>
+    <Link to={actionTo} viewTransition className="app-empty-action">
+      {actionLabel}
+    </Link>
   ) : onAction ? (
-    <button type="button" className="app-empty-action" onClick={onAction}>{actionLabel}</button>
+    <button type="button" className="app-empty-action" onClick={onAction}>
+      {actionLabel}
+    </button>
   ) : null;
 
   return (

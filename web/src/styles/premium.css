@@ -402,18 +402,29 @@ body.marketing-route {
   border: 1px solid var(--border);
 }
 
-.mc-l { color: var(--muted); }
-.mc-v { color: var(--text); font-family: inherit; }
+.mc-l {
+  color: var(--muted);
+}
+.mc-v {
+  color: var(--text);
+  font-family: inherit;
+}
 
-.area-label { color: var(--text); }
+.area-label {
+  color: var(--text);
+}
 
 .uv-strip {
   background: var(--green-lt);
   border: 1px solid rgba(52, 199, 89, 0.25);
 }
 
-.uv-title { color: var(--green); }
-.uv-desc { color: var(--muted); }
+.uv-title {
+  color: var(--green);
+}
+.uv-desc {
+  color: var(--muted);
+}
 .uv-badge {
   background: var(--green);
   color: #fff;
@@ -440,11 +451,19 @@ body.marketing-route {
   border: 1px solid var(--border);
 }
 
-.score-breakdown-text { color: var(--muted); }
+.score-breakdown-text {
+  color: var(--muted);
+}
 
-.pros-col .pros-cons-head { color: var(--green); }
-.cons-col .pros-cons-head { color: var(--amber); }
-.pros-cons-list { color: var(--text); }
+.pros-col .pros-cons-head {
+  color: var(--green);
+}
+.cons-col .pros-cons-head {
+  color: var(--amber);
+}
+.pros-cons-list {
+  color: var(--text);
+}
 
 /* Discover / forms on light content */
 .discover-search-block {
@@ -495,11 +514,22 @@ body.marketing-route {
   transform: none;
 }
 
-.drc-meta { color: var(--muted); }
+.drc-meta {
+  color: var(--muted);
+}
 
-.drc-score.high { color: var(--green); background: var(--green-lt); border: none; text-shadow: none; }
-.drc-score.mid { color: var(--amber); }
-.drc-score.low { color: var(--red); }
+.drc-score.high {
+  color: var(--green);
+  background: var(--green-lt);
+  border: none;
+  text-shadow: none;
+}
+.drc-score.mid {
+  color: var(--amber);
+}
+.drc-score.low {
+  color: var(--red);
+}
 
 .drc-reason-chip {
   background: var(--blue-lt);
@@ -508,8 +538,12 @@ body.marketing-route {
 }
 
 /* Area intel on light panel */
-.area-report-header h2 { color: var(--text); }
-.area-report-header p { color: var(--muted); }
+.area-report-header h2 {
+  color: var(--text);
+}
+.area-report-header p {
+  color: var(--muted);
+}
 
 .area-metric-card {
   background: var(--surface);
@@ -521,7 +555,9 @@ body.marketing-route {
   border: 1px solid var(--border);
 }
 
-.sb-num { font-family: inherit; }
+.sb-num {
+  font-family: inherit;
+}
 
 .site-btn--ghost {
   background: transparent;
@@ -622,10 +658,19 @@ body.marketing-route {
   font-size: 18px;
 }
 
-.valora-loading-step.done { color: var(--green); }
-.valora-loading-step.active { color: #f5f5f7; }
-.valora-loading-step.active .dot { background: var(--blue); box-shadow: none; }
-.valora-loading-step.done .dot { background: var(--green); }
+.valora-loading-step.done {
+  color: var(--green);
+}
+.valora-loading-step.active {
+  color: #f5f5f7;
+}
+.valora-loading-step.active .dot {
+  background: var(--blue);
+  box-shadow: none;
+}
+.valora-loading-step.done .dot {
+  background: var(--green);
+}
 
 /* Toasts */
 .valora-toast {
@@ -650,9 +695,15 @@ body.marketing-route {
   background: rgba(0, 113, 227, 0.04);
 }
 
-.site-content .td-name { color: var(--text); }
-.site-content .panel-sub { color: var(--muted); }
-.site-content .panel-action { color: var(--blue); }
+.site-content .td-name {
+  color: var(--text);
+}
+.site-content .panel-sub {
+  color: var(--muted);
+}
+.site-content .panel-action {
+  color: var(--blue);
+}
 
 .site-content .qa-item {
   background: var(--bg);
@@ -666,7 +717,10 @@ body.marketing-route {
   box-shadow: none;
 }
 
-.site-content .score-ring.sr-high { color: var(--green); text-shadow: none; }
+.site-content .score-ring.sr-high {
+  color: var(--green);
+  text-shadow: none;
+}
 
 .empty-state {
   background: var(--bg);
@@ -674,14 +728,19 @@ body.marketing-route {
   color: var(--text);
 }
 
-.empty-state-desc { color: var(--muted); }
+.empty-state-desc {
+  color: var(--muted);
+}
 
 .empty-state-title {
   font-family: inherit;
   font-weight: 600;
 }
 
-.arc-score { color: var(--green); text-shadow: none; }
+.arc-score {
+  color: var(--green);
+  text-shadow: none;
+}
 
 .prototype-banner {
   background: #fff4e5;
@@ -700,9 +759,19 @@ body.marketing-route {
 }
 
 /* Risk tags — standard semantic colors */
-.rtag.ok { background: var(--green-lt); color: var(--green); border-color: rgba(52, 199, 89, 0.3); }
-.rtag.warn { background: var(--amber-lt); color: var(--amber); }
-.rtag.info { background: var(--blue-lt); color: var(--blue); }
+.rtag.ok {
+  background: var(--green-lt);
+  color: var(--green);
+  border-color: rgba(52, 199, 89, 0.3);
+}
+.rtag.warn {
+  background: var(--amber-lt);
+  color: var(--amber);
+}
+.rtag.info {
+  background: var(--blue-lt);
+  color: var(--blue);
+}
 
 .score-ring-fill {
   filter: none;
@@ -713,10 +782,18 @@ body.marketing-route {
 }
 
 @keyframes pageEnter {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .page-enter { animation: none; }
+  .page-enter {
+    animation: none;
+  }
 }

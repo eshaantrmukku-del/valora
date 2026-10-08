@@ -9,5 +9,11 @@ export async function audit(
 ) {
   await getDb()
     .insert(schema.auditLog)
-    .values({ userId, action, entityType: entity?.type ?? null, entityId: entity?.id ?? null, meta: meta ?? null });
+    .values({
+      userId,
+      action,
+      entityType: entity?.type ?? null,
+      entityId: entity?.id ?? null,
+      meta: meta ?? null,
+    });
 }

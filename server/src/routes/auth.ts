@@ -27,11 +27,18 @@ export async function authRoutes(app: FastifyInstance) {
     const problem = passwordProblems(body.password);
     if (problem) throw new AppError('validation_failed', problem, [{ path: 'password', message: problem }]);
     const db = getDb();
-    const existing = await db.select({ id: schema.users.id }).from(schema.users).where(sql`lower(${schema.users.email}) = ${body.email}`);
+    const existing = await db
+      .select({ id: schema.users.id })
+      .from(schema.users)
+      .where(sql`lower(${schema.users.email}) = ${body.email}`);
     if (existing.length) throw new AppError('conflict', 'An account with this email already exists.');
     const [user] = await db
       .insert(schema.users)
-      .values({ email: body.email, passwordHash: await hashPassword(body.password), displayName: body.displayName || null })
+      .values({
+        email: body.email,
+        passwordHash: await hashPassword(body.password),
+        displayName: body.displayName || null,
+      })
       .returning();
     await db.insert(schema.userPreferences).values({ userId: user!.id });
     await createSession(user!.id, reply, req.headers['user-agent']);
@@ -41,7 +48,10 @@ export async function authRoutes(app: FastifyInstance) {
 
   app.post('/api/auth/login', authLimit, async (req, reply) => {
     const body = parse(z.object({ email: Email, password: Password }), req.body);
-    const [user] = await getDb().select().from(schema.users).where(sql`lower(${schema.users.email}) = ${body.email}`);
+    const [user] = await getDb()
+      .select()
+      .from(schema.users)
+      .where(sql`lower(${schema.users.email}) = ${body.email}`);
     if (!user) {
       dummyHash ??= hashPassword('timing-equaliser');
       await verifyPassword(body.password, await dummyHash);
@@ -73,7 +83,10 @@ export async function authRoutes(app: FastifyInstance) {
   app.post('/api/auth/password-reset/request', authLimit, async (req) => {
     const { email } = parse(z.object({ email: Email }), req.body);
     const emailReady = isEmailConfigured();
-    const [user] = await getDb().select().from(schema.users).where(sql`lower(${schema.users.email}) = ${email}`);
+    const [user] = await getDb()
+      .select()
+      .from(schema.users)
+      .where(sql`lower(${schema.users.email}) = ${email}`);
     if (user) {
       const token = randomToken();
       await getDb()
@@ -116,8 +129,14 @@ export async function authRoutes(app: FastifyInstance) {
         ),
       );
     if (!row) throw new AppError('bad_request', 'This reset link is invalid or has expired.');
-    await db.update(schema.users).set({ passwordHash: await hashPassword(body.password), updatedAt: new Date() }).where(eq(schema.users.id, row.userId));
-    await db.update(schema.passwordResetTokens).set({ usedAt: new Date() }).where(eq(schema.passwordResetTokens.tokenHash, row.tokenHash));
+    await db
+      .update(schema.users)
+      .set({ passwordHash: await hashPassword(body.password), updatedAt: new Date() })
+      .where(eq(schema.users.id, row.userId));
+    await db
+      .update(schema.passwordResetTokens)
+      .set({ usedAt: new Date() })
+      .where(eq(schema.passwordResetTokens.tokenHash, row.tokenHash));
     await destroyAllSessions(row.userId);
     await audit(row.userId, 'account.password_reset');
     return { ok: true };
@@ -127,11 +146,15 @@ export async function authRoutes(app: FastifyInstance) {
     const me = requireUser(req);
     const body = parse(z.object({ currentPassword: Password, newPassword: Password }), req.body);
     const problem = passwordProblems(body.newPassword);
-    if (problem) throw new AppError('validation_failed', problem, [{ path: 'newPassword', message: problem }]);
+    if (problem)
+      throw new AppError('validation_failed', problem, [{ path: 'newPassword', message: problem }]);
     const [user] = await getDb().select().from(schema.users).where(eq(schema.users.id, me.id));
     if (!user || !(await verifyPassword(body.currentPassword, user.passwordHash)))
       throw new AppError('forbidden', 'Current password is incorrect.');
-    await getDb().update(schema.users).set({ passwordHash: await hashPassword(body.newPassword), updatedAt: new Date() }).where(eq(schema.users.id, me.id));
+    await getDb()
+      .update(schema.users)
+      .set({ passwordHash: await hashPassword(body.newPassword), updatedAt: new Date() })
+      .where(eq(schema.users.id, me.id));
     await destroyAllSessions(me.id);
     await createSession(me.id, reply, req.headers['user-agent']);
     await audit(me.id, 'account.password_changed');
@@ -141,7 +164,10 @@ export async function authRoutes(app: FastifyInstance) {
   app.patch('/api/account', async (req) => {
     const me = requireUser(req);
     const body = parse(z.object({ displayName: z.string().trim().max(80).nullable() }), req.body);
-    await getDb().update(schema.users).set({ displayName: body.displayName || null, updatedAt: new Date() }).where(eq(schema.users.id, me.id));
+    await getDb()
+      .update(schema.users)
+      .set({ displayName: body.displayName || null, updatedAt: new Date() })
+      .where(eq(schema.users.id, me.id));
     return { ok: true };
   });
 
@@ -154,7 +180,8 @@ export async function authRoutes(app: FastifyInstance) {
     const me = requireUser(req);
     const body = parse(z.object({ password: Password, confirm: z.literal('DELETE') }), req.body);
     const [user] = await getDb().select().from(schema.users).where(eq(schema.users.id, me.id));
-    if (!user || !(await verifyPassword(body.password, user.passwordHash))) throw new AppError('forbidden', 'Password is incorrect.');
+    if (!user || !(await verifyPassword(body.password, user.passwordHash)))
+      throw new AppError('forbidden', 'Password is incorrect.');
     await getDb().delete(schema.users).where(eq(schema.users.id, me.id));
     await audit(null, 'account.deleted', { type: 'user', id: me.id });
     reply.clearCookie('valora_session', { path: '/' });

@@ -7,7 +7,12 @@ import { requireUser } from '../auth/sessions';
 import { getDb, schema } from '../db/client';
 import { audit } from '../lib/audit';
 import { IdParam, parse } from '../lib/validate';
-import { createAnalysis, getOwnedAnalysis, recalculateAnalysis, requestNarrative } from '../services/analysis';
+import {
+  createAnalysis,
+  getOwnedAnalysis,
+  recalculateAnalysis,
+  requestNarrative,
+} from '../services/analysis';
 
 export function serialiseAnalysis(a: typeof schema.analyses.$inferSelect) {
   return {
@@ -42,8 +47,16 @@ export async function analysisRoutes(app: FastifyInstance) {
 
   app.get('/api/analyses', async (req) => {
     const me = requireUser(req);
-    const q = parse(z.object({ propertyId: z.string().uuid().optional(), limit: z.coerce.number().int().min(1).max(100).default(50) }), req.query);
-    const where = q.propertyId ? and(eq(schema.analyses.userId, me.id), eq(schema.analyses.propertyId, q.propertyId)) : eq(schema.analyses.userId, me.id);
+    const q = parse(
+      z.object({
+        propertyId: z.string().uuid().optional(),
+        limit: z.coerce.number().int().min(1).max(100).default(50),
+      }),
+      req.query,
+    );
+    const where = q.propertyId
+      ? and(eq(schema.analyses.userId, me.id), eq(schema.analyses.propertyId, q.propertyId))
+      : eq(schema.analyses.userId, me.id);
     const rows = await getDb()
       .select({ a: schema.analyses })
       .from(schema.analyses)
@@ -83,17 +96,23 @@ export async function analysisRoutes(app: FastifyInstance) {
     return { analysis: serialiseAnalysis(a) };
   });
 
-  app.post('/api/analyses/:id/narrative', { config: { rateLimit: { max: 10, timeWindow: '1 minute' } } }, async (req) => {
-    const me = requireUser(req);
-    const { id } = parse(IdParam, req.params);
-    return { analysis: serialiseAnalysis(await requestNarrative(me.id, id)) };
-  });
+  app.post(
+    '/api/analyses/:id/narrative',
+    { config: { rateLimit: { max: 10, timeWindow: '1 minute' } } },
+    async (req) => {
+      const me = requireUser(req);
+      const { id } = parse(IdParam, req.params);
+      return { analysis: serialiseAnalysis(await requestNarrative(me.id, id)) };
+    },
+  );
 
   app.delete('/api/analyses/:id', async (req) => {
     const me = requireUser(req);
     const { id } = parse(IdParam, req.params);
     await getOwnedAnalysis(me.id, id);
-    await getDb().delete(schema.analyses).where(and(eq(schema.analyses.id, id), eq(schema.analyses.userId, me.id)));
+    await getDb()
+      .delete(schema.analyses)
+      .where(and(eq(schema.analyses.id, id), eq(schema.analyses.userId, me.id)));
     return { ok: true };
   });
 }

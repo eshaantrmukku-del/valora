@@ -76,15 +76,23 @@ export default function Tools() {
     () => (years > 0 || interestOnly ? monthlyMortgagePayment(loan, rate, years, interestOnly) : 0),
     [loan, rate, years, interestOnly],
   );
-  const yields = useMemo(() => yieldMetrics({ price, monthlyRent: rent, costsAnnual: costs }), [price, rent, costs]);
+  const yields = useMemo(
+    () => yieldMetrics({ price, monthlyRent: rent, costsAnnual: costs }),
+    [price, rent, costs],
+  );
   const taxResult = useMemo(
-    () => computeTransactionTax({ price, jurisdiction, buyerType: additional ? 'additional_property' : ftb ? 'first_time_buyer' : 'home_mover' }),
+    () =>
+      computeTransactionTax({
+        price,
+        jurisdiction,
+        buyerType: additional ? 'additional_property' : ftb ? 'first_time_buyer' : 'home_mover',
+      }),
     [price, ftb, additional, jurisdiction],
   );
   const sdlt = taxResult?.amount ?? 0;
   const maxLoan = income * 4.5;
   const maxPrice = maxLoan + depositCash;
-  const coverage = payment > 0 ? (rent / payment) : null;
+  const coverage = payment > 0 ? rent / payment : null;
 
   return (
     <AppPage
@@ -114,7 +122,13 @@ export default function Tools() {
                 <input type="number" value={price} onChange={(e) => setPrice(+e.target.value)} />
               </Field>
               <Field label={`Deposit (${depositPct}%) — £${deposit.toLocaleString()}`}>
-                <input type="range" min="5" max="50" value={depositPct} onChange={(e) => setDepositPct(+e.target.value)} />
+                <input
+                  type="range"
+                  min="5"
+                  max="50"
+                  value={depositPct}
+                  onChange={(e) => setDepositPct(+e.target.value)}
+                />
               </Field>
               <Field label="Interest rate (%)">
                 <input type="number" step="0.1" value={rate} onChange={(e) => setRate(+e.target.value)} />
@@ -123,7 +137,11 @@ export default function Tools() {
                 <input type="number" value={years} onChange={(e) => setYears(+e.target.value)} />
               </Field>
               <label className="tool-check">
-                <input type="checkbox" checked={interestOnly} onChange={(e) => setInterestOnly(e.target.checked)} />
+                <input
+                  type="checkbox"
+                  checked={interestOnly}
+                  onChange={(e) => setInterestOnly(e.target.checked)}
+                />
                 Interest-only (common for BTL)
               </label>
               <Field label="Assumed monthly rent (£) for coverage">
@@ -143,7 +161,12 @@ export default function Tools() {
               <Field label="Annual costs (£)">
                 <input type="number" value={costs} onChange={(e) => setCosts(+e.target.value)} />
               </Field>
-              <p className="tool-note">{prefs.targetYield != null ? `Your target yield is ${prefs.targetYield}%. ` : 'Set a target yield in Settings to compare. '}Current gross: {yields.grossYield}%.</p>
+              <p className="tool-note">
+                {prefs.targetYield != null
+                  ? `Your target yield is ${prefs.targetYield}%. `
+                  : 'Set a target yield in Settings to compare. '}
+                Current gross: {yields.grossYield}%.
+              </p>
             </>
           )}
 
@@ -180,7 +203,12 @@ export default function Tools() {
                 />
                 First-time buyer (main home only)
               </label>
-              <p className="tool-note">{taxResult?.notes.join(' ')} <a href={taxResult?.sourceUrl} target="_blank" rel="noopener noreferrer">Official rates</a></p>
+              <p className="tool-note">
+                {taxResult?.notes.join(' ')}{' '}
+                <a href={taxResult?.sourceUrl} target="_blank" rel="noopener noreferrer">
+                  Official rates
+                </a>
+              </p>
             </>
           )}
 
@@ -192,7 +220,10 @@ export default function Tools() {
               <Field label="Cash deposit available (£)">
                 <input type="number" value={depositCash} onChange={(e) => setDepositCash(+e.target.value)} />
               </Field>
-              <p className="tool-note">Illustration only: assumes a 4.5× income multiple. Lenders assess affordability individually, and buy-to-let lenders mainly stress-test rent coverage.</p>
+              <p className="tool-note">
+                Illustration only: assumes a 4.5× income multiple. Lenders assess affordability individually,
+                and buy-to-let lenders mainly stress-test rent coverage.
+              </p>
             </>
           )}
         </div>
@@ -205,14 +236,23 @@ export default function Tools() {
                 value={`£${Math.round(payment).toLocaleString()}`}
                 hint={`${years} years @ ${rate}%`}
               />
-              <Result label="Loan amount" value={`£${loan.toLocaleString()}`} hint={`${depositPct}% deposit = £${deposit.toLocaleString()}`} />
+              <Result
+                label="Loan amount"
+                value={`£${loan.toLocaleString()}`}
+                hint={`${depositPct}% deposit = £${deposit.toLocaleString()}`}
+              />
               <Result
                 label="Rent coverage"
                 value={coverage != null ? `${coverage.toFixed(2)}×` : '—'}
-                hint={coverage != null && coverage < 1.25 ? 'Below typical 125% stress' : 'Vs monthly payment'}
+                hint={
+                  coverage != null && coverage < 1.25 ? 'Below typical 125% stress' : 'Vs monthly payment'
+                }
               />
               {!interestOnly && (
-                <Result label="Total repayable" value={`£${Math.round(payment * years * 12).toLocaleString()}`} />
+                <Result
+                  label="Total repayable"
+                  value={`£${Math.round(payment * years * 12).toLocaleString()}`}
+                />
               )}
             </>
           )}
@@ -221,7 +261,13 @@ export default function Tools() {
               <Result
                 label="Gross yield"
                 value={`${yields.grossYield}%`}
-                hint={prefs.targetYield == null ? 'No target set' : yields.grossYield >= prefs.targetYield ? `Meets your ${prefs.targetYield}% target` : `Target ${prefs.targetYield}%`}
+                hint={
+                  prefs.targetYield == null
+                    ? 'No target set'
+                    : yields.grossYield >= prefs.targetYield
+                      ? `Meets your ${prefs.targetYield}% target`
+                      : `Target ${prefs.targetYield}%`
+                }
               />
               <Result label="Net yield" value={`${yields.netYield}%`} hint="After annual costs" />
               <Result label="Annual rent" value={`£${yields.annualRent.toLocaleString()}`} />
@@ -232,16 +278,32 @@ export default function Tools() {
               <Result
                 label={`Estimated ${taxResult?.taxName || 'tax'}`}
                 value={`£${Math.round(sdlt).toLocaleString()}`}
-                hint={taxResult ? taxResult.breakdown.map((b) => `${b.label}: £${b.amount.toLocaleString()}`).join(' · ') : 'Unavailable'}
+                hint={
+                  taxResult
+                    ? taxResult.breakdown.map((b) => `${b.label}: £${b.amount.toLocaleString()}`).join(' · ')
+                    : 'Unavailable'
+                }
               />
               <Result label="Effective rate" value={`${price ? ((sdlt / price) * 100).toFixed(2) : 0}%`} />
-              <Result label="Total cash needed" value={`£${(deposit + Math.round(sdlt)).toLocaleString()}`} hint="Deposit + stamp (excl. fees)" />
+              <Result
+                label="Total cash needed"
+                value={`£${(deposit + Math.round(sdlt)).toLocaleString()}`}
+                hint="Deposit + stamp (excl. fees)"
+              />
             </>
           )}
           {tab === 'afford' && (
             <>
-              <Result label="Indicative max loan" value={`£${Math.round(maxLoan).toLocaleString()}`} hint="4.5 × income" />
-              <Result label="Max purchase with deposit" value={`£${Math.round(maxPrice).toLocaleString()}`} hint="Loan + cash deposit" />
+              <Result
+                label="Indicative max loan"
+                value={`£${Math.round(maxLoan).toLocaleString()}`}
+                hint="4.5 × income"
+              />
+              <Result
+                label="Max purchase with deposit"
+                value={`£${Math.round(maxPrice).toLocaleString()}`}
+                hint="Loan + cash deposit"
+              />
               <Result label="Your cash deposit" value={`£${depositCash.toLocaleString()}`} />
             </>
           )}

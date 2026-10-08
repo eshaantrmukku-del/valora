@@ -33,7 +33,7 @@ function renderAnswer(text) {
     while (rest.length) {
       const m = rest.match(/\*\*(.+?)\*\*/);
       if (!m) {
-        parts.push(<span key={key++}>{rest}</span>);
+        parts.push(<span key={key}>{rest}</span>);
         break;
       }
       const idx = rest.indexOf(m[0]);
@@ -66,7 +66,9 @@ export default function PropertyChat({ property, context, title = 'Continue the 
     setInput('');
     if (!cid) return;
     api(`/api/assistant/conversations/${cid}`)
-      .then((r) => setMessages(r.messages.map((m) => ({ role: m.role, text: m.text, at: m.id, tools: m.toolsUsed }))))
+      .then((r) =>
+        setMessages(r.messages.map((m) => ({ role: m.role, text: m.text, at: m.id, tools: m.toolsUsed }))),
+      )
       .catch(() => setConversationId(null));
   }, [scopeId]);
 
@@ -82,13 +84,31 @@ export default function PropertyChat({ property, context, title = 'Continue the 
     setInput('');
     setMessages((m) => [...m, { role: 'user', text: q, at: Date.now() }]);
     try {
-      const ctx = context || (property ? { analysisId: property.id, propertyId: property.propertyId, ...(property.briefId ? { briefId: property.briefId } : {}) } : undefined);
-      const r = await api('/api/assistant/messages', { method: 'POST', body: { conversationId, message: q, context: ctx } });
+      const ctx =
+        context ||
+        (property
+          ? {
+              analysisId: property.id,
+              propertyId: property.propertyId,
+              ...(property.briefId ? { briefId: property.briefId } : {}),
+            }
+          : undefined);
+      const r = await api('/api/assistant/messages', {
+        method: 'POST',
+        body: { conversationId, message: q, context: ctx },
+      });
       setConversationId(r.conversationId);
       rememberConversation(scopeId, r.conversationId);
-      setMessages((m) => [...m, { role: 'assistant', text: r.reply.text, at: Date.now() + 1, tools: r.reply.toolsUsed }]);
+      setMessages((m) => [
+        ...m,
+        { role: 'assistant', text: r.reply.text, at: Date.now() + 1, tools: r.reply.toolsUsed },
+      ]);
     } catch (err) {
-      setError(err.code === 'not_configured' ? 'The assistant needs an AI provider. Ask your administrator to configure ANTHROPIC_API_KEY.' : err.message);
+      setError(
+        err.code === 'not_configured'
+          ? 'The assistant needs an AI provider. Ask your administrator to configure ANTHROPIC_API_KEY.'
+          : err.message,
+      );
     } finally {
       setBusy(false);
     }
@@ -100,7 +120,8 @@ export default function PropertyChat({ property, context, title = 'Continue the 
         <div>
           <div className="prop-chat-title">{title}</div>
           <div className="prop-chat-sub">
-            {subtitle || 'Ask about this property. Answers use your workspace data and Valora’s calculator, and flag assumptions.'}
+            {subtitle ||
+              'Ask about this property. Answers use your workspace data and Valora’s calculator, and flag assumptions.'}
           </div>
         </div>
       </div>
@@ -124,10 +145,12 @@ export default function PropertyChat({ property, context, title = 'Continue the 
         {messages.map((m) => (
           <div key={`${m.at}-${m.role}`} className={`prop-chat-msg prop-chat-msg--${m.role}`}>
             <div className="prop-chat-role">{m.role === 'user' ? 'You' : 'Valora'}</div>
-            <div className="prop-chat-bubble">
-              {m.role === 'assistant' ? renderAnswer(m.text) : m.text}
-            </div>
-            {m.tools?.length > 0 && <div className="chat-tools">Looked up: {[...new Set(m.tools)].join(', ').replace(/_/g, ' ')}</div>}
+            <div className="prop-chat-bubble">{m.role === 'assistant' ? renderAnswer(m.text) : m.text}</div>
+            {m.tools?.length > 0 && (
+              <div className="chat-tools">
+                Looked up: {[...new Set(m.tools)].join(', ').replace(/_/g, ' ')}
+              </div>
+            )}
           </div>
         ))}
         <div ref={endRef} />

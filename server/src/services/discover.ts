@@ -44,11 +44,21 @@ export async function createSearchRun(params: {
     const [existing] = await db
       .select()
       .from(schema.searchRuns)
-      .where(and(eq(schema.searchRuns.userId, params.userId), eq(schema.searchRuns.idempotencyKey, params.idempotencyKey)));
+      .where(
+        and(
+          eq(schema.searchRuns.userId, params.userId),
+          eq(schema.searchRuns.idempotencyKey, params.idempotencyKey),
+        ),
+      );
     if (existing) return existing;
   }
   const blockers = searchReadiness(params.criteria);
-  if (blockers.length) throw new AppError('validation_failed', blockers[0]!, blockers.map((m) => ({ path: 'criteria.location', message: m })));
+  if (blockers.length)
+    throw new AppError(
+      'validation_failed',
+      blockers[0]!,
+      blockers.map((m) => ({ path: 'criteria.location', message: m })),
+    );
   const [run] = await db
     .insert(schema.searchRuns)
     .values({
@@ -75,13 +85,22 @@ function defaultRadius(g: GeoPoint, criteria: BriefCriteria): number {
 export function validateListing(l: ProviderListing): string | null {
   if (!l.providerListingId) return 'missing provider listing id';
   if (l.url && !/^https:\/\//.test(l.url)) return 'listing URL is not https';
-  if (l.facts.askingPrice != null && (l.facts.askingPrice < 1_000 || l.facts.askingPrice > 100_000_000)) return 'implausible asking price';
-  if (l.facts.bedrooms != null && (l.facts.bedrooms < 0 || l.facts.bedrooms > 30)) return 'implausible bedroom count';
+  if (l.facts.askingPrice != null && (l.facts.askingPrice < 1_000 || l.facts.askingPrice > 100_000_000))
+    return 'implausible asking price';
+  if (l.facts.bedrooms != null && (l.facts.bedrooms < 0 || l.facts.bedrooms > 30))
+    return 'implausible bedroom count';
   return null;
 }
 
-async function setStage(runId: string, stage: string, extra: Partial<typeof schema.searchRuns.$inferInsert> = {}) {
-  await getDb().update(schema.searchRuns).set({ stage, ...extra }).where(eq(schema.searchRuns.id, runId));
+async function setStage(
+  runId: string,
+  stage: string,
+  extra: Partial<typeof schema.searchRuns.$inferInsert> = {},
+) {
+  await getDb()
+    .update(schema.searchRuns)
+    .set({ stage, ...extra })
+    .where(eq(schema.searchRuns.id, runId));
 }
 
 export async function executeSearchRun(runId: string): Promise<void> {
@@ -100,8 +119,16 @@ export async function executeSearchRun(runId: string): Promise<void> {
       .set({
         status: 'failed',
         stage: 'No live listing provider configured',
-        error: 'No authorised live listing provider is configured. Add a PropertyData API key (see Settings → Integrations) to search live listings.',
-        providerStatus: [{ provider: 'PropertyData', status: 'not_configured', message: 'PROPERTYDATA_API_KEY not set', count: 0 }],
+        error:
+          'No authorised live listing provider is configured. Add a PropertyData API key (see Settings → Integrations) to search live listings.',
+        providerStatus: [
+          {
+            provider: 'PropertyData',
+            status: 'not_configured',
+            message: 'PROPERTYDATA_API_KEY not set',
+            count: 0,
+          },
+        ],
         finishedAt: new Date(),
       })
       .where(eq(schema.searchRuns.id, runId));
@@ -114,15 +141,32 @@ export async function executeSearchRun(runId: string): Promise<void> {
     try {
       const g = fixtureGeocode(place) ?? (await geocode(place));
       if (g) centres.push(g);
-      else statuses.push({ provider: 'Location lookup', status: 'failed', message: `Could not find “${place}”.`, count: 0 });
+      else
+        statuses.push({
+          provider: 'Location lookup',
+          status: 'failed',
+          message: `Could not find “${place}”.`,
+          count: 0,
+        });
     } catch (e) {
-      statuses.push({ provider: 'Location lookup', status: 'failed', message: `“${place}”: ${(e as Error).message}`, count: 0 });
+      statuses.push({
+        provider: 'Location lookup',
+        status: 'failed',
+        message: `“${place}”: ${(e as Error).message}`,
+        count: 0,
+      });
     }
   }
   if (!centres.length) {
     await db
       .update(schema.searchRuns)
-      .set({ status: 'failed', stage: 'Location not found', error: 'None of the brief’s locations could be resolved. Check the spelling or use a postcode.', providerStatus: statuses, finishedAt: new Date() })
+      .set({
+        status: 'failed',
+        stage: 'Location not found',
+        error: 'None of the brief’s locations could be resolved. Check the spelling or use a postcode.',
+        providerStatus: statuses,
+        finishedAt: new Date(),
+      })
       .where(eq(schema.searchRuns.id, runId));
     return;
   }
@@ -173,13 +217,22 @@ export async function executeSearchRun(runId: string): Promise<void> {
   if (!anyProviderOk) {
     await db
       .update(schema.searchRuns)
-      .set({ status: 'failed', stage: 'Providers unavailable', error: 'All listing providers failed. No results were produced. Try again later.', providerStatus: statuses, finishedAt: new Date() })
+      .set({
+        status: 'failed',
+        stage: 'Providers unavailable',
+        error: 'All listing providers failed. No results were produced. Try again later.',
+        providerStatus: statuses,
+        finishedAt: new Date(),
+      })
       .where(eq(schema.searchRuns.id, runId));
     return;
   }
 
   // 3. Persist and deduplicate
-  await setStage(runId, 'Checking listing details', { providerStatus: statuses, candidateCount: candidates.length });
+  await setStage(runId, 'Checking listing details', {
+    providerStatus: statuses,
+    candidateCount: candidates.length,
+  });
   const byProperty = new Map<string, { listingId: string }>();
   for (const l of candidates.slice(0, MAX_CANDIDATES)) {
     const { propertyId, listingId } = await upsertProviderListing(l);
@@ -196,7 +249,9 @@ export async function executeSearchRun(runId: string): Promise<void> {
   const prefs = await getPreferences(run.userId);
   const financing = financingFromPreferences(prefs).inputs;
   const ids = [...byProperty.keys()];
-  const props = ids.length ? await db.select().from(schema.properties).where(inArray(schema.properties.id, ids)) : [];
+  const props = ids.length
+    ? await db.select().from(schema.properties).where(inArray(schema.properties.id, ids))
+    : [];
   const ranked = await mapLimit(props, 4, async (p) => {
     let evidence = await latestEvidence(p.id);
     let facts: PropertyFacts = p.facts;
@@ -211,7 +266,9 @@ export async function executeSearchRun(runId: string): Promise<void> {
 
   const eligible = ranked
     .filter((r) => r.ranking.eligible)
-    .sort((a, b) => b.ranking.matchScore - a.ranking.matchScore || b.ranking.confidence - a.ranking.confidence)
+    .sort(
+      (a, b) => b.ranking.matchScore - a.ranking.matchScore || b.ranking.confidence - a.ranking.confidence,
+    )
     .slice(0, MAX_RESULTS);
 
   // 5. Persist results; mark which ones are new relative to earlier runs of the same brief
@@ -222,7 +279,13 @@ export async function executeSearchRun(runId: string): Promise<void> {
       .select({ propertyId: schema.searchResults.propertyId })
       .from(schema.searchResults)
       .innerJoin(schema.searchRuns, eq(schema.searchRuns.id, schema.searchResults.searchRunId))
-      .where(and(eq(schema.searchRuns.briefId, run.briefId), eq(schema.searchRuns.userId, run.userId), ne(schema.searchRuns.id, runId)));
+      .where(
+        and(
+          eq(schema.searchRuns.briefId, run.briefId),
+          eq(schema.searchRuns.userId, run.userId),
+          ne(schema.searchRuns.id, runId),
+        ),
+      );
     previouslySeen = new Set(prev.map((p) => p.propertyId));
   }
   if (eligible.length) {
@@ -258,7 +321,12 @@ export async function executeSearchRun(runId: string): Promise<void> {
     .where(eq(schema.searchRuns.id, runId));
 
   if (run.trigger === 'monitor' && run.briefId) {
-    await recordMonitorMatches(run.userId, run.briefId, run.briefName, eligible.map((r) => ({ propertyId: r.propertyId, facts: r.facts, matchScore: r.ranking.matchScore })));
+    await recordMonitorMatches(
+      run.userId,
+      run.briefId,
+      run.briefName,
+      eligible.map((r) => ({ propertyId: r.propertyId, facts: r.facts, matchScore: r.ranking.matchScore })),
+    );
   }
 }
 

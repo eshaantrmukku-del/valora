@@ -41,10 +41,17 @@ For each field return the value AND a short verbatim quote (copied exactly from 
 - serviceChargeAnnual / groundRentAnnual: annual £ amounts as stated (convert monthly to annual only if stated monthly).
 - keyFeatures: up to 12 short bullet-style features stated in the document.`;
 
-const norm = (s: string) => s.toLowerCase().replace(/[\s,£]+/g, ' ').trim();
+const norm = (s: string) =>
+  s
+    .toLowerCase()
+    .replace(/[\s,£]+/g, ' ')
+    .trim();
 
 /** Drop any value whose quote does not appear in the source text. */
-export function verifyAgainstSource(e: Extraction, source: string): { facts: Partial<PropertyFacts>; rejected: string[] } {
+export function verifyAgainstSource(
+  e: Extraction,
+  source: string,
+): { facts: Partial<PropertyFacts>; rejected: string[] } {
   const src = norm(source);
   const facts: Partial<PropertyFacts> = {};
   const rejected: string[] = [];
@@ -71,7 +78,10 @@ export function verifyAgainstSource(e: Extraction, source: string): { facts: Par
 export function extractWithRules(text: string): Extraction {
   const none = { value: null, quote: null };
   const q = (m: RegExpExecArray | null) => (m ? m[0] : null);
-  const price = /(?:guide price|offers in excess of|offers over|asking price|price|oiro|oieo)?[^£\n]{0,20}£\s?(\d{1,3}(?:,\d{3})+|\d{4,8})(?!\s?(?:pcm|per|pa|p\.a|a year|per annum))/i.exec(text);
+  const price =
+    /(?:guide price|offers in excess of|offers over|asking price|price|oiro|oieo)?[^£\n]{0,20}£\s?(\d{1,3}(?:,\d{3})+|\d{4,8})(?!\s?(?:pcm|per|pa|p\.a|a year|per annum))/i.exec(
+      text,
+    );
   const beds = /\b(\d{1,2})\s*(?:-\s*)?bed(?:room)?s?\b/i.exec(text);
   const baths = /\b(\d{1,2})\s*(?:-\s*)?bath(?:room)?s?\b/i.exec(text);
   const pc = /\b([A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2})\b/.exec(text);
@@ -81,7 +91,10 @@ export function extractWithRules(text: string): Extraction {
   const epc = /\bEPC(?: rating)?[:\s-]*([A-G])\b/i.exec(text);
   const ctax = /council tax band[:\s-]*([A-H])\b/i.exec(text);
   const lease = /(\d{2,3})\s*years?\s*(?:remaining|left|unexpired)/i.exec(text);
-  const type = /\b(semi[- ]detached|detached|end[- ]of[- ]terrace|terraced|terrace|bungalow|maisonette|flat|apartment|studio)\b/i.exec(text);
+  const type =
+    /\b(semi[- ]detached|detached|end[- ]of[- ]terrace|terraced|terrace|bungalow|maisonette|flat|apartment|studio)\b/i.exec(
+      text,
+    );
   const t = type ? mapPropertyType(type[1]) : null;
   return {
     address: none,
@@ -95,7 +108,9 @@ export function extractWithRules(text: string): Extraction {
       : sqft
         ? { value: Math.round(parseFloat(sqft[1]!) * 0.092903 * 10) / 10, quote: q(sqft) }
         : none,
-    tenure: tenure ? { value: tenure[1]!.toLowerCase().replace(/ /g, '_') as 'freehold', quote: q(tenure) } : none,
+    tenure: tenure
+      ? { value: tenure[1]!.toLowerCase().replace(/ /g, '_') as 'freehold', quote: q(tenure) }
+      : none,
     leaseYearsRemaining: lease ? { value: parseInt(lease[1]!, 10), quote: q(lease) } : none,
     epcRating: epc ? { value: epc[1]!.toUpperCase(), quote: q(epc) } : none,
     councilTaxBand: ctax ? { value: ctax[1]!.toUpperCase(), quote: q(ctax) } : none,
@@ -131,7 +146,12 @@ export async function extractFacts(text: string, userId: string, useAi: boolean,
   const origins: FactOrigins = {};
   const now = new Date().toISOString();
   for (const k of Object.keys(facts) as (keyof PropertyFacts)[]) {
-    origins[k] = { source: 'document', label: `${sourceLabel} (${method === 'ai' ? 'AI-extracted, quote-verified' : 'pattern-extracted'})`, url: null, retrievedAt: now };
+    origins[k] = {
+      source: 'document',
+      label: `${sourceLabel} (${method === 'ai' ? 'AI-extracted, quote-verified' : 'pattern-extracted'})`,
+      url: null,
+      retrievedAt: now,
+    };
   }
   return { facts, origins, method, model, rejected, quotes: extraction };
 }

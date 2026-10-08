@@ -58,7 +58,10 @@ const PATTERNS: Record<SignalKind, RegExp[]> = {
   planning_granted: [/\bplanning (?:permission )?(?:granted|approved|consent)\b/i, /\bwith planning\b/i],
   cash_buyers_only: [/\bcash buyers? only\b/i, /\bnon[- ]mortgageable\b/i, /\bunmortgageable\b/i],
   auction: [/\bauction\b/i, /\bmodern method of auction\b/i],
-  non_standard_construction: [/\bnon[- ]standard construction\b/i, /\b(?:prefab|pre-fabricated|concrete construction|timber[- ]framed?)\b/i],
+  non_standard_construction: [
+    /\bnon[- ]standard construction\b/i,
+    /\b(?:prefab|pre-fabricated|concrete construction|timber[- ]framed?)\b/i,
+  ],
   structural_concern: [
     /\bsubsidence\b/i,
     /\bunderpinn(?:ed|ing)\b/i,

@@ -54,7 +54,11 @@ export async function preferencesRoutes(app: FastifyInstance) {
     await getPreferences(me.id);
     await getDb()
       .update(schema.userPreferences)
-      .set({ ...prefs, updatedAt: new Date(), ...(completeOnboarding ? { onboardingCompletedAt: new Date() } : {}) })
+      .set({
+        ...prefs,
+        updatedAt: new Date(),
+        ...(completeOnboarding ? { onboardingCompletedAt: new Date() } : {}),
+      })
       .where(eq(schema.userPreferences.userId, me.id));
     return { preferences: await getPreferences(me.id) };
   });
@@ -63,7 +67,10 @@ export async function preferencesRoutes(app: FastifyInstance) {
   app.post('/api/preferences/skip-onboarding', async (req) => {
     const me = requireUser(req);
     await getPreferences(me.id);
-    await getDb().update(schema.userPreferences).set({ onboardingCompletedAt: new Date() }).where(eq(schema.userPreferences.userId, me.id));
+    await getDb()
+      .update(schema.userPreferences)
+      .set({ onboardingCompletedAt: new Date() })
+      .where(eq(schema.userPreferences.userId, me.id));
     return { ok: true };
   });
 }

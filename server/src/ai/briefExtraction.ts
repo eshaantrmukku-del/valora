@@ -32,11 +32,20 @@ export const AiBriefSchema = z.object({
   bathrooms: z.object({ minimum: z.number().int().nullable() }),
   requiredFeatures: z.array(z.string()),
   excludedFeatures: z.array(z.string()),
-  otherHardConstraints: z.array(z.string()).describe('Explicit requirements not captured by the structured fields'),
-  softPreferences: z.array(SoftPreferenceSchema.extend({ importance: z.number().describe('1 = nice to have, 3 = strongly preferred') })),
+  otherHardConstraints: z
+    .array(z.string())
+    .describe('Explicit requirements not captured by the structured fields'),
+  softPreferences: z.array(
+    SoftPreferenceSchema.extend({
+      importance: z.number().describe('1 = nice to have, 3 = strongly preferred'),
+    }),
+  ),
   investigationCriteria: z.array(InvestigationCriterionSchema),
   financialTargets: z.object({ minGrossYieldPct: n, minMonthlyCashFlow: n, minProfit: n }),
-  renovation: z.object({ appetite: z.enum(['none', 'cosmetic', 'moderate', 'extensive']).nullable(), maxBudget: n }),
+  renovation: z.object({
+    appetite: z.enum(['none', 'cosmetic', 'moderate', 'extensive']).nullable(),
+    maxBudget: n,
+  }),
   development: z.object({ extensionInterest: z.boolean(), loftConversionInterest: z.boolean() }),
   risk: z.object({ tolerance: z.enum(['low', 'medium', 'high']).nullable() }),
   missingInformation: z.array(z.string()),
@@ -70,8 +79,13 @@ export function aiBriefToCriteria(a: AiBrief): BriefCriteria {
     bathrooms: a.bathrooms,
     requiredFeatures: a.requiredFeatures,
     excludedFeatures: a.excludedFeatures,
-    hardConstraints: a.otherHardConstraints.map((d) => HardConstraintSchema.parse({ kind: 'other', description: d })),
-    softPreferences: a.softPreferences.map((p) => ({ ...p, importance: Math.min(3, Math.max(1, Math.round(p.importance))) })),
+    hardConstraints: a.otherHardConstraints.map((d) =>
+      HardConstraintSchema.parse({ kind: 'other', description: d }),
+    ),
+    softPreferences: a.softPreferences.map((p) => ({
+      ...p,
+      importance: Math.min(3, Math.max(1, Math.round(p.importance))),
+    })),
     investigationCriteria: a.investigationCriteria,
     financialTargets: a.financialTargets,
     renovation: a.renovation,
@@ -123,5 +137,10 @@ export async function extractBriefWithAi(request: string, prefs: Preferences | n
     effort: 'low',
     fake: () => fakeFromRules(request),
   });
-  return { name: data.name.slice(0, 120), criteria: aiBriefToCriteria(data), model, promptVersion: BRIEF_PROMPT_VERSION };
+  return {
+    name: data.name.slice(0, 120),
+    criteria: aiBriefToCriteria(data),
+    model,
+    promptVersion: BRIEF_PROMPT_VERSION,
+  };
 }

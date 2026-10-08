@@ -71,7 +71,9 @@ export function summariseComparables(
       caveats,
     };
   }
-  let pool = evidence.comparables.filter((c) => c.price > 0 && lrTypeMatches(c.propertyType, subject.propertyType));
+  let pool = evidence.comparables.filter(
+    (c) => c.price > 0 && lrTypeMatches(c.propertyType, subject.propertyType),
+  );
   const established = pool.filter((c) => !c.newBuild);
   if (established.length >= 3) pool = established;
   const sameOut = subject.outcode
@@ -84,7 +86,8 @@ export function summariseComparables(
   if (used.length >= 10 && sameOut.length >= 5) confidence = 'high';
   else if (used.length >= 5) confidence = 'medium';
   else if (used.length >= 3) confidence = 'low';
-  if (sameOut.length < 5) caveats.push('Few sales in the same postcode district; the sample covers a wider area.');
+  if (sameOut.length < 5)
+    caveats.push('Few sales in the same postcode district; the sample covers a wider area.');
   return {
     count: used.length,
     median: median(prices),

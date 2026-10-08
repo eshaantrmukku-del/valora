@@ -85,31 +85,37 @@ export async function fetchSoldEvidence(params: {
   });
   if (lrType) q.set('propertyType', `http://landregistry.data.gov.uk/def/common/${lrType}`);
   const url = `https://landregistry.data.gov.uk/data/ppi/transaction-record.json?${q}`;
-  return cached('land_registry', `${params.district}|${lrType ?? 'any'}|${minDate.slice(0, 7)}`, 7 * 86_400, async () => {
-    const raw = Response.parse(await fetchJson(url, { timeoutMs: 20_000 }));
-    const comparables = raw.result.items
-      .map((it) => Item.safeParse(it))
-      .filter((r) => r.success)
-      .map((r) => r.data!)
-      .map((i) => {
-        const a = i.propertyAddress ?? {};
-        return {
-          price: i.pricePaid ?? 0,
-          date: toIsoDate(i.transactionDate) ?? '',
-          postcode: a.postcode ?? null,
-          address: [a.saon, a.paon, a.street, a.town].filter(Boolean).join(', ') || null,
-          propertyType: i.propertyType?.prefLabel?.[0]?._value ?? i.propertyType?._about?.split('/').pop() ?? null,
-          newBuild: Boolean(i.newBuild),
-          tenure: i.estateType?.prefLabel?.[0]?._value ?? null,
-        };
-      })
-      .filter((c) => c.price > 0 && c.date);
-    return {
-      source: 'HM Land Registry Price Paid Data',
-      sourceUrl: url,
-      retrievedAt: new Date().toISOString(),
-      scope: `${params.district}${lrType ? `, ${lrType}` : ''}, sales since ${minDate}`,
-      comparables,
-    } satisfies SoldEvidence;
-  });
+  return cached(
+    'land_registry',
+    `${params.district}|${lrType ?? 'any'}|${minDate.slice(0, 7)}`,
+    7 * 86_400,
+    async () => {
+      const raw = Response.parse(await fetchJson(url, { timeoutMs: 20_000 }));
+      const comparables = raw.result.items
+        .map((it) => Item.safeParse(it))
+        .filter((r) => r.success)
+        .map((r) => r.data!)
+        .map((i) => {
+          const a = i.propertyAddress ?? {};
+          return {
+            price: i.pricePaid ?? 0,
+            date: toIsoDate(i.transactionDate) ?? '',
+            postcode: a.postcode ?? null,
+            address: [a.saon, a.paon, a.street, a.town].filter(Boolean).join(', ') || null,
+            propertyType:
+              i.propertyType?.prefLabel?.[0]?._value ?? i.propertyType?._about?.split('/').pop() ?? null,
+            newBuild: Boolean(i.newBuild),
+            tenure: i.estateType?.prefLabel?.[0]?._value ?? null,
+          };
+        })
+        .filter((c) => c.price > 0 && c.date);
+      return {
+        source: 'HM Land Registry Price Paid Data',
+        sourceUrl: url,
+        retrievedAt: new Date().toISOString(),
+        scope: `${params.district}${lrType ? `, ${lrType}` : ''}, sales since ${minDate}`,
+        comparables,
+      } satisfies SoldEvidence;
+    },
+  );
 }

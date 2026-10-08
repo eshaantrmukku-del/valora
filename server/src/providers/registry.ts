@@ -31,6 +31,9 @@ export function aiInfo() {
     configured: Boolean(c.ANTHROPIC_API_KEY) || fake,
     provider: fake ? 'Test stub (not a real model)' : 'Anthropic Claude',
     model: fake ? 'fake' : c.ANTHROPIC_MODEL,
-    setup: c.ANTHROPIC_API_KEY || fake ? null : 'Set ANTHROPIC_API_KEY (from console.anthropic.com) to enable AI interpretation, narratives and the assistant.',
+    setup:
+      c.ANTHROPIC_API_KEY || fake
+        ? null
+        : 'Set ANTHROPIC_API_KEY (from console.anthropic.com) to enable AI interpretation, narratives and the assistant.',
   };
 }

@@ -259,9 +259,15 @@ export function deriveHardConstraints(c: BriefCriteria): BriefCriteria['hardCons
     out.push({ kind: 'location', description: `Located in ${places.join(' or ')}${radius}` });
   }
   if (c.budget.maximum != null)
-    out.push({ kind: 'max_price', description: `Asking price at or below £${c.budget.maximum.toLocaleString('en-GB')}` });
+    out.push({
+      kind: 'max_price',
+      description: `Asking price at or below £${c.budget.maximum.toLocaleString('en-GB')}`,
+    });
   if (c.budget.minimum != null)
-    out.push({ kind: 'min_price', description: `Asking price at or above £${c.budget.minimum.toLocaleString('en-GB')}` });
+    out.push({
+      kind: 'min_price',
+      description: `Asking price at or above £${c.budget.minimum.toLocaleString('en-GB')}`,
+    });
   if (c.bedrooms.minimum != null)
     out.push({ kind: 'min_bedrooms', description: `At least ${c.bedrooms.minimum} bedroom(s)` });
   if (c.bedrooms.maximum != null)
@@ -274,7 +280,8 @@ export function deriveHardConstraints(c: BriefCriteria): BriefCriteria['hardCons
       description: `Property type: ${c.propertyTypes.map((t) => PROPERTY_TYPE_LABELS[t]).join(', ')}`,
     });
   for (const f of c.requiredFeatures) out.push({ kind: 'required_feature', description: `Must have: ${f}` });
-  for (const f of c.excludedFeatures) out.push({ kind: 'excluded_feature', description: `Must not have: ${f}` });
+  for (const f of c.excludedFeatures)
+    out.push({ kind: 'excluded_feature', description: `Must not have: ${f}` });
   for (const h of c.hardConstraints) if (h.kind === 'other') out.push(h);
   return out;
 }
@@ -288,7 +295,8 @@ export function normaliseCriteria(input: BriefCriteria): BriefCriteria {
     location: {
       areas: uniq(c.location.areas.map((a) => a.trim()).filter(Boolean)),
       postcodes: uniq(c.location.postcodes.map((p) => p.trim().toUpperCase()).filter(Boolean)),
-      radiusMiles: c.location.radiusMiles != null ? Math.min(Math.max(c.location.radiusMiles, 0.5), 50) : null,
+      radiusMiles:
+        c.location.radiusMiles != null ? Math.min(Math.max(c.location.radiusMiles, 0.5), 50) : null,
     },
     propertyTypes: uniq(c.propertyTypes),
     requiredFeatures: uniq(c.requiredFeatures.map((s) => s.trim()).filter(Boolean)),
@@ -300,7 +308,12 @@ export function normaliseCriteria(input: BriefCriteria): BriefCriteria {
     clean.budget.minimum > clean.budget.maximum
   ) {
     throw new z.ZodError([
-      { code: 'custom', path: ['budget', 'minimum'], message: 'Minimum budget exceeds maximum budget', input: clean.budget },
+      {
+        code: 'custom',
+        path: ['budget', 'minimum'],
+        message: 'Minimum budget exceeds maximum budget',
+        input: clean.budget,
+      },
     ]);
   }
   clean.hardConstraints = deriveHardConstraints(clean);

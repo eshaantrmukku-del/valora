@@ -16,7 +16,7 @@ services:
     healthCheckPath: /api/health
     envVars:
       - key: NODE_VERSION
-        value: "22"
+        value: '22'
       - key: NODE_ENV
         value: production
       - key: DATABASE_URL
@@ -24,7 +24,7 @@ services:
           name: valora-db
           property: connectionString
       - key: RUN_WORKER
-        value: "true"
+        value: 'true'
       - key: APP_URL
         sync: false # e.g. https://valora.vercel.app (or this Render URL if you don't use Vercel)
       - key: ANTHROPIC_API_KEY

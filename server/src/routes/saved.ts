@@ -20,7 +20,12 @@ export async function savedRoutes(app: FastifyInstance) {
       .where(eq(schema.savedProperties.userId, me.id))
       .orderBy(desc(schema.savedProperties.createdAt));
     const latest = await db
-      .selectDistinctOn([schema.analyses.propertyId], { propertyId: schema.analyses.propertyId, id: schema.analyses.id, ranking: schema.analyses.ranking, briefName: schema.analyses.briefName })
+      .selectDistinctOn([schema.analyses.propertyId], {
+        propertyId: schema.analyses.propertyId,
+        id: schema.analyses.id,
+        ranking: schema.analyses.ranking,
+        briefName: schema.analyses.briefName,
+      })
       .from(schema.analyses)
       .where(eq(schema.analyses.userId, me.id))
       .orderBy(schema.analyses.propertyId, desc(schema.analyses.createdAt));
@@ -38,7 +43,14 @@ export async function savedRoutes(app: FastifyInstance) {
           createdAt: s.createdAt.toISOString(),
           facts: p.facts,
           isPrivate: p.ownerUserId != null,
-          latestAnalysis: a ? { id: a.id, briefName: a.briefName, matchScore: a.ranking.matchScore, confidence: a.ranking.confidence } : null,
+          latestAnalysis: a
+            ? {
+                id: a.id,
+                briefName: a.briefName,
+                matchScore: a.ranking.matchScore,
+                confidence: a.ranking.confidence,
+              }
+            : null,
         };
       }),
     };
@@ -46,15 +58,30 @@ export async function savedRoutes(app: FastifyInstance) {
 
   app.post('/api/saved', async (req) => {
     const me = requireUser(req);
-    const body = parse(z.object({ propertyId: z.string().uuid(), briefId: z.string().uuid().nullable().optional(), note: z.string().max(2_000).nullable().optional() }), req.body);
+    const body = parse(
+      z.object({
+        propertyId: z.string().uuid(),
+        briefId: z.string().uuid().nullable().optional(),
+        note: z.string().max(2_000).nullable().optional(),
+      }),
+      req.body,
+    );
     await getAccessibleProperty(me.id, body.propertyId);
     if (body.briefId) await getOwnedBrief(me.id, body.briefId);
     const [row] = await getDb()
       .insert(schema.savedProperties)
-      .values({ userId: me.id, propertyId: body.propertyId, briefId: body.briefId ?? null, note: body.note ?? null })
+      .values({
+        userId: me.id,
+        propertyId: body.propertyId,
+        briefId: body.briefId ?? null,
+        note: body.note ?? null,
+      })
       .onConflictDoUpdate({
         target: [schema.savedProperties.userId, schema.savedProperties.propertyId],
-        set: { ...(body.briefId !== undefined ? { briefId: body.briefId } : {}), ...(body.note !== undefined ? { note: body.note } : {}) },
+        set: {
+          ...(body.briefId !== undefined ? { briefId: body.briefId } : {}),
+          ...(body.note !== undefined ? { note: body.note } : {}),
+        },
       })
       .returning();
     return { saved: { id: row!.id } };
@@ -86,9 +113,15 @@ export async function savedRoutes(app: FastifyInstance) {
     const me = requireUser(req);
     const { id } = parse(IdParam, req.params);
     const db = getDb();
-    const byRow = await db.delete(schema.savedProperties).where(and(eq(schema.savedProperties.id, id), eq(schema.savedProperties.userId, me.id))).returning();
+    const byRow = await db
+      .delete(schema.savedProperties)
+      .where(and(eq(schema.savedProperties.id, id), eq(schema.savedProperties.userId, me.id)))
+      .returning();
     if (!byRow.length) {
-      const byProp = await db.delete(schema.savedProperties).where(and(eq(schema.savedProperties.propertyId, id), eq(schema.savedProperties.userId, me.id))).returning();
+      const byProp = await db
+        .delete(schema.savedProperties)
+        .where(and(eq(schema.savedProperties.propertyId, id), eq(schema.savedProperties.userId, me.id)))
+        .returning();
       if (!byProp.length) throw notFound('Saved property');
     }
     return { ok: true };

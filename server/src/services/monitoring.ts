@@ -29,7 +29,10 @@ export async function scheduleDueMonitors(now = new Date()): Promise<number> {
       .returning({ id: schema.monitors.id });
     if (!claimed.length) continue;
     if (b.status !== 'active') {
-      await db.update(schema.monitors).set({ lastStatus: 'skipped', lastError: 'Brief is inactive' }).where(eq(schema.monitors.id, m.id));
+      await db
+        .update(schema.monitors)
+        .set({ lastStatus: 'skipped', lastError: 'Brief is inactive' })
+        .where(eq(schema.monitors.id, m.id));
       continue;
     }
     try {
@@ -41,10 +44,16 @@ export async function scheduleDueMonitors(now = new Date()): Promise<number> {
         trigger: 'monitor',
         idempotencyKey: `monitor:${m.id}:${now.toISOString().slice(0, 13)}`,
       });
-      await db.update(schema.monitors).set({ lastRunAt: now, lastStatus: 'scheduled', lastError: null }).where(eq(schema.monitors.id, m.id));
+      await db
+        .update(schema.monitors)
+        .set({ lastRunAt: now, lastStatus: 'scheduled', lastError: null })
+        .where(eq(schema.monitors.id, m.id));
       scheduled++;
     } catch (e) {
-      await db.update(schema.monitors).set({ lastRunAt: now, lastStatus: 'failed', lastError: (e as Error).message }).where(eq(schema.monitors.id, m.id));
+      await db
+        .update(schema.monitors)
+        .set({ lastRunAt: now, lastStatus: 'failed', lastError: (e as Error).message })
+        .where(eq(schema.monitors.id, m.id));
     }
   }
   return scheduled;
@@ -57,11 +66,17 @@ export async function recordMonitorMatches(
   results: { propertyId: string; facts: PropertyFacts; matchScore: number }[],
 ) {
   const db = getDb();
-  const [monitor] = await db.select().from(schema.monitors).where(and(eq(schema.monitors.briefId, briefId), eq(schema.monitors.userId, userId)));
+  const [monitor] = await db
+    .select()
+    .from(schema.monitors)
+    .where(and(eq(schema.monitors.briefId, briefId), eq(schema.monitors.userId, userId)));
   if (!monitor) return;
   const ids = results.map((r) => r.propertyId);
   const seen = ids.length
-    ? await db.select().from(schema.monitorSeen).where(and(eq(schema.monitorSeen.monitorId, monitor.id), inArray(schema.monitorSeen.propertyId, ids)))
+    ? await db
+        .select()
+        .from(schema.monitorSeen)
+        .where(and(eq(schema.monitorSeen.monitorId, monitor.id), inArray(schema.monitorSeen.propertyId, ids)))
     : [];
   const [{ count: everSeen } = { count: 0 }] = await db
     .select({ count: sql<number>`count(*)::int` })
@@ -112,5 +127,8 @@ export async function recordMonitorMatches(
       dedupeKey: `baseline:${monitor.id}`,
     });
   }
-  await db.update(schema.monitors).set({ lastStatus: `completed (${newCount} new)`, lastError: null }).where(eq(schema.monitors.id, monitor.id));
+  await db
+    .update(schema.monitors)
+    .set({ lastStatus: `completed (${newCount} new)`, lastError: null })
+    .where(eq(schema.monitors.id, monitor.id));
 }

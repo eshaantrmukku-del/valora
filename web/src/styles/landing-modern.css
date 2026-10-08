@@ -13,7 +13,9 @@
   --vx-blue-soft: #e8f1ff;
   --vx-good: #0d9f6e;
   --vx-good-bg: #e7f8f1;
-  --vx-font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --vx-font:
+    -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Helvetica, Arial,
+    sans-serif;
   --vx-ease: cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
@@ -87,7 +89,9 @@ body.landing-route {
   font-weight: 500;
   color: var(--vx-muted);
   text-decoration: none;
-  transition: color 0.2s ease, background 0.2s ease;
+  transition:
+    color 0.2s ease,
+    background 0.2s ease;
 }
 
 .vx-nav-link:hover {
@@ -113,7 +117,9 @@ body.landing-route {
   font-weight: 560;
   text-decoration: none;
   background: #fff;
-  transition: border-color 0.2s ease, background 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease;
 }
 
 .vx-signin:hover {
@@ -174,8 +180,14 @@ body.landing-route {
 }
 
 @keyframes vxIn {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .vx-badge {
@@ -272,7 +284,9 @@ body.landing-route {
   font-family: inherit;
   cursor: pointer;
   text-decoration: none;
-  transition: background 0.2s ease, transform 0.2s var(--vx-ease);
+  transition:
+    background 0.2s ease,
+    transform 0.2s var(--vx-ease);
 }
 
 .vx-analyse-btn:hover {
@@ -545,7 +559,10 @@ body.landing-route {
   font-size: 14px;
   font-weight: 600;
   text-decoration: none;
-  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
 }
 
 .vx-card-cta:hover {
@@ -754,9 +771,7 @@ body.auth-route {
   display: grid;
   place-items: center;
   padding: 32px 20px;
-  background:
-    radial-gradient(700px 360px at 50% -10%, rgba(0, 107, 255, 0.12), transparent 55%),
-    #f5f7fa;
+  background: radial-gradient(700px 360px at 50% -10%, rgba(0, 107, 255, 0.12), transparent 55%), #f5f7fa;
 }
 
 .auth-card {
@@ -896,7 +911,9 @@ body.auth-route {
 }
 
 @keyframes authSpin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .vx-nav-authed {
@@ -940,7 +957,9 @@ body.auth-route {
   background: #fff;
   border: 1px solid rgba(15, 23, 42, 0.06);
   box-shadow: 0 8px 28px rgba(15, 23, 42, 0.06);
-  transition: transform 0.25s var(--vx-ease), box-shadow 0.25s ease;
+  transition:
+    transform 0.25s var(--vx-ease),
+    box-shadow 0.25s ease;
 }
 
 .vx-path-card:hover {
@@ -988,7 +1007,9 @@ body.auth-route {
   font-size: 14px;
   font-weight: 650;
   text-decoration: none;
-  transition: background 0.2s ease, color 0.2s ease;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
 }
 
 .vx-path-btn:hover {
@@ -996,14 +1017,34 @@ body.auth-route {
   color: #fff;
 }
 
-.vx-feature--blue .vx-feature-icon { background: #dbeafe; border-color: #93c5fd; }
-.vx-feature--blue .vx-feature-icon::before { background: #2563eb; }
-.vx-feature--teal .vx-feature-icon { background: #ccfbf1; border-color: #5eead4; }
-.vx-feature--teal .vx-feature-icon::before { background: #0d9488; }
-.vx-feature--amber .vx-feature-icon { background: #fef3c7; border-color: #fcd34d; }
-.vx-feature--amber .vx-feature-icon::before { background: #d97706; }
-.vx-feature--rose .vx-feature-icon { background: #ffe4e6; border-color: #fda4af; }
-.vx-feature--rose .vx-feature-icon::before { background: #e11d48; }
+.vx-feature--blue .vx-feature-icon {
+  background: #dbeafe;
+  border-color: #93c5fd;
+}
+.vx-feature--blue .vx-feature-icon::before {
+  background: #2563eb;
+}
+.vx-feature--teal .vx-feature-icon {
+  background: #ccfbf1;
+  border-color: #5eead4;
+}
+.vx-feature--teal .vx-feature-icon::before {
+  background: #0d9488;
+}
+.vx-feature--amber .vx-feature-icon {
+  background: #fef3c7;
+  border-color: #fcd34d;
+}
+.vx-feature--amber .vx-feature-icon::before {
+  background: #d97706;
+}
+.vx-feature--rose .vx-feature-icon {
+  background: #ffe4e6;
+  border-color: #fda4af;
+}
+.vx-feature--rose .vx-feature-icon::before {
+  background: #e11d48;
+}
 
 .vx-feature-icon {
   position: relative;
@@ -1017,15 +1058,32 @@ body.auth-route {
   display: block;
 }
 
-.vx-feature-icon svg { display: none; }
+.vx-feature-icon svg {
+  display: none;
+}
 
-.vx-how-card--blue { background: linear-gradient(180deg, #eff6ff, #fff); border-color: #bfdbfe; }
-.vx-how-card--teal { background: linear-gradient(180deg, #f0fdfa, #fff); border-color: #99f6e4; }
-.vx-how-card--amber { background: linear-gradient(180deg, #fffbeb, #fff); border-color: #fde68a; }
+.vx-how-card--blue {
+  background: linear-gradient(180deg, #eff6ff, #fff);
+  border-color: #bfdbfe;
+}
+.vx-how-card--teal {
+  background: linear-gradient(180deg, #f0fdfa, #fff);
+  border-color: #99f6e4;
+}
+.vx-how-card--amber {
+  background: linear-gradient(180deg, #fffbeb, #fff);
+  border-color: #fde68a;
+}
 
-.vx-how-card--blue .vx-how-n { color: #2563eb; }
-.vx-how-card--teal .vx-how-n { color: #0d9488; }
-.vx-how-card--amber .vx-how-n { color: #d97706; }
+.vx-how-card--blue .vx-how-n {
+  color: #2563eb;
+}
+.vx-how-card--teal .vx-how-n {
+  color: #0d9488;
+}
+.vx-how-card--amber .vx-how-n {
+  color: #d97706;
+}
 
 .vx {
   background:

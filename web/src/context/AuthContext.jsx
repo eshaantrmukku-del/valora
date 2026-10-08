@@ -1,5 +1,10 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { fetchCurrentUser, logout as authLogout, signIn as authSignIn, signUp as authSignUp } from '../lib/auth';
+import {
+  fetchCurrentUser,
+  logout as authLogout,
+  signIn as authSignIn,
+  signUp as authSignUp,
+} from '../lib/auth';
 
 const AuthContext = createContext(null);
 
