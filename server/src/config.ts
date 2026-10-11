@@ -20,6 +20,8 @@ const EnvSchema = z.object({
 
   DATABASE_URL: z.string().min(1).default('postgres://valora:valora@localhost:5432/valora'),
   DATABASE_SSL: bool,
+  /** Max connections per process. Keep low (e.g. 5) on Supabase's free tier pooler. */
+  DATABASE_POOL_MAX: z.coerce.number().int().min(1).max(50).default(10),
   /** Apply pending migrations when the web process starts. */
   MIGRATE_ON_START: bool,
 

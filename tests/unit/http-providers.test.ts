@@ -238,3 +238,14 @@ describe('AI grounding and extraction safety', () => {
     expect(sniffType(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x00]))).toBeNull();
   });
 });
+
+describe('database connection settings', async () => {
+  const { needsTls, connectionStringFor } = await import('../../server/src/db/client');
+  it('enables TLS automatically for Supabase and strips sslmode', () => {
+    const url = 'postgresql://postgres.abc:pw@aws-0-eu-west-2.pooler.supabase.com:5432/postgres?sslmode=require';
+    expect(needsTls(url, false)).toBe(true);
+    expect(connectionStringFor(url, true)).not.toMatch(/sslmode/);
+    expect(needsTls('postgres://valora:valora@localhost:5432/valora', false)).toBe(false);
+    expect(needsTls('postgres://u:p@db.example.com/x', true)).toBe(true);
+  });
+});
